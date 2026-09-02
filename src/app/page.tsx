@@ -69,7 +69,9 @@ export default async function HomePage() {
                 {link.icon}
               </span>
               <span className="font-serif font-semibold text-stone-900">{link.title}</span>
-              <span className="text-sm text-stone-500">{link.description}</span>
+              {/* Espaço explícito: sem ele, leitores de tela concatenam título e
+                  descrição sem pausa ("BíbliaNavegue por..."). */}
+              <span className="text-sm text-stone-500">{" "}{link.description}</span>
             </Link>
           ))}
         </div>

@@ -1,7 +1,15 @@
 WORK\_STATUS — Biblioteca Virtual de Estudos Bíblicos
 
 ESTADO ATUAL
-Marco 1 (protótipo visual) funcionalmente completo e navegável: todas as 12 rotas previstas existem, `next build` roda sem erros (123 páginas, a maioria SSG), 45 testes automatizados passam, lint e `tsc --noEmit` limpos. Falta apenas: testes de página/rota com Testing Library, `.env.example`/stub Supabase, e o `CLAUDE.md` definitivo na raiz (ver PENDÊNCIAS IMEDIATAS).
+**MARCO 1 CONCLUÍDO.** MVP profissional e navegável, com Next.js 16 + TypeScript + Tailwind v4, dados 100% mockados, busca local funcional (lexical + parser de referências + filtros), navegação por Bíblia/temas/personagens/séries, página individual de estudo, arquitetura preparada para Supabase (camada de repositórios + stub), testes automatizados (61 testes) e `next build` limpo (123 páginas). Nenhuma das funcionalidades da lista "NÃO IMPLEMENTAR AINDA" foi tocada. Ver `docs/ROADMAP.md` — próximo é a FASE 2 (banco real).
+
+CONCLUÍDO (sessão de 2026-09-02, checkpoint 4 — fechamento do Marco 1)
+- Testes de página/rota (Testing Library) para home, `/busca` (referência reconhecida, filtro sem texto, estado vazio), `/estudo/[slug]` (renderização + 404 para slug inexistente e para estudo DRAFT), `/biblia`, `/biblia/[livro]` e `/biblia/[livro]/[capitulo]` (capítulo com/sem estudos, 404 para livro/capítulo inválido). Total do projeto: 61 testes, todos passando.
+- Bug de acessibilidade encontrado pelo próprio teste da home e corrigido: os cards de "Navegar por" concatenavam título e descrição sem espaço para leitores de tela ("BíbliaNavegue..."); corrigido em `src/app/page.tsx`.
+- `.env.example` criado com as 3 variáveis Supabase documentadas (não lidas por nenhum código ativo). Corrigido `.gitignore`: o padrão `.env*` estava também ignorando `.env.example`; adicionado `!.env.example`.
+- `src/lib/supabase/client.ts`: stub não importado por nenhum código ativo, documentando o ponto de entrada exato que a Fase 2 vai preencher.
+- `CLAUDE.md` definitivo criado na raiz (mantendo `@AGENTS.md` no topo, que o próprio `next dev` regenera): missão, ordem de leitura da documentação, regras de arquitetura, o que não implementar ainda, fluxo de qualidade obrigatório (tsc/eslint/vitest/build a cada mudança relevante), convenções de código e mapa do repositório.
+- Checagem final: `npx tsc --noEmit`, `npx eslint`, `npx vitest run` (61 testes) e `npm run build` (123 páginas) todos limpos, executados após todas as mudanças acima.
 
 CONCLUÍDO (sessão de 2026-09-02, checkpoint 3 — UI e páginas)
 - Componentes em `src/components/`: `Header` (nav + busca), `Footer`, `SearchForm` (form GET reutilizável, funciona sem JS), `StudyCard` (título, referência principal, resumo, temas, série — conforme docs/SEARCH_SPEC.md §6), `Badge`, `Breadcrumbs`, `EmptyState`.
@@ -40,46 +48,49 @@ CONCLUÍDO (checkpoint anterior, mesma sessão)
 DECISÕES TOMADAS NESTA SESSÃO
 Ver docs/DECISIONS.md — DEC-008 (camada de repositório para preparar Supabase), DEC-009 (Vitest como framework de testes), DEC-010 (busca 100% local/em memória no Marco 1), DEC-011 (dados mockados versionados como código TypeScript, não JSON solto), DEC-012 (Marco 1 usa apenas tema claro — sem dark mode automático).
 
-PENDÊNCIAS IMEDIATAS (próximo passo exato)
-1. Testes de página/rota (Testing Library) para: home (renderiza busca + cards), `/busca` (query textual, referência reconhecida, referência ambígua, filtros, estado vazio), `/estudo/[slug]` (404 para slug inexistente/DRAFT). Usar `render` do Testing Library sobre os Server Components async (ver nota abaixo).
-2. Criar `.env.example` com variáveis Supabase comentadas/não usadas (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) e um stub `src/lib/supabase/client.ts` não importado por nada ativo, só para preparar a Fase 2.
-3. Criar `CLAUDE.md` na raiz com as regras permanentes de continuidade (substituindo o CLAUDE.md genérico gerado pelo create-next-app, que hoje só contém `@AGENTS.md`).
-4. Rodar lint + testes + `next build` mais uma vez após os itens acima, corrigir o que aparecer, e fazer o commit final do Marco 1.
-5. Revisão final: reler este WORK_STATUS.md e confirmar que todo item do "PRIMEIRO MARCO" (docs/CLAUDE_START.md) está de fato coberto antes de declarar o marco concluído.
+PENDÊNCIAS IMEDIATAS (próximo passo exato — início da FASE 2 do roadmap)
+1. Ler docs/ROADMAP.md (Fase 2 — Banco real) e docs/DATA_MODEL.md antes de tocar em código.
+2. Decidir e documentar em docs/DECISIONS.md: schema/migrations do Supabase (tabelas espelhando `src/lib/types.ts`), estratégia de migrations (SQL puro vs. Supabase CLI), e como popular o banco inicial (reaproveitar `src/lib/data/*` como seed?).
+3. `npm install @supabase/supabase-js` e implementar `getSupabaseClient` em `src/lib/supabase/client.ts` (hoje um stub que lança erro de propósito).
+4. Implementar `Supabase*Repository` para cada interface em `src/lib/repositories/types.ts`, trocar as instâncias em `src/lib/repositories/index.ts` (esse é o único arquivo que UI/rotas/busca dependem — não deve ser necessário tocar em `src/app/**` nem `src/components/**`).
+5. Preencher `.env.local` a partir de `.env.example` (nunca commitar `.env.local`).
+6. Manter os testes de `src/lib/repositories/mock.test.ts` como estão (cobrem a implementação mock) e adicionar testes equivalentes para a implementação Supabase quando ela existir (idealmente contra um banco de teste, não mockando o cliente).
+7. Repetir o fluxo de qualidade (tsc/eslint/vitest/build) e atualizar este arquivo a cada etapa concluída — não esperar a Fase 2 inteira terminar para o primeiro commit.
 
-NOTA TÉCNICA para o próximo passo (testes de página): as páginas em `src/app/**/page.tsx` são Server Components `async` que chamam os repositórios diretamente. Testar com Testing Library exige `render(await PageComponent({ params: ..., searchParams: ... }))` (chamando a função e aguardando a Promise antes de passar a `render`), já que Vitest/RTL não executa o pipeline de Server Components do Next. Isso já funciona para componentes client/estáticos; para as páginas async, resolva a função primeiro.
+NOTA TÉCNICA (testes de página, útil para a Fase 2 também): as páginas em `src/app/**/page.tsx` são Server Components `async` que chamam os repositórios diretamente. Testar com Testing Library exige `render(await PageComponent({ params: ..., searchParams: ... }))` (chamando a função e aguardando a Promise antes de passar a `render`), já que Vitest/RTL não executa o pipeline de Server Components do Next. Ver exemplos em `src/app/page.test.tsx`, `src/app/busca/page.test.tsx`, `src/app/estudo/[slug]/page.test.tsx` e `src/app/biblia/biblia.test.tsx`.
 
 NÃO IMPLEMENTAR AINDA
 RAG. Embeddings. Chatbot. pgvector operacional. Ingestão automática do Google Drive. Importação do acervo real. Publicação automática. Autenticação pública. Pagamentos.
 
-ARQUIVOS CRIADOS/ALTERADOS NESTA SESSÃO (acumulado, ver commits para detalhe por checkpoint)
+ARQUIVOS CRIADOS/ALTERADOS NA SESSÃO DE 2026-09-02 (acumulado; ver `git log` para detalhe por checkpoint/commit)
 - Scaffold completo do create-next-app + vitest.config.ts/vitest.setup.ts.
 - src/lib/types.ts, src/lib/search/{normalize,reference,referenceParser,search}.ts (+ .test.ts).
 - src/lib/data/{books,topics,characters,series,studies}.ts (+ studies.test.ts).
 - src/lib/repositories/{types,mock,index}.ts (+ mock.test.ts).
-- src/lib/site.ts.
+- src/lib/site.ts, src/lib/supabase/client.ts (stub, Fase 2).
 - src/components/{Header,Footer,SearchForm,StudyCard,Badge,Breadcrumbs,EmptyState}.tsx.
-- src/app/layout.tsx, globals.css, not-found.tsx, page.tsx (home).
-- src/app/busca/page.tsx.
-- src/app/biblia/page.tsx, biblia/[livro]/page.tsx, biblia/[livro]/[capitulo]/page.tsx.
+- src/app/layout.tsx, globals.css, not-found.tsx, page.tsx (+ page.test.tsx).
+- src/app/busca/page.tsx (+ page.test.tsx).
+- src/app/biblia/page.tsx, biblia/[livro]/page.tsx, biblia/[livro]/[capitulo]/page.tsx (+ biblia.test.tsx).
 - src/app/temas/page.tsx, temas/[slug]/page.tsx.
 - src/app/personagens/page.tsx, personagens/[slug]/page.tsx.
 - src/app/series/page.tsx, series/[slug]/page.tsx.
-- src/app/estudo/[slug]/page.tsx.
+- src/app/estudo/[slug]/page.tsx (+ page.test.tsx).
 - src/app/admin/page.tsx.
-- next.config.ts (turbopack.root), .claude/launch.json.
+- next.config.ts (turbopack.root), .claude/launch.json, .env.example, .gitignore (exceção para .env.example).
+- CLAUDE.md (raiz, definitivo).
 - docs/WORK_STATUS.md (este arquivo), docs/DECISIONS.md (DEC-008 a DEC-012).
 
 ERROS ENCONTRADOS
-Nenhum erro pendente. `npx tsc --noEmit`, `npx eslint`, `npx vitest run` e `next build` passam limpos neste checkpoint.
-Bugs encontrados e corrigidos durante o desenvolvimento (nenhum pendente): (1) busca por filtro sem texto retornava lista vazia — corrigido; (2) teste do parser assumia que "jo" sem acento deveria ser ambíguo — corrigido o teste; (3) tema escuro automático do sistema quebrava contraste na home (ver DEC-012) — corrigido via inspeção visual no navegador.
+Nenhum erro pendente ao final da sessão. `npx tsc --noEmit`, `npx eslint`, `npx vitest run` (61 testes) e `npm run build` (123 páginas) passam limpos.
+Bugs encontrados e corrigidos durante o desenvolvimento (nenhum pendente): (1) busca por filtro sem texto retornava lista vazia — corrigido; (2) teste do parser assumia que "jo" sem acento deveria ser ambíguo — corrigido o teste, pois o comportamento correto é resolver por convenção de acento; (3) tema escuro automático do sistema quebrava contraste na home — corrigido (DEC-012); (4) `.env.example` estava sendo ignorado pelo `.gitignore` (`padrão .env*`) — corrigido com exceção; (5) cards da home concatenavam texto sem espaço para leitores de tela — corrigido.
 
-TESTES EXECUTADOS
+TESTES EXECUTADOS (estado final da sessão)
 - `npx tsc --noEmit` → sem erros.
 - `npx eslint` → sem erros/avisos.
-- `npx vitest run` → 4 arquivos, 45 testes, todos passando (studies.test.ts, mock.test.ts, referenceParser.test.ts, search.test.ts). Ainda NÃO há testes de página/rota (Testing Library) — é a pendência nº 1.
-- `next build` → sucesso, 123 páginas geradas, sem erros nem avisos.
-- Verificação visual manual (Claude Browser): home, /busca?q=João 3:16, /estudo/nicodemos-e-o-novo-nascimento, /biblia/joao/3, viewport mobile (375px) — todos renderizando corretamente.
+- `npx vitest run` → 8 arquivos, 61 testes, todos passando: studies.test.ts, mock.test.ts, referenceParser.test.ts, search.test.ts, page.test.tsx (home), busca/page.test.tsx, estudo/[slug]/page.test.tsx, biblia/biblia.test.tsx.
+- `npm run build` → sucesso, 123 páginas geradas, sem erros nem avisos.
+- Verificação visual manual (Claude Browser): home, /busca?q=João 3:16, /estudo/nicodemos-e-o-novo-nascimento, /biblia/joao/3, viewport mobile (375px) — todos corretos.
 
 PROTOCOLO DE CONTINUIDADE PARA CLAUDE
 No início de cada nova sessão, ler CLAUDE.md (raiz), ARCHITECTURE, DATA_MODEL, SEARCH_SPEC, INGESTION_SPEC, DECISIONS, ROADMAP e este WORK_STATUS.md, nesta ordem.
