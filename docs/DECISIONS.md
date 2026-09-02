@@ -46,5 +46,9 @@ DEC-011 — Dados mockados versionados como código TypeScript
 Decisão: manter os dados fictícios do MVP como módulos TypeScript tipados em `src/lib/data/`, não como arquivos JSON soltos.  
 Motivo: validação de tipos em tempo de compilação (integridade referencial entre estudo↔livro↔tema↔personagem↔série) e facilidade de importação/testes, sem necessidade de parsing.
 
+DEC-012 — Marco 1 usa apenas tema claro  
+Decisão: remover a alternância automática para tema escuro via `prefers-color-scheme` no CSS global; a UI usa classes Tailwind fixas (ex.: `text-stone-900`, `bg-white`) desenhadas apenas para tema claro.  
+Motivo: o template gerado pelo `create-next-app` trocava as variáveis `--background`/--foreground` no modo escuro do sistema, mas os componentes não usam essas variáveis — o resultado era texto escuro sobre fundo escuro (contraste quebrado), encontrado por inspeção visual no navegador. Suporte a tema escuro completo (com todas as classes adaptadas) fica para uma iteração futura de design, fora do escopo do Marco 1.
+
 REGRA  
 Novas decisões arquiteturais relevantes devem ser registradas aqui antes ou junto da implementação.  

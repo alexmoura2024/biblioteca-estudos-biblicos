@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fafaf9;
+  --foreground: #1c1917;
 }
 
 @theme inline {
@@ -10,17 +10,25 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-serif);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/*
+ * Este protótipo (Marco 1) usa apenas tema claro: os componentes usam
+ * classes utilitárias fixas (text-stone-900, bg-white etc.), não as
+ * variáveis --background/--foreground abaixo do corpo. Herdar
+ * automaticamente o tema escuro do sistema aqui quebraria o contraste
+ * sem que o resto da UI tivesse sido desenhado para isso. Suporte a
+ * tema escuro completo fica para uma iteração futura de design.
+ */
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Foco visível e consistente para navegação por teclado (acessibilidade). */
+:focus-visible {
+  outline: 2px solid #b45309;
+  outline-offset: 2px;
 }

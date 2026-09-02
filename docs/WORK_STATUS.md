@@ -1,9 +1,22 @@
 WORK\_STATUS — Biblioteca Virtual de Estudos Bíblicos
 
 ESTADO ATUAL
-Marco 1 (protótipo visual) em andamento. Projeto Next.js criado e funcional. Dados mockados, modelo de domínio, repositórios e motor de busca (lexical + parser de referências + filtros) concluídos e testados. Componentes de UI e páginas ainda pendentes (ver PENDÊNCIAS IMEDIATAS).
+Marco 1 (protótipo visual) funcionalmente completo e navegável: todas as 12 rotas previstas existem, `next build` roda sem erros (123 páginas, a maioria SSG), 45 testes automatizados passam, lint e `tsc --noEmit` limpos. Falta apenas: testes de página/rota com Testing Library, `.env.example`/stub Supabase, e o `CLAUDE.md` definitivo na raiz (ver PENDÊNCIAS IMEDIATAS).
 
-CONCLUÍDO (sessão de 2026-09-02)
+CONCLUÍDO (sessão de 2026-09-02, checkpoint 3 — UI e páginas)
+- Componentes em `src/components/`: `Header` (nav + busca), `Footer`, `SearchForm` (form GET reutilizável, funciona sem JS), `StudyCard` (título, referência principal, resumo, temas, série — conforme docs/SEARCH_SPEC.md §6), `Badge`, `Breadcrumbs`, `EmptyState`.
+- `src/lib/site.ts` com config de navegação/metadados do site.
+- Layout raiz (`src/app/layout.tsx`) com fonte serif (Lora) + sans (Geist), `lang="pt-BR"`, skip-link de acessibilidade, `<Header>`/`<Footer>` fixos.
+- Todas as 12 rotas do Marco 1 implementadas: `/`, `/busca`, `/biblia`, `/biblia/[livro]`, `/biblia/[livro]/[capitulo]`, `/temas`, `/temas/[slug]`, `/personagens`, `/personagens/[slug]`, `/series`, `/series/[slug]`, `/estudo/[slug]`, `/admin` (placeholder, sem auth). Todas consomem os repositórios de `src/lib/repositories`, nunca os dados mockados diretamente. `not-found.tsx` global também criado.
+- `/busca` usa `searchStudies` com formulário de filtros (livro/testamento/tema/personagem/série) via GET, e trata o caso de referência ambígua (mostra links de desambiguação) e referência reconhecida (banner informativo).
+- `generateStaticParams` + `generateMetadata` em todas as rotas dinâmicas de entidade (livro, tema, personagem, série, estudo); `/biblia/[livro]/[capitulo]` fica dinâmica sob demanda de propósito (evita gerar ~1189 páginas estáticas).
+- Bug encontrado e corrigido via inspeção visual no navegador: o CSS gerado pelo create-next-app tinha um bloco `@media (prefers-color-scheme: dark)` que trocava `--background`/`--foreground` globalmente, mas os componentes usam classes Tailwind fixas (text-stone-900 etc.) — em ambiente com tema escuro do sistema, isso quebrava o contraste (texto escuro sobre fundo escuro). Removido; o Marco 1 usa apenas tema claro por decisão (ver DEC-012 em docs/DECISIONS.md).
+- `next.config.ts`: adicionado `turbopack.root` para eliminar aviso de workspace root ambíguo (havia um package-lock.json em pasta acima do repositório Git).
+- `.claude/launch.json` criado para permitir rodar `npm run dev` via preview do Claude Code.
+- Verificação visual manual no navegador: home, busca (com reconhecimento de referência "João 3:16"), página de estudo, navegação Bíblia→livro→capítulo, e layout mobile (375px) — todos corretos.
+- `next build` limpo: 123 páginas (rotas estáticas + SSG para livros/temas/personagens/séries/estudos; `/busca` e `/biblia/[livro]/[capitulo]` dinâmicas sob demanda). `npx eslint`, `npx tsc --noEmit` e `npx vitest run` (45 testes) continuam limpos.
+
+CONCLUÍDO (sessão de 2026-09-02, checkpoint 2)
 - Camada de repositórios (`src/lib/repositories/`): interfaces `StudyRepository`/`BookRepository`/`TopicRepository`/`CharacterRepository`/`SeriesRepository` (`types.ts`), implementação em memória `Mock*Repository` (`mock.ts`), e ponto único de composição (`index.ts`) que páginas devem importar — é ali que a Fase 2 troca para Supabase. Todos os métodos são `async` mesmo sendo síncronos hoje, para já ter a assinatura definitiva.
 - Parser de referências bíblicas (Fase B) em `src/lib/search/referenceParser.ts`: reconhece "João 3:16", "Jo 3.16", "João 3 16", "Lucas 22:47-52", livro sozinho, livro+capítulo, abreviações com/sem espaço ("1Sm 17:32"), case/acento-insensível. Resolve a ambiguidade real do cânon ("Jo" x "Jó") pela presença do acento (convenção padrão), com fallback estrutural para ambiguidade genuína caso surjam colisões futuras. Guarda contra falso-positivo de abreviações de 2 letras que coincidem com palavras comuns do português (ex.: "Os" de Oséias vs. artigo "os") — só interpreta como referência se vier seguida de número ou for a consulta inteira.
 - Motor de busca (Fase A lexical + filtros Fase C) em `src/lib/search/search.ts`: combina referência (peso máximo) com título/tema/personagem/palavra-chave/resumo/conteúdo (pesos decrescentes, conforme docs/SEARCH_SPEC.md §5), aplica filtros por livro/testamento/tema/personagem/série, e suporta "navegação por filtro puro" (sem texto) quando ao menos um filtro está ativo.
@@ -25,39 +38,48 @@ CONCLUÍDO (checkpoint anterior, mesma sessão)
 - Teste `src/lib/data/studies.test.ts` cobrindo contagem de estudos publicados (12–20), unicidade de slugs, integridade referencial (livros/temas existentes) e cobertura AT+NT. `npm run test` e `npx eslint` passam sem erros. `npx tsc --noEmit` sem erros.
 
 DECISÕES TOMADAS NESTA SESSÃO
-Ver docs/DECISIONS.md — DEC-008 (camada de repositório para preparar Supabase), DEC-009 (Vitest como framework de testes), DEC-010 (busca 100% local/em memória no Marco 1), DEC-011 (dados mockados versionados como código TypeScript, não JSON solto).
+Ver docs/DECISIONS.md — DEC-008 (camada de repositório para preparar Supabase), DEC-009 (Vitest como framework de testes), DEC-010 (busca 100% local/em memória no Marco 1), DEC-011 (dados mockados versionados como código TypeScript, não JSON solto), DEC-012 (Marco 1 usa apenas tema claro — sem dark mode automático).
 
 PENDÊNCIAS IMEDIATAS (próximo passo exato)
-1. Construir componentes de UI reutilizáveis em `src/components/` (Header/nav com busca, SearchBar, StudyCard, Breadcrumbs, EmptyState, Footer, Badge para tema/personagem/série).
-2. Construir as rotas do App Router, nesta ordem: `/` (home + busca) → `/busca` (usa `searchStudies`) → `/biblia` → `/biblia/[livro]` → `/biblia/[livro]/[capitulo]` → `/temas` → `/temas/[slug]` → `/personagens` → `/personagens/[slug]` → `/series` → `/series/[slug]` → `/estudo/[slug]` → `/admin` (placeholder "em construção", sem autenticação real). Todas devem consumir os repositórios de `src/lib/repositories`, nunca os dados mockados diretamente.
-3. Testes de página/rota (Testing Library) para home, busca (inclusive caso de referência bíblica e caso de ambiguidade) e página de estudo.
-4. Criar `.env.example` com variáveis Supabase comentadas/não usadas (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) e um stub `src/lib/supabase/client.ts` não importado por nada ativo, só para preparar a Fase 2.
-5. Rodar lint + testes + `next build` ao final e corrigir eventuais erros (build ainda não foi executado nesta sessão).
-6. Criar `CLAUDE.md` na raiz com as regras permanentes de continuidade (substituindo o CLAUDE.md genérico gerado pelo create-next-app, que hoje só contém `@AGENTS.md`).
-7. Continuar fazendo commits pequenos a cada etapa concluída (2 já feitos: scaffold+dados mockados; repositórios+motor de busca).
+1. Testes de página/rota (Testing Library) para: home (renderiza busca + cards), `/busca` (query textual, referência reconhecida, referência ambígua, filtros, estado vazio), `/estudo/[slug]` (404 para slug inexistente/DRAFT). Usar `render` do Testing Library sobre os Server Components async (ver nota abaixo).
+2. Criar `.env.example` com variáveis Supabase comentadas/não usadas (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) e um stub `src/lib/supabase/client.ts` não importado por nada ativo, só para preparar a Fase 2.
+3. Criar `CLAUDE.md` na raiz com as regras permanentes de continuidade (substituindo o CLAUDE.md genérico gerado pelo create-next-app, que hoje só contém `@AGENTS.md`).
+4. Rodar lint + testes + `next build` mais uma vez após os itens acima, corrigir o que aparecer, e fazer o commit final do Marco 1.
+5. Revisão final: reler este WORK_STATUS.md e confirmar que todo item do "PRIMEIRO MARCO" (docs/CLAUDE_START.md) está de fato coberto antes de declarar o marco concluído.
+
+NOTA TÉCNICA para o próximo passo (testes de página): as páginas em `src/app/**/page.tsx` são Server Components `async` que chamam os repositórios diretamente. Testar com Testing Library exige `render(await PageComponent({ params: ..., searchParams: ... }))` (chamando a função e aguardando a Promise antes de passar a `render`), já que Vitest/RTL não executa o pipeline de Server Components do Next. Isso já funciona para componentes client/estáticos; para as páginas async, resolva a função primeiro.
 
 NÃO IMPLEMENTAR AINDA
 RAG. Embeddings. Chatbot. pgvector operacional. Ingestão automática do Google Drive. Importação do acervo real. Publicação automática. Autenticação pública. Pagamentos.
 
-ARQUIVOS CRIADOS/ALTERADOS NESTA SESSÃO
-- Scaffold completo do create-next-app (package.json, tsconfig.json, next.config.ts, eslint.config.mjs, src/app/layout.tsx, src/app/page.tsx, src/app/globals.css, public/*).
-- vitest.config.ts, vitest.setup.ts
-- src/lib/types.ts
-- src/lib/search/normalize.ts
-- src/lib/search/reference.ts
-- src/lib/data/books.ts, topics.ts, characters.ts, series.ts, studies.ts, studies.test.ts
-- docs/WORK_STATUS.md (este arquivo)
-- docs/DECISIONS.md (DEC-008 a DEC-011)
+ARQUIVOS CRIADOS/ALTERADOS NESTA SESSÃO (acumulado, ver commits para detalhe por checkpoint)
+- Scaffold completo do create-next-app + vitest.config.ts/vitest.setup.ts.
+- src/lib/types.ts, src/lib/search/{normalize,reference,referenceParser,search}.ts (+ .test.ts).
+- src/lib/data/{books,topics,characters,series,studies}.ts (+ studies.test.ts).
+- src/lib/repositories/{types,mock,index}.ts (+ mock.test.ts).
+- src/lib/site.ts.
+- src/components/{Header,Footer,SearchForm,StudyCard,Badge,Breadcrumbs,EmptyState}.tsx.
+- src/app/layout.tsx, globals.css, not-found.tsx, page.tsx (home).
+- src/app/busca/page.tsx.
+- src/app/biblia/page.tsx, biblia/[livro]/page.tsx, biblia/[livro]/[capitulo]/page.tsx.
+- src/app/temas/page.tsx, temas/[slug]/page.tsx.
+- src/app/personagens/page.tsx, personagens/[slug]/page.tsx.
+- src/app/series/page.tsx, series/[slug]/page.tsx.
+- src/app/estudo/[slug]/page.tsx.
+- src/app/admin/page.tsx.
+- next.config.ts (turbopack.root), .claude/launch.json.
+- docs/WORK_STATUS.md (este arquivo), docs/DECISIONS.md (DEC-008 a DEC-012).
 
 ERROS ENCONTRADOS
-Nenhum erro pendente. `npx tsc --noEmit`, `npx eslint` e `npm run test` passam limpos neste checkpoint.
-Durante o desenvolvimento, dois bugs de lógica foram encontrados e corrigidos pelos próprios testes antes do commit: (1) busca por filtro sem texto retornava lista vazia — corrigido para tratar filtro ativo sem texto como navegação válida; (2) teste do parser assumia que "jo" sem acento deveria ser ambíguo — corrigido o teste, pois o comportamento real (resolver por convenção de acento) é o correto.
+Nenhum erro pendente. `npx tsc --noEmit`, `npx eslint`, `npx vitest run` e `next build` passam limpos neste checkpoint.
+Bugs encontrados e corrigidos durante o desenvolvimento (nenhum pendente): (1) busca por filtro sem texto retornava lista vazia — corrigido; (2) teste do parser assumia que "jo" sem acento deveria ser ambíguo — corrigido o teste; (3) tema escuro automático do sistema quebrava contraste na home (ver DEC-012) — corrigido via inspeção visual no navegador.
 
 TESTES EXECUTADOS
 - `npx tsc --noEmit` → sem erros.
 - `npx eslint` → sem erros/avisos.
-- `npx vitest run` → 4 arquivos, 45 testes, todos passando (studies.test.ts, mock.test.ts, referenceParser.test.ts, search.test.ts).
-- `next build` ainda NÃO foi executado nesta sessão — só há uma página placeholder até aqui. Deixar para depois de construir as rotas reais (próximo passo).
+- `npx vitest run` → 4 arquivos, 45 testes, todos passando (studies.test.ts, mock.test.ts, referenceParser.test.ts, search.test.ts). Ainda NÃO há testes de página/rota (Testing Library) — é a pendência nº 1.
+- `next build` → sucesso, 123 páginas geradas, sem erros nem avisos.
+- Verificação visual manual (Claude Browser): home, /busca?q=João 3:16, /estudo/nicodemos-e-o-novo-nascimento, /biblia/joao/3, viewport mobile (375px) — todos renderizando corretamente.
 
 PROTOCOLO DE CONTINUIDADE PARA CLAUDE
 No início de cada nova sessão, ler CLAUDE.md (raiz), ARCHITECTURE, DATA_MODEL, SEARCH_SPEC, INGESTION_SPEC, DECISIONS, ROADMAP e este WORK_STATUS.md, nesta ordem.
