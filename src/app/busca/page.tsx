@@ -166,6 +166,7 @@ export default async function BuscaPage({ searchParams }: BuscaPageProps) {
                   bookName: parsedQuery.invalidReference.book.nome,
                   totalCapitulos: parsedQuery.invalidReference.book.totalCapitulos,
                   capitulo: parsedQuery.invalidReference.capitulo,
+                  versiculoMaximo: parsedQuery.invalidReference.versiculoMaximo,
                 })}
               </p>
             </div>

@@ -1,4 +1,5 @@
 import { books } from "@/lib/data/books";
+import { getMaxVerse } from "@/lib/data/bibleVerseLimits";
 import type { Book } from "@/lib/types";
 import { normalizeText } from "@/lib/search/normalize";
 
@@ -33,13 +34,22 @@ import { normalizeText } from "@/lib/search/normalize";
  * números sem sentido — o chamador decide como comunicar isso ao usuário
  * (ver `src/lib/search/queryParsing.ts`), mas nunca deve exibir algo como
  * "Referência reconhecida: João 999:999".
+ *
+ * Validação canônica de versículo máximo (Marco 1.2, ponto 3): quando o
+ * capítulo está documentado em `src/lib/data/bibleVerseLimits.ts`, um
+ * versículo além do último versículo real do capítulo (ex.: "João 3:37"
+ * — João 3 tem 36 versículos) também é `{ type: "invalid" }`. Essa
+ * tabela é deliberadamente parcial (ver o arquivo para o porquê); para
+ * um capítulo fora dela, este limite simplesmente não é checado — nunca
+ * inventamos um número.
  */
 
 /** Motivo de uma referência estruturalmente inválida — ver `parseReference`. */
 export type InvalidReferenceReason =
   | "capitulo_fora_do_intervalo"
   | "versiculo_menor_que_um"
-  | "intervalo_de_versiculos_invertido";
+  | "intervalo_de_versiculos_invertido"
+  | "versiculo_acima_do_maximo_do_capitulo";
 
 export type ParsedReference =
   | { type: "book"; book: Book; matchedText: string }
@@ -211,6 +221,22 @@ export function parseReference(query: string): ParsedReference {
       versiculoInicio,
       versiculoFim,
       reason: "intervalo_de_versiculos_invertido",
+      matchedText: fullMatch,
+    };
+  }
+
+  // Limite canônico de versículos do capítulo (só quando documentado —
+  // ver src/lib/data/bibleVerseLimits.ts). Um versículo inicial ou final
+  // além do último versículo real do capítulo nunca é "reconhecido".
+  const maxVerse = getMaxVerse(book.slug, capitulo);
+  if (maxVerse !== undefined && (versiculoInicio > maxVerse || (versiculoFim ?? versiculoInicio) > maxVerse)) {
+    return {
+      type: "invalid",
+      book,
+      capitulo,
+      versiculoInicio,
+      versiculoFim,
+      reason: "versiculo_acima_do_maximo_do_capitulo",
       matchedText: fullMatch,
     };
   }

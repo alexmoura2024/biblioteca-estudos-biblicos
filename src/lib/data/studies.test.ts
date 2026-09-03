@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { allStudies, publishedStudies } from "@/lib/data/studies";
 import { books } from "@/lib/data/books";
+import { getMaxVerse } from "@/lib/data/bibleVerseLimits";
 
 describe("dados mockados de estudos", () => {
   it("tem entre 12 e 20 estudos publicados publicamente", () => {
@@ -34,5 +35,21 @@ describe("dados mockados de estudos", () => {
     );
     expect(testamentos.has("AT")).toBe(true);
     expect(testamentos.has("NT")).toBe(true);
+  });
+
+  it("nenhuma passagem mockada excede o limite canônico de versículos do capítulo (quando documentado)", () => {
+    // Rede de segurança: se src/lib/data/bibleVerseLimits.ts documentar um
+    // capítulo que também aparece em um estudo mockado, os dois precisam
+    // concordar — um conflito aqui pegaria um erro de transcrição em
+    // qualquer um dos dois lados antes que ele virasse um bug de produto.
+    for (const study of allStudies) {
+      for (const { book, passage } of study.passagens) {
+        const maxVerse = getMaxVerse(book.slug, passage.capitulo);
+        if (maxVerse === undefined) continue;
+        const versiculoFinal = passage.versiculoFim ?? passage.versiculoInicio;
+        if (versiculoFinal === undefined) continue;
+        expect(versiculoFinal).toBeLessThanOrEqual(maxVerse);
+      }
+    }
   });
 });

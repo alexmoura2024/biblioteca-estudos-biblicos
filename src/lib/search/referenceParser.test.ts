@@ -164,4 +164,55 @@ describe("parseReference", () => {
       expect(result).toMatchObject({ type: "verse", versiculoInicio: 16, versiculoFim: 16 });
     });
   });
+
+  describe("validação canônica de versículo máximo por capítulo (Marco 1.2)", () => {
+    // João 3 tem 36 versículos (src/lib/data/bibleVerseLimits.ts).
+    it("aceita o último versículo válido do capítulo: João 3:36", () => {
+      const result = parseReference("João 3:36");
+      expect(result).toMatchObject({ type: "verse", capitulo: 3, versiculoInicio: 36 });
+    });
+
+    it("rejeita o primeiro versículo acima do limite: João 3:37", () => {
+      const result = parseReference("João 3:37");
+      expect(result).toMatchObject({
+        type: "invalid",
+        reason: "versiculo_acima_do_maximo_do_capitulo",
+        capitulo: 3,
+        versiculoInicio: 37,
+      });
+    });
+
+    it("rejeita um intervalo cujo final excede o capítulo: João 3:30-40", () => {
+      const result = parseReference("João 3:30-40");
+      expect(result).toMatchObject({
+        type: "invalid",
+        reason: "versiculo_acima_do_maximo_do_capitulo",
+        versiculoInicio: 30,
+        versiculoFim: 40,
+      });
+    });
+
+    it("rejeita capítulo válido com versículo inválido: Salmos 23:7 (o salmo só tem 6 versículos)", () => {
+      const result = parseReference("Salmos 23:7");
+      expect(result).toMatchObject({
+        type: "invalid",
+        reason: "versiculo_acima_do_maximo_do_capitulo",
+        capitulo: 23,
+        versiculoInicio: 7,
+      });
+    });
+
+    it("mantém reconhecidas as referências já suportadas (não regride)", () => {
+      expect(parseReference("João 3:16")).toMatchObject({ type: "verse", versiculoInicio: 16 });
+      expect(parseReference("Lucas 22:47-52")).toMatchObject({ type: "verse", versiculoInicio: 47, versiculoFim: 52 });
+      expect(parseReference("Romanos 8:39")).toMatchObject({ type: "verse", versiculoInicio: 39 }); // exatamente o último versículo do capítulo.
+    });
+
+    it("não aplica limite de versículo a um capítulo fora da tabela documentada (não inventa dado)", () => {
+      // Mateus 13 não está em VERSE_LIMITS — nenhum limite superior é
+      // conhecido, então um versículo alto não é rejeitado por este motivo.
+      const result = parseReference("Mateus 13:999");
+      expect(result.type).not.toBe("invalid");
+    });
+  });
 });

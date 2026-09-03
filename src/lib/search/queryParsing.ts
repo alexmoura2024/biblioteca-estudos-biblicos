@@ -1,4 +1,5 @@
 import { parseReference, type InvalidReferenceReason } from "@/lib/search/referenceParser";
+import { getMaxVerse } from "@/lib/data/bibleVerseLimits";
 import type { NormalizedReference } from "@/lib/repositories/types";
 import type { Book } from "@/lib/types";
 
@@ -26,6 +27,8 @@ export interface ParsedSearchQuery {
     versiculoFim?: number;
     reason: InvalidReferenceReason;
     matchedText: string;
+    /** Preenchido só quando `reason` é `versiculo_acima_do_maximo_do_capitulo` — o último versículo real do capítulo, para a mensagem da UI. */
+    versiculoMaximo?: number;
   };
 }
 
@@ -53,6 +56,10 @@ export function parseSearchQuery(rawQuery: string): ParsedSearchQuery {
           versiculoFim: parsed.versiculoFim,
           reason: parsed.reason,
           matchedText: parsed.matchedText,
+          versiculoMaximo:
+            parsed.reason === "versiculo_acima_do_maximo_do_capitulo"
+              ? getMaxVerse(parsed.book.slug, parsed.capitulo)
+              : undefined,
         },
       };
 
@@ -94,10 +101,22 @@ export function parseSearchQuery(rawQuery: string): ParsedSearchQuery {
   }
 }
 
+interface InvalidReferenceMessageContext {
+  bookName: string;
+  totalCapitulos: number;
+  capitulo: number;
+  /** Só relevante para `versiculo_acima_do_maximo_do_capitulo`. */
+  versiculoMaximo?: number;
+}
+
 /** Mensagens amigáveis para cada motivo de referência inválida — usadas pela UI. */
-export const INVALID_REFERENCE_MESSAGES: Record<InvalidReferenceReason, (ctx: { bookName: string; totalCapitulos: number; capitulo: number }) => string> = {
+export const INVALID_REFERENCE_MESSAGES: Record<InvalidReferenceReason, (ctx: InvalidReferenceMessageContext) => string> = {
   capitulo_fora_do_intervalo: ({ bookName, totalCapitulos, capitulo }) =>
     `${bookName} tem ${totalCapitulos} capítulo${totalCapitulos === 1 ? "" : "s"}; o capítulo ${capitulo} não existe.`,
   versiculo_menor_que_um: () => "O número do versículo precisa ser maior ou igual a 1.",
   intervalo_de_versiculos_invertido: () => "O versículo final do intervalo não pode ser menor que o inicial.",
+  versiculo_acima_do_maximo_do_capitulo: ({ bookName, capitulo, versiculoMaximo }) =>
+    versiculoMaximo != null
+      ? `${bookName} ${capitulo} tem ${versiculoMaximo} versículo${versiculoMaximo === 1 ? "" : "s"}; esse versículo não existe.`
+      : `Esse versículo não existe em ${bookName} ${capitulo}.`,
 };
