@@ -1,8 +1,11 @@
 import { vi } from "vitest";
 
 /**
- * Duplo de teste do cliente Supabase, usado só pelos testes em
- * `src/lib/repositories/supabase/*.test.ts`.
+ * Duplo de teste do cliente Supabase — usado pelos testes em
+ * `src/lib/repositories/supabase/*.test.ts` (Fase 2, papel `anon`) e por
+ * `src/lib/ingestion/supabaseIngestionRepository.test.ts` (Fase 3, papel
+ * `service_role`). O duplo em si é agnóstico a qual cliente real está
+ * sendo substituído — só precisa saber quais tabelas/RPCs a chamada usa.
  *
  * IMPORTANTE — o que isto prova e o que não prova: estes testes
  * verificam que cada repositório monta a consulta certa (tabela,
@@ -33,7 +36,25 @@ export interface MockSupabaseConfig {
   rpc?: MockTableResponse;
 }
 
-const CHAIN_METHODS = ["select", "eq", "neq", "in", "order", "limit", "gt", "gte", "lt", "lte"] as const;
+const CHAIN_METHODS = [
+  "select",
+  "eq",
+  "neq",
+  "in",
+  "order",
+  "limit",
+  "gt",
+  "gte",
+  "lt",
+  "lte",
+  // Fase 3 (ingestão) precisa de métodos de escrita, além da leitura já
+  // usada pelos repositórios públicos (Fase 2) — mesma filosofia deste
+  // duplo de teste: encadeia e devolve `result` no `.then()`.
+  "upsert",
+  "insert",
+  "update",
+  "delete",
+] as const;
 
 function buildQueryBuilder(result: MockTableResponse) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

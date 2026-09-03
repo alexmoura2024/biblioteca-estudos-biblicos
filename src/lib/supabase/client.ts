@@ -2,17 +2,16 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Cliente Supabase público (papel `anon`), sujeito a RLS — ver
- * docs/DECISIONS.md, DEC-020. Este é o ÚNICO cliente Supabase que este
- * projeto instancia até agora: não existe (e não deve existir, por
- * enquanto) nenhum cliente com `SUPABASE_SERVICE_ROLE_KEY` em lugar
- * nenhum do código — administração/ingestão são fora de escopo da
- * Fase 2 (ver docs/WORK_STATUS.md). Quando essa camada existir, o
- * cliente de serviço vai para um módulo server-only separado (nunca
- * este arquivo, que pode ser importado por código que roda no cliente).
+ * docs/DECISIONS.md, DEC-020. Usado por `src/lib/repositories/supabase/*`
+ * — nunca importado diretamente por uma página ou componente (mesma
+ * regra de sempre: toda leitura de dados passa pelos repositórios,
+ * CLAUDE.md §3).
  *
- * Usado por `src/lib/repositories/supabase/*` — nunca importado
- * diretamente por uma página ou componente (mesma regra de sempre:
- * toda leitura de dados passa pelos repositórios, CLAUDE.md §3).
+ * O cliente `service_role` (Fase 3 — ingestão) vive em
+ * `src/lib/supabase/serviceClient.ts`, um módulo separado deste de
+ * propósito: nunca importe `serviceClient.ts` de nada que possa rodar no
+ * browser ou ser alcançado por uma rota pública — só de scripts de
+ * ingestão/administração (`scripts/`), server-only.
  */
 let cachedClient: SupabaseClient | undefined;
 
