@@ -208,11 +208,55 @@ describe("parseReference", () => {
       expect(parseReference("Romanos 8:39")).toMatchObject({ type: "verse", versiculoInicio: 39 }); // exatamente o último versículo do capítulo.
     });
 
-    it("não aplica limite de versículo a um capítulo fora da tabela documentada (não inventa dado)", () => {
-      // Mateus 13 não está em VERSE_LIMITS — nenhum limite superior é
-      // conhecido, então um versículo alto não é rejeitado por este motivo.
-      const result = parseReference("Mateus 13:999");
-      expect(result.type).not.toBe("invalid");
+    // Cobertura distribuída entre Antigo e Novo Testamento (Marco 1.2:
+    // a tabela cobre os 66 livros, não só João) — o último versículo
+    // real de cada capítulo é aceito, e o primeiro além dele é rejeitado.
+    it.each([
+      ["Gênesis", 1, 31],
+      ["Salmos", 119, 176], // o maior capítulo da Bíblia
+      ["Isaías", 53, 12],
+      ["João", 3, 36],
+      ["Apocalipse", 22, 21],
+    ] as const)("%s %i: último versículo (%i) válido, seguinte inválido", (livro, capitulo, ultimoVersiculo) => {
+      const valido = parseReference(`${livro} ${capitulo}:${ultimoVersiculo}`);
+      expect(valido).toMatchObject({ type: "verse", capitulo, versiculoInicio: ultimoVersiculo });
+
+      const invalido = parseReference(`${livro} ${capitulo}:${ultimoVersiculo + 1}`);
+      expect(invalido).toMatchObject({
+        type: "invalid",
+        reason: "versiculo_acima_do_maximo_do_capitulo",
+        capitulo,
+        versiculoInicio: ultimoVersiculo + 1,
+      });
+    });
+
+    it("rejeita um intervalo do Antigo Testamento cujo final excede o capítulo: Gênesis 1:30-32", () => {
+      const result = parseReference("Gênesis 1:30-32");
+      expect(result).toMatchObject({
+        type: "invalid",
+        reason: "versiculo_acima_do_maximo_do_capitulo",
+        versiculoInicio: 30,
+        versiculoFim: 32,
+      });
+    });
+
+    it("rejeita um intervalo do Novo Testamento cujo final excede o capítulo: Apocalipse 22:20-22", () => {
+      const result = parseReference("Apocalipse 22:20-22");
+      expect(result).toMatchObject({
+        type: "invalid",
+        reason: "versiculo_acima_do_maximo_do_capitulo",
+        versiculoInicio: 20,
+        versiculoFim: 22,
+      });
+    });
+
+    it("cobertura completa: todo capítulo real de todo livro tem um limite conhecido (nenhum fail-open)", () => {
+      for (const book of books) {
+        for (let capitulo = 1; capitulo <= book.totalCapitulos; capitulo++) {
+          const alemDoLimite = parseReference(`${book.nome} ${capitulo}:9999`);
+          expect(alemDoLimite.type).toBe("invalid");
+        }
+      }
     });
   });
 });

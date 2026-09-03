@@ -37,10 +37,11 @@ describe("dados mockados de estudos", () => {
     expect(testamentos.has("NT")).toBe(true);
   });
 
-  it("nenhuma passagem mockada excede o limite canônico de versículos do capítulo (quando documentado)", () => {
-    // Rede de segurança: se src/lib/data/bibleVerseLimits.ts documentar um
-    // capítulo que também aparece em um estudo mockado, os dois precisam
-    // concordar — um conflito aqui pegaria um erro de transcrição em
+  it("nenhuma passagem mockada excede o limite canônico de versículos do capítulo", () => {
+    // Rede de segurança: src/lib/data/bibleVerseLimits.ts cobre os 66
+    // livros por completo (Marco 1.2), então esta checagem vale para
+    // toda passagem mockada, não só as que "por acaso" estavam numa
+    // tabela parcial. Um conflito aqui pegaria um erro de digitação em
     // qualquer um dos dois lados antes que ele virasse um bug de produto.
     for (const study of allStudies) {
       for (const { book, passage } of study.passagens) {

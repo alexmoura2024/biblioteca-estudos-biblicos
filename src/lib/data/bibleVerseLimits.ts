@@ -1,57 +1,133 @@
 /**
- * Tabela canônica de limites de versículos por capítulo, usada pelo
- * parser de referências (`src/lib/search/referenceParser.ts`) para
- * validar o versículo final de uma referência — Marco 1.2, ponto 3.
+ * Tabela canônica COMPLETA de quantidade de versículos por capítulo,
+ * para os 66 livros do cânon protestante usado neste projeto — mesma
+ * ordem canônica e mesmos totais de capítulo de `src/lib/data/books.ts`
+ * (conferido automaticamente em `bibleVerseLimits.test.ts`: os 66 pares
+ * livro/quantidade de capítulos batem exatamente).
  *
- * FONTE: contagem tradicional de versículos por capítulo (a mesma
- * versificação usada pela maioria das edições em português — ARA, NVI,
- * ACF — e por praticamente todo software bíblico ocidental), fato
- * público e estável, não uma opinião nem dado inventado.
+ * Usada por `src/lib/search/referenceParser.ts` para validar o
+ * versículo final de uma referência — Marco 1.2, ponto 3 (hardening
+ * pré-Supabase). Cobertura completa: para qualquer capítulo válido de
+ * qualquer um dos 66 livros, `getMaxVerse` sempre devolve um número —
+ * não existe mais um caso "capítulo fora da tabela" (comportamento
+ * fail-open) como na primeira versão desta tabela.
  *
- * ESCOPO — DELIBERADAMENTE PARCIAL: esta tabela cobre apenas os
- * capítulos citados pelos estudos mockados (`src/lib/data/studies.ts`)
- * mais alguns capítulos de referência amplamente conhecidos (Salmo 23,
- * Gênesis 1, Judas, Filemom), todos com contagem de alta confiança.
- * NÃO cobre os ~1189 capítulos da Bíblia inteira.
+ * FONTE E PROVENIÊNCIA
+ * Os números foram extraídos da tabela de dados interna (`bibleCounts`)
+ * do pacote npm `@allemandi/bible-validate`, versão 2.2.13 (licença
+ * MIT, zero dependências), publicado no registry oficial do npm:
+ *   - pacote: https://www.npmjs.com/package/@allemandi/bible-validate
+ *   - repositório: https://github.com/allemandi/bible-validate
+ *   - versão extraída: 2.2.13
+ *   - integridade do tarball (conforme `npm view ... dist.integrity`):
+ *     sha512-nHAeMKwTLmET3NvnXHqd1BQPQkgb6o8cNmeKhxOkKf+0Oj8cfqukUWHMqorzgD/eFwlpVcnKB/fA/FekTDQSag==
+ *   - shasum: 7d6dc707e8f55101cc520fa49054c240ded945d8
+ *   - extraído em: 2026-09-03
+ * Os valores foram copiados (vendorizados) para este arquivo estático
+ * como puro metadado numérico — livro, capítulo, quantidade de
+ * versículos. NENHUM texto bíblico é armazenado aqui, e o pacote acima
+ * NÃO é uma dependência do projeto (não há `import` dele em lugar
+ * nenhum) — não há chamada de rede em runtime para obter estes números.
  *
- * Por que parcial, de propósito: transcrever de memória os ~1189
- * capítulos restantes seria um risco real de erro silencioso — exatamente
- * o tipo de dado que este projeto não pode arriscar "inventar". Antes da
- * Fase 3 (importação do acervo real), esta tabela deve ser substituída
- * ou completada a partir de uma fonte verificável e versionada (ex.:
- * dados de versificação USFM/OSIS de um projeto de código aberto
- * auditável, ou exportação de uma API bíblica licenciada) — nunca por
- * transcrição manual adicional.
+ * EDIÇÃO ESTRUTURAL (versificação)
+ * Os dados seguem a versificação tradicional (a mesma do KJV e da
+ * maioria das edições em português — ARA, NVI, ACF), a mesma convenção
+ * que `src/lib/data/books.ts` já assumia antes desta tabela existir
+ * (66 livros, Malaquias com 4 capítulos e não 3 como na Bíblia hebraica,
+ * etc.) — os 66 totais de capítulo batem exatamente, o que corrobora
+ * que é a mesma edição estrutural. Como conferência adicional: o total
+ * de versículos do Antigo Testamento nesta tabela é 23.145, o número
+ * tradicionalmente citado para o AT na versificação KJV.
  *
- * COMPORTAMENTO quando o capítulo não está nesta tabela: o parser NÃO
- * rejeita a referência por causa do limite de versículo — apenas não
- * consegue confirmá-lo, e continua validando o que já validava antes
- * (capítulo dentro do livro, versículo >= 1, intervalo não invertido).
- * Isso evita dois erros piores que inventar o limite: (a) rejeitar uma
- * referência válida por um número errado, ou (b) fingir uma cobertura
- * total que não existe.
+ * Variação conhecida entre edições: 2 João e 3 João têm, nesta tabela,
+ * 13 e 15 versículos respectivamente. Algumas edições contam 3 João com
+ * 14 versículos (a divisão do versículo final varia entre tradições
+ * editoriais) — essa é uma diferença de 1 versículo bem documentada
+ * entre edições, não um erro de transcrição; o total do Novo Testamento
+ * aqui (7.958) fica a 1 versículo do número mais citado (7.957),
+ * exatamente por essa variação pontual.
  *
- * Versão desta tabela: v1 (Marco 1.2).
+ * Versão desta tabela: v2 (Marco 1.2 — cobertura completa; v1, parcial
+ * com ~11 capítulos, foi substituída por não satisfazer o hardening).
  */
-export const VERSE_LIMITS: Readonly<Record<string, Readonly<Record<number, number>>>> = {
-  genesis: { 1: 31 },
-  salmos: { 23: 6 },
-  proverbios: { 31: 31 },
-  joao: { 3: 36, 21: 25 },
-  lucas: { 15: 32 },
-  romanos: { 8: 39 },
-  efesios: { 6: 24 },
-  tiago: { 1: 27 },
-  apocalipse: { 21: 27 },
-  filemom: { 1: 25 },
-  judas: { 1: 25 },
+
+export const VERSE_COUNTS: Readonly<Record<string, readonly number[]>> = {
+  "genesis": [31, 25, 24, 26, 32, 22, 24, 22, 29, 32, 32, 20, 18, 24, 21, 16, 27, 33, 38, 18, 34, 24, 20, 67, 34, 35, 46, 22, 35, 43, 55, 32, 20, 31, 29, 43, 36, 30, 23, 23, 57, 38, 34, 34, 28, 34, 31, 22, 33, 26],
+  "exodo": [22, 25, 22, 31, 23, 30, 25, 32, 35, 29, 10, 51, 22, 31, 27, 36, 16, 27, 25, 26, 36, 31, 33, 18, 40, 37, 21, 43, 46, 38, 18, 35, 23, 35, 35, 38, 29, 31, 43, 38],
+  "levitico": [17, 16, 17, 35, 19, 30, 38, 36, 24, 20, 47, 8, 59, 57, 33, 34, 16, 30, 37, 27, 24, 33, 44, 23, 55, 46, 34],
+  "numeros": [54, 34, 51, 49, 31, 27, 89, 26, 23, 36, 35, 16, 33, 45, 41, 50, 13, 32, 22, 29, 35, 41, 30, 25, 18, 65, 23, 31, 40, 16, 54, 42, 56, 29, 34, 13],
+  "deuteronomio": [46, 37, 29, 49, 33, 25, 26, 20, 29, 22, 32, 32, 18, 29, 23, 22, 20, 22, 21, 20, 23, 30, 25, 22, 19, 19, 26, 68, 29, 20, 30, 52, 29, 12],
+  "josue": [18, 24, 17, 24, 15, 27, 26, 35, 27, 43, 23, 24, 33, 15, 63, 10, 18, 28, 51, 9, 45, 34, 16, 33],
+  "juizes": [36, 23, 31, 24, 31, 40, 25, 35, 57, 18, 40, 15, 25, 20, 20, 31, 13, 31, 30, 48, 25],
+  "rute": [22, 23, 18, 22],
+  "1-samuel": [28, 36, 21, 22, 12, 21, 17, 22, 27, 27, 15, 25, 23, 52, 35, 23, 58, 30, 24, 42, 15, 23, 29, 22, 44, 25, 12, 25, 11, 31, 13],
+  "2-samuel": [27, 32, 39, 12, 25, 23, 29, 18, 13, 19, 27, 31, 39, 33, 37, 23, 29, 33, 43, 26, 22, 51, 39, 25],
+  "1-reis": [53, 46, 28, 34, 18, 38, 51, 66, 28, 29, 43, 33, 34, 31, 34, 34, 24, 46, 21, 43, 29, 53],
+  "2-reis": [18, 25, 27, 44, 27, 33, 20, 29, 37, 36, 21, 21, 25, 29, 38, 20, 41, 37, 37, 21, 26, 20, 37, 20, 30],
+  "1-cronicas": [54, 55, 24, 43, 26, 81, 40, 40, 44, 14, 47, 40, 14, 17, 29, 43, 27, 17, 19, 8, 30, 19, 32, 31, 31, 32, 34, 21, 30],
+  "2-cronicas": [17, 18, 17, 22, 14, 42, 22, 18, 31, 19, 23, 16, 22, 15, 19, 14, 19, 34, 11, 37, 20, 12, 21, 27, 28, 23, 9, 27, 36, 27, 21, 33, 25, 33, 27, 23],
+  "esdras": [11, 70, 13, 24, 17, 22, 28, 36, 15, 44],
+  "neemias": [11, 20, 32, 23, 19, 19, 73, 18, 38, 39, 36, 47, 31],
+  "ester": [22, 23, 15, 17, 14, 14, 10, 17, 32, 3],
+  "jo": [22, 13, 26, 21, 27, 30, 21, 22, 35, 22, 20, 25, 28, 22, 35, 22, 16, 21, 29, 29, 34, 30, 17, 25, 6, 14, 23, 28, 25, 31, 40, 22, 33, 37, 16, 33, 24, 41, 30, 24, 34, 17],
+  "salmos": [6, 12, 8, 8, 12, 10, 17, 9, 20, 18, 7, 8, 6, 7, 5, 11, 15, 50, 14, 9, 13, 31, 6, 10, 22, 12, 14, 9, 11, 12, 24, 11, 22, 22, 28, 12, 40, 22, 13, 17, 13, 11, 5, 26, 17, 11, 9, 14, 20, 23, 19, 9, 6, 7, 23, 13, 11, 11, 17, 12, 8, 12, 11, 10, 13, 20, 7, 35, 36, 5, 24, 20, 28, 23, 10, 12, 20, 72, 13, 19, 16, 8, 18, 12, 13, 17, 7, 18, 52, 17, 16, 15, 5, 23, 11, 13, 12, 9, 9, 5, 8, 28, 22, 35, 45, 48, 43, 13, 31, 7, 10, 10, 9, 8, 18, 19, 2, 29, 176, 7, 8, 9, 4, 8, 5, 6, 5, 6, 8, 8, 3, 18, 3, 3, 21, 26, 9, 8, 24, 13, 10, 7, 12, 15, 21, 10, 20, 14, 9, 6],
+  "proverbios": [33, 22, 35, 27, 23, 35, 27, 36, 18, 32, 31, 28, 25, 35, 33, 33, 28, 24, 29, 30, 31, 29, 35, 34, 28, 28, 27, 28, 27, 33, 31],
+  "eclesiastes": [18, 26, 22, 16, 20, 12, 29, 17, 18, 20, 10, 14],
+  "canticos-dos-canticos": [17, 17, 11, 16, 16, 13, 13, 14],
+  "isaias": [31, 22, 26, 6, 30, 13, 25, 22, 21, 34, 16, 6, 22, 32, 9, 14, 14, 7, 25, 6, 17, 25, 18, 23, 12, 21, 13, 29, 24, 33, 9, 20, 24, 17, 10, 22, 38, 22, 8, 31, 29, 25, 28, 28, 25, 13, 15, 22, 26, 11, 23, 15, 12, 17, 13, 12, 21, 14, 21, 22, 11, 12, 19, 12, 25, 24],
+  "jeremias": [19, 37, 25, 31, 31, 30, 34, 22, 26, 25, 23, 17, 27, 22, 21, 21, 27, 23, 15, 18, 14, 30, 40, 10, 38, 24, 22, 17, 32, 24, 40, 44, 26, 22, 19, 32, 21, 28, 18, 16, 18, 22, 13, 30, 5, 28, 7, 47, 39, 46, 64, 34],
+  "lamentacoes": [22, 22, 66, 22, 22],
+  "ezequiel": [28, 10, 27, 17, 17, 14, 27, 18, 11, 22, 25, 28, 23, 23, 8, 63, 24, 32, 14, 49, 32, 31, 49, 27, 17, 21, 36, 26, 21, 26, 18, 32, 33, 31, 15, 38, 28, 23, 29, 49, 26, 20, 27, 31, 25, 24, 23, 35],
+  "daniel": [21, 49, 30, 37, 31, 28, 28, 27, 27, 21, 45, 13],
+  "oseias": [11, 23, 5, 19, 15, 11, 16, 14, 17, 15, 12, 14, 16, 9],
+  "joel": [20, 32, 21],
+  "amos": [15, 16, 15, 13, 27, 14, 17, 14, 15],
+  "obadias": [21],
+  "jonas": [17, 10, 10, 11],
+  "miqueias": [16, 13, 12, 13, 15, 16, 20],
+  "naum": [15, 13, 19],
+  "habacuque": [17, 20, 19],
+  "sofonias": [18, 15, 20],
+  "ageu": [15, 23],
+  "zacarias": [21, 13, 10, 14, 11, 15, 14, 23, 17, 12, 17, 14, 9, 21],
+  "malaquias": [14, 17, 18, 6],
+  "mateus": [25, 23, 17, 25, 48, 34, 29, 34, 38, 42, 30, 50, 58, 36, 39, 28, 27, 35, 30, 34, 46, 46, 39, 51, 46, 75, 66, 20],
+  "marcos": [45, 28, 35, 41, 43, 56, 37, 38, 50, 52, 33, 44, 37, 72, 47, 20],
+  "lucas": [80, 52, 38, 44, 39, 49, 50, 56, 62, 42, 54, 59, 35, 35, 32, 31, 37, 43, 48, 47, 38, 71, 56, 53],
+  "joao": [51, 25, 36, 54, 47, 71, 53, 59, 41, 42, 57, 50, 38, 31, 27, 33, 26, 40, 42, 31, 25],
+  "atos": [26, 47, 26, 37, 42, 15, 60, 40, 43, 48, 30, 25, 52, 28, 41, 40, 34, 28, 41, 38, 40, 30, 35, 27, 27, 32, 44, 31],
+  "romanos": [32, 29, 31, 25, 21, 23, 25, 39, 33, 21, 36, 21, 14, 23, 33, 27],
+  "1-corintios": [31, 16, 23, 21, 13, 20, 40, 13, 27, 33, 34, 31, 13, 40, 58, 24],
+  "2-corintios": [24, 17, 18, 18, 21, 18, 16, 24, 15, 18, 33, 21, 14],
+  "galatas": [24, 21, 29, 31, 26, 18],
+  "efesios": [23, 22, 21, 32, 33, 24],
+  "filipenses": [30, 30, 21, 23],
+  "colossenses": [29, 23, 25, 18],
+  "1-tessalonicenses": [10, 20, 13, 18, 28],
+  "2-tessalonicenses": [12, 17, 18],
+  "1-timoteo": [20, 15, 16, 16, 25, 21],
+  "2-timoteo": [18, 26, 17, 22],
+  "tito": [16, 15, 15],
+  "filemom": [25],
+  "hebreus": [14, 18, 19, 16, 14, 20, 28, 13, 28, 39, 40, 29, 25],
+  "tiago": [27, 26, 18, 17, 20],
+  "1-pedro": [25, 25, 22, 19, 14],
+  "2-pedro": [21, 22, 18],
+  "1-joao": [10, 29, 24, 21, 21],
+  "2-joao": [13],
+  "3-joao": [15],
+  "judas": [25],
+  "apocalipse": [20, 29, 22, 11, 14, 17, 17, 13, 21, 11, 19, 17, 18, 20, 8, 21, 18, 24, 21, 15, 27, 21],
 };
 
 /**
- * Último versículo válido de um capítulo, ou `undefined` se este
- * capítulo ainda não está documentado em `VERSE_LIMITS` (ver escopo
- * acima) — `undefined` significa "não sei", nunca "sem limite".
+ * Último versículo válido de um capítulo. Cobertura completa (ver
+ * cabeçalho do arquivo): para qualquer `bookSlug` dos 66 livros e
+ * qualquer `capitulo` dentro do total de capítulos daquele livro, este
+ * valor está sempre documentado. `undefined` só ocorre para um
+ * `bookSlug` ou `capitulo` que não existem no cânon — nunca por falta
+ * de dado dentro do intervalo válido.
  */
 export function getMaxVerse(bookSlug: string, capitulo: number): number | undefined {
-  return VERSE_LIMITS[bookSlug]?.[capitulo];
+  return VERSE_COUNTS[bookSlug]?.[capitulo - 1];
 }

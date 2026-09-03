@@ -35,13 +35,13 @@ import { normalizeText } from "@/lib/search/normalize";
  * (ver `src/lib/search/queryParsing.ts`), mas nunca deve exibir algo como
  * "Referência reconhecida: João 999:999".
  *
- * Validação canônica de versículo máximo (Marco 1.2, ponto 3): quando o
- * capítulo está documentado em `src/lib/data/bibleVerseLimits.ts`, um
+ * Validação canônica de versículo máximo (Marco 1.2, ponto 3): um
  * versículo além do último versículo real do capítulo (ex.: "João 3:37"
- * — João 3 tem 36 versículos) também é `{ type: "invalid" }`. Essa
- * tabela é deliberadamente parcial (ver o arquivo para o porquê); para
- * um capítulo fora dela, este limite simplesmente não é checado — nunca
- * inventamos um número.
+ * — João 3 tem 36 versículos) também é `{ type: "invalid" }`. A tabela
+ * em `src/lib/data/bibleVerseLimits.ts` cobre os 66 livros e todos os
+ * seus capítulos (cobertura completa, com fonte e versão documentadas
+ * no próprio arquivo) — não há capítulo real para o qual este limite
+ * deixe de ser checado.
  */
 
 /** Motivo de uma referência estruturalmente inválida — ver `parseReference`. */
@@ -225,9 +225,12 @@ export function parseReference(query: string): ParsedReference {
     };
   }
 
-  // Limite canônico de versículos do capítulo (só quando documentado —
-  // ver src/lib/data/bibleVerseLimits.ts). Um versículo inicial ou final
-  // além do último versículo real do capítulo nunca é "reconhecido".
+  // Limite canônico de versículos do capítulo — cobertura completa dos
+  // 66 livros (ver src/lib/data/bibleVerseLimits.ts). Um versículo
+  // inicial ou final além do último versículo real do capítulo nunca é
+  // "reconhecido". `maxVerse` só fica `undefined` se `book.slug` ou
+  // `capitulo` não existirem de fato no cânon, o que já foi descartado
+  // pela validação de capítulo acima.
   const maxVerse = getMaxVerse(book.slug, capitulo);
   if (maxVerse !== undefined && (versiculoInicio > maxVerse || (versiculoFim ?? versiculoInicio) > maxVerse)) {
     return {
