@@ -2,6 +2,46 @@
 
 import { useState, useTransition } from "react";
 
+const CANONICAL_TOPICS = [
+  "Salvação",
+  "Jesus Cristo",
+  "Fé",
+  "Graça",
+  "Oração e Comunhão",
+  "Palavra e Revelação",
+  "Espírito Santo",
+  "Igreja e Ministério",
+  "Louvor e Adoração",
+  "Santidade e Obediência",
+  "Justiça e Juízo",
+  "Eternidade e Escatologia",
+];
+
+const STUDY_TYPES = [
+  { value: "EXPOSITIVO", label: "Expositivo" },
+  { value: "THEMATIC", label: "Temático" },
+  { value: "PANORAMA", label: "Panorama" },
+  { value: "DOUTRINÁRIO", label: "Doutrinário" },
+];
+
+interface PassageData {
+  passage_id: string;
+  referencia_normalizada: string;
+  tipo_relacao: "MAIN" | "SECONDARY" | "CITED";
+}
+
+interface TopicAssociation {
+  topic_id: string;
+  nome: string;
+  peso: number;
+}
+
+interface CharacterAssociation {
+  character_id: string;
+  nome: string;
+  papel: string;
+}
+
 interface EditStudyClientProps {
   study: {
     id: string;
@@ -9,12 +49,21 @@ interface EditStudyClientProps {
     resumo: string;
     conteudo: string;
     status: string;
+    tipo_estudo: string;
     autor: string;
     data_origem: string;
   };
+  passages: PassageData[];
+  topics: TopicAssociation[];
+  characters: CharacterAssociation[];
 }
 
-export default function EditStudyClient({ study }: EditStudyClientProps) {
+export default function EditStudyClient({
+  study,
+  passages,
+  topics: initialTopics,
+  characters: initialCharacters,
+}: EditStudyClientProps) {
   const [editMode, setEditMode] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [isSaving, startTransition] = useTransition();
@@ -23,17 +72,49 @@ export default function EditStudyClient({ study }: EditStudyClientProps) {
     titulo: study.titulo,
     resumo: study.resumo,
     conteudo: study.conteudo,
+    tipo_estudo: study.tipo_estudo,
   });
+
+  const [selectedTopics, setSelectedTopics] = useState<Set<string>>(
+    new Set(initialTopics.map((t) => t.topic_id))
+  );
+  const [selectedCharacters, setSelectedCharacters] = useState<Set<string>>(
+    new Set(initialCharacters.map((c) => c.character_id))
+  );
 
   const [savedMessage, setSavedMessage] = useState("");
   const [error, setError] = useState("");
   const [history, setHistory] = useState<Record<string, unknown>[]>([]);
 
   const handleChange = (
-    field: "titulo" | "resumo" | "conteudo",
+    field: "titulo" | "resumo" | "conteudo" | "tipo_estudo",
     value: string
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const toggleTopic = (topicName: string) => {
+    setSelectedTopics((prev) => {
+      const next = new Set(prev);
+      if (next.has(topicName)) {
+        next.delete(topicName);
+      } else {
+        next.add(topicName);
+      }
+      return next;
+    });
+  };
+
+  const toggleCharacter = (characterId: string) => {
+    setSelectedCharacters((prev) => {
+      const next = new Set(prev);
+      if (next.has(characterId)) {
+        next.delete(characterId);
+      } else {
+        next.add(characterId);
+      }
+      return next;
+    });
   };
 
   const handleSave = async () => {
@@ -42,7 +123,11 @@ export default function EditStudyClient({ study }: EditStudyClientProps) {
         const res = await fetch(`/api/admin/estudos/${study.id}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({
+            ...formData,
+            topicIds: Array.from(selectedTopics),
+            characterIds: Array.from(selectedCharacters),
+          }),
         });
 
         if (!res.ok) {
@@ -58,10 +143,8 @@ export default function EditStudyClient({ study }: EditStudyClientProps) {
         setError("");
         setEditMode(false);
 
-        // Limpar mensagem após 3s
         setTimeout(() => setSavedMessage(""), 3000);
 
-        // Recarregar histórico se ativado
         if (showHistory) loadHistory();
       } catch (e) {
         setError(`Erro: ${e instanceof Error ? e.message : "desconhecido"}`);
@@ -93,7 +176,10 @@ export default function EditStudyClient({ study }: EditStudyClientProps) {
       titulo: study.titulo,
       resumo: study.resumo,
       conteudo: study.conteudo,
+      tipo_estudo: study.tipo_estudo,
     });
+    setSelectedTopics(new Set(initialTopics.map((t) => t.topic_id)));
+    setSelectedCharacters(new Set(initialCharacters.map((c) => c.character_id)));
     setEditMode(false);
     setError("");
   };
@@ -122,6 +208,24 @@ export default function EditStudyClient({ study }: EditStudyClientProps) {
           />
         </div>
 
+        {/* Tipo de Estudo */}
+        <div>
+          <label className="block text-sm font-medium text-gray-900 mb-2">
+            Tipo de Estudo
+          </label>
+          <select
+            value={formData.tipo_estudo}
+            onChange={(e) => handleChange("tipo_estudo", e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            {STUDY_TYPES.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Resumo */}
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -135,6 +239,75 @@ export default function EditStudyClient({ study }: EditStudyClientProps) {
             placeholder="Resumo do estudo"
           />
         </div>
+
+        {/* Referências Bíblicas (readonly) */}
+        {passages.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Referências Bíblicas
+            </label>
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-2">
+              {passages.map((p, i) => (
+                <div key={i} className="text-sm text-gray-700">
+                  <span className="font-medium">
+                    {p.tipo_relacao === "MAIN" ? "Principal:" : "Secundária:"}
+                  </span>{" "}
+                  {p.referencia_normalizada}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              As referências são somente leitura. Altere via revisão de conteúdo.
+            </p>
+          </div>
+        )}
+
+        {/* Temas */}
+        <div>
+          <label className="block text-sm font-medium text-gray-900 mb-3">
+            Temas
+          </label>
+          <div className="space-y-2">
+            {CANONICAL_TOPICS.map((topicName) => {
+              const topic = initialTopics.find((t) => t.nome === topicName);
+              const isSelected = selectedTopics.has(topic?.topic_id || topicName);
+
+              return (
+                <label key={topicName} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleTopic(topic?.topic_id || topicName)}
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                  <span className="text-sm text-gray-700">{topicName}</span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Personagens */}
+        {initialCharacters.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-3">
+              Personagens
+            </label>
+            <div className="space-y-2">
+              {initialCharacters.map((character) => (
+                <label key={character.character_id} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={selectedCharacters.has(character.character_id)}
+                    onChange={() => toggleCharacter(character.character_id)}
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                  <span className="text-sm text-gray-700">{character.nome}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Conteúdo */}
         <div>
@@ -185,7 +358,7 @@ export default function EditStudyClient({ study }: EditStudyClientProps) {
 
   return (
     <div className="space-y-6">
-      {/* Botão Editar */}
+      {/* Botões */}
       <div className="flex gap-2">
         <button
           onClick={() => setEditMode(true)}
@@ -234,32 +407,75 @@ export default function EditStudyClient({ study }: EditStudyClientProps) {
         </div>
       )}
 
-      {/* Campos em Modo Visualização */}
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-2">Título</h3>
-          <p className="text-gray-700">{formData.titulo}</p>
+      {/* Visualização */}
+      <div className="space-y-4 text-sm">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-1">Título</h3>
+            <p className="text-gray-700">{formData.titulo}</p>
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-1">Tipo</h3>
+            <p className="text-gray-700">
+              {STUDY_TYPES.find((t) => t.value === formData.tipo_estudo)?.label}
+            </p>
+          </div>
         </div>
 
         {formData.resumo && (
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Resumo</h3>
-            <p className="text-gray-700 leading-relaxed">{formData.resumo}</p>
+            <h3 className="font-semibold text-gray-900 mb-1">Resumo</h3>
+            <p className="text-gray-700 line-clamp-2">{formData.resumo}</p>
           </div>
         )}
 
-        {formData.conteudo && (
+        {selectedTopics.size > 0 && (
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">
-              Conteúdo Integral
-            </h3>
-            <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <div className="text-gray-800 whitespace-pre-wrap text-sm leading-relaxed max-h-96 overflow-y-auto">
-                {formData.conteudo}
-              </div>
+            <h3 className="font-semibold text-gray-900 mb-1">Temas</h3>
+            <div className="flex flex-wrap gap-2">
+              {Array.from(selectedTopics).map((topicId) => {
+                const topic = initialTopics.find((t) => t.topic_id === topicId);
+                const canonicalName = CANONICAL_TOPICS.find(
+                  (name) =>
+                    initialTopics.find((t) => t.nome === name)?.topic_id === topicId
+                );
+                return (
+                  <span
+                    key={topicId}
+                    className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs"
+                  >
+                    {canonicalName || topic?.nome || topicId}
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}
+
+        {selectedCharacters.size > 0 && (
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-1">Personagens</h3>
+            <div className="flex flex-wrap gap-2">
+              {Array.from(selectedCharacters).map((charId) => {
+                const char = initialCharacters.find((c) => c.character_id === charId);
+                return (
+                  <span
+                    key={charId}
+                    className="inline-block bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs"
+                  >
+                    {char?.nome}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Provenance Notice */}
+      <div className="bg-gray-50 border-l-4 border-gray-300 p-4 text-xs text-gray-600">
+        <p className="font-medium mb-1">📎 Fonte Original (Somente Leitura)</p>
+        <p>A proveniência do estudo (arquivo original, Drive ID, MIME) é preservada automaticamente e não pode ser alterada por esta interface.</p>
       </div>
     </div>
   );

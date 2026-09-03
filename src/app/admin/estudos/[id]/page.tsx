@@ -16,9 +16,28 @@ interface Study {
   status: "DRAFT" | "REVIEW" | "PUBLISHED" | "ARCHIVED";
   resumo: string;
   conteudo: string;
+  tipo_estudo: "EXPOSITIVO" | "THEMATIC" | "PANORAMA" | "DOUTRINÁRIO";
   data_origem: string;
   autor: string;
   palavras_chave: string[];
+}
+
+interface TopicAssociation {
+  topic_id: string;
+  nome: string;
+  peso: number;
+}
+
+interface CharacterAssociation {
+  character_id: string;
+  nome: string;
+  papel: string;
+}
+
+interface PassageData {
+  passage_id: string;
+  referencia_normalizada: string;
+  tipo_relacao: "MAIN" | "SECONDARY" | "CITED";
 }
 
 
@@ -39,7 +58,7 @@ async function getStudy(id: string) {
   return data as Study;
 }
 
-async function getPassages(studyId: string) {
+async function getPassages(studyId: string): Promise<PassageData[]> {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "",
     process.env.SUPABASE_SERVICE_ROLE_KEY || "",
@@ -50,6 +69,7 @@ async function getPassages(studyId: string) {
     .from("study_passages")
     .select(
       `
+      passage_id,
       tipo_relacao,
       passages (referencia_normalizada)
     `
@@ -59,14 +79,15 @@ async function getPassages(studyId: string) {
 
   if (error) return [];
   return data.map((p: Record<string, unknown>) => ({
-    tipo_relacao: (p.tipo_relacao as string) || "CITED",
-    referencia:
+    passage_id: (p.passage_id as string) || "",
+    tipo_relacao: ((p.tipo_relacao as string) || "CITED") as "MAIN" | "SECONDARY" | "CITED",
+    referencia_normalizada:
       ((p.passages as Record<string, unknown>)?.referencia_normalizada as string) ||
       "desconhecida",
   }));
 }
 
-async function getTopics(studyId: string) {
+async function getTopics(studyId: string): Promise<TopicAssociation[]> {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "",
     process.env.SUPABASE_SERVICE_ROLE_KEY || "",
@@ -75,18 +96,20 @@ async function getTopics(studyId: string) {
 
   const { data, error } = await supabase
     .from("study_topics")
-    .select("topics (id, nome)")
+    .select("topic_id, peso, topics (id, nome)")
     .eq("study_id", studyId);
 
   if (error) return [];
   return data
-    .map((t: Record<string, unknown>) =>
-      (t.topics as Record<string, unknown>)?.nome as string
-    )
-    .filter(Boolean);
+    .map((t: Record<string, unknown>) => ({
+      topic_id: (t.topic_id as string) || "",
+      nome: ((t.topics as Record<string, unknown>)?.nome as string) || "",
+      peso: (t.peso as number) || 1,
+    }))
+    .filter((t) => t.nome);
 }
 
-async function getCharacters(studyId: string) {
+async function getCharacters(studyId: string): Promise<CharacterAssociation[]> {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "",
     process.env.SUPABASE_SERVICE_ROLE_KEY || "",
@@ -95,15 +118,17 @@ async function getCharacters(studyId: string) {
 
   const { data, error } = await supabase
     .from("study_characters")
-    .select("characters (id, nome)")
+    .select("character_id, papel, characters (id, nome)")
     .eq("study_id", studyId);
 
   if (error) return [];
   return data
-    .map((c: Record<string, unknown>) =>
-      (c.characters as Record<string, unknown>)?.nome as string
-    )
-    .filter(Boolean);
+    .map((c: Record<string, unknown>) => ({
+      character_id: (c.character_id as string) || "",
+      nome: ((c.characters as Record<string, unknown>)?.nome as string) || "",
+      papel: (c.papel as string) || "mencionado",
+    }))
+    .filter((c) => c.nome);
 }
 
 export default async function AdminEstudoDetailPage({
@@ -178,7 +203,7 @@ export default async function AdminEstudoDetailPage({
                             ? "Secundária"
                             : "Citada"}
                       </span>
-                      <span>{p.referencia}</span>
+                      <span>{p.referencia_normalizada}</span>
                     </div>
                   ))}
                 </div>
@@ -195,7 +220,7 @@ export default async function AdminEstudoDetailPage({
                   <div className="space-y-1">
                     {topics.map((t, i) => (
                       <div key={i} className="text-sm text-gray-700">
-                        • {t}
+                        • {t.nome}
                       </div>
                     ))}
                   </div>
@@ -209,7 +234,7 @@ export default async function AdminEstudoDetailPage({
                   <div className="space-y-1">
                     {characters.map((c, i) => (
                       <div key={i} className="text-sm text-gray-700">
-                        • {c}
+                        • {c.nome}
                       </div>
                     ))}
                   </div>
@@ -219,7 +244,12 @@ export default async function AdminEstudoDetailPage({
 
             {/* Modo Edição Editorial */}
             <div className="mb-8 pb-8 border-b border-gray-200">
-              <EditStudyClient study={study} />
+              <EditStudyClient
+                study={study}
+                passages={passages}
+                topics={topics}
+                characters={characters}
+              />
             </div>
 
             {/* Meta */}
