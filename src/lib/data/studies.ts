@@ -408,6 +408,26 @@ const STUDY_SEEDS: StudySeed[] = [
     ],
   },
   {
+    // Estudo de prova do estado editorial REVIEW (Fase 2, Etapa 7): já
+    // saiu de DRAFT e está em revisão, mas ainda não foi aprovado para
+    // publicação — não deve aparecer em nenhuma rota pública nem na
+    // busca, exatamente como DRAFT (docs/DATA_MODEL.md §3, DEC-004).
+    titulo: "O altar de Araúna: arrependimento em meio à disciplina",
+    resumo:
+      "Rascunho em revisão editorial sobre 2 Samuel 24 — o censo de Davi, o juízo que se segue e o altar erguido em arrependimento. Não publicado; não deve aparecer na busca pública.",
+    conteudo: [
+      "Este é um estudo em fase de revisão editorial (status REVIEW), usado para validar que estudos nesse estado — assim como DRAFT — não aparecem na navegação nem na busca pública antes da aprovação final.",
+      "Conteúdo ainda em revisão teológica antes da publicação.",
+    ],
+    status: "REVIEW",
+    autor: "Equipe Editorial",
+    dataOrigem: "2024-10-08",
+    palavrasChave: ["arrependimento", "censo", "altar", "disciplina"],
+    passagens: [{ livro: "2-samuel", capitulo: 24, versiculoInicio: 18, versiculoFim: 25, tipoRelacao: "principal", prioridade: 1 }],
+    temas: [{ slug: "perdao" }],
+    personagens: [{ slug: "davi", papel: "protagonista" }],
+  },
+  {
     titulo: "A mulher virtuosa: rascunho em revisão",
     resumo:
       "Rascunho ainda em revisão editorial sobre Provérbios 31 — não publicado; não deve aparecer na busca pública.",

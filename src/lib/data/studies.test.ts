@@ -14,6 +14,11 @@ describe("dados mockados de estudos", () => {
     expect(allStudies.some((study) => study.status !== "PUBLISHED")).toBe(true);
   });
 
+  it("inclui pelo menos um estudo em DRAFT e um em REVIEW (Fase 2, Etapa 7 — seed do Postgres precisa dos dois estados)", () => {
+    expect(allStudies.some((study) => study.status === "DRAFT")).toBe(true);
+    expect(allStudies.some((study) => study.status === "REVIEW")).toBe(true);
+  });
+
   it("todo estudo publicado possui slug único", () => {
     const slugs = publishedStudies.map((study) => study.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
