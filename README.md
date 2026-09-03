@@ -44,7 +44,8 @@ Fase 2: Supabase/PostgreSQL (ainda não conectado)
 - **Busca local** (`src/lib/search/`): parser de referências bíblicas
   determinístico (`referenceParser.ts` — reconhece "João 3:16", "Jo
   3.16", "Lucas 22:47-52", valida capítulo/versículo contra o cânon e
-  contra uma tabela de limites de versículo parcial e documentada),
+  contra uma tabela completa de limites de versículo — 66 livros, fonte
+  documentada, ver DEC-019),
   ponte texto→consulta estruturada (`queryParsing.ts`) e o motor de
   ranking em memória (`search.ts`). Tudo isso roda sem nenhuma chamada
   de IA.

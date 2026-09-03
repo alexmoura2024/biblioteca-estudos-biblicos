@@ -34,9 +34,10 @@ desacoplada de `listPublished()`, parser de referências mais rigoroso,
 prova das relações N:N do domínio, fonte de verdade da documentação) e
 Marco 1.2 (DTO `StudySummary` separado de `Study` completo, remoção de
 `listPublished()` da interface pública, validação canônica de limite de
-versículos por capítulo, política de segurança do Supabase registrada
-antes da conexão, README real). Ver `docs/WORK_STATUS.md` para o estado
-exato e o próximo passo (Fase 2 — banco real).
+versículos por capítulo com cobertura completa dos 66 livros, política
+de segurança do Supabase registrada antes da conexão, README real). Ver
+`docs/WORK_STATUS.md` para o estado exato e o próximo passo (Fase 2 —
+banco real).
 
 ## 3. Regras de arquitetura (não violar sem registrar uma decisão)
 
@@ -64,9 +65,12 @@ exato e o próximo passo (Fase 2 — banco real).
   `parseReference` retorna `{ type: "invalid", reason, ... }`; a UI
   mostra um aviso explícito, nunca "Referência reconhecida: João
   999:999" (DEC-014, DEC-019). A tabela de limites de versículo
-  (`src/lib/data/bibleVerseLimits.ts`) é deliberadamente parcial e
-  versionada — nunca complete os ~1189 capítulos restantes de memória;
-  use uma fonte verificável (ver o comentário no arquivo).
+  (`src/lib/data/bibleVerseLimits.ts`, `VERSE_COUNTS`) tem **cobertura
+  completa dos 66 livros / ~1189 capítulos** (DEC-019 v2 — a primeira
+  versão era parcial e foi corrigida por não fechar o gate do parser).
+  Se algum dia precisar trocar a fonte desses números, vendorize de uma
+  fonte verificável e documente no cabeçalho do arquivo (pacote, versão,
+  hash) como já está feito — nunca vire uma tabela parcial de novo.
 - **Listagens e resultados de busca usam `StudySummary`, nunca `Study`
   completo** (DEC-017) — sem `conteudo` integral, `palavrasChave`,
   `personagens` nem o array inteiro de `passagens`. Só
@@ -173,7 +177,7 @@ trabalho.
 docs/                        Especificação oficial do projeto (fonte da verdade — DEC-016; nunca o Drive)
 src/lib/types.ts             Modelo de domínio (espelha DATA_MODEL.md) + StudySummary (DTO de listagem, DEC-017)
 src/lib/data/                Dados mockados (livros, temas, personagens, séries, estudos)
-src/lib/data/bibleVerseLimits.ts  Tabela parcial e documentada de limites de versículo por capítulo (DEC-019)
+src/lib/data/bibleVerseLimits.ts  Tabela COMPLETA (66 livros) de limites de versículo por capítulo, fonte documentada (DEC-019)
 src/lib/repositories/        Interfaces (incl. SearchRepository) + implementação mock (ponto de troca p/ Supabase)
 src/lib/search/normalize.ts       Normalização de texto (acentos, slugs, tokens)
 src/lib/search/referenceParser.ts Fase B: texto -> referência bíblica (ou "ambiguous"/"invalid"/"none")
