@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadManifest, parseManifestCsv, validateManifest, type ManifestRow } from "@/lib/ingestion/manifest";
+import { loadManifest, parseManifestCsv, rowsToIngest, validateManifest, type ManifestRow } from "@/lib/ingestion/manifest";
 
 describe("parseManifestCsv", () => {
   it("faz o parse de um CSV simples do manifesto para ManifestRow[]", () => {
@@ -57,12 +57,34 @@ describe("validateManifest", () => {
     expect(result.issues.some((i) => i.code === "PILOT_ID_DUPLICADO" && i.pilotIds.includes("SEL-001"))).toBe(true);
   });
 
-  it("reporta erro quando drive_file_id se repete entre pilot_id diferentes (nunca resolve/mescla sozinho)", () => {
-    const rows = [row({ pilotId: "SEL-001", driveFileId: "same-id" }), row({ pilotId: "DUP-001", driveFileId: "same-id" })];
+  it("reporta erro quando DUAS linhas já decididas (SELECIONADOS/REVISAR) compartilham drive_file_id — não há canônico único", () => {
+    const rows = [row({ pilotId: "SEL-001", driveFileId: "same-id", queue: "SELECIONADOS" }), row({ pilotId: "SEL-002", driveFileId: "same-id", queue: "SELECIONADOS" })];
     const result = validateManifest(rows);
     const issue = result.issues.find((i) => i.code === "DRIVE_FILE_ID_DUPLICADO");
     expect(issue).toBeDefined();
-    expect(issue?.pilotIds.sort()).toEqual(["DUP-001", "SEL-001"]);
+    expect(issue?.pilotIds.sort()).toEqual(["SEL-001", "SEL-002"]);
+    expect(result.aliases).toHaveLength(0);
+  });
+
+  it("reporta erro quando NENHUMA linha decidida compartilha o drive_file_id (só candidatos, sem canônico)", () => {
+    const rows = [
+      row({ pilotId: "DUP-001", driveFileId: "same-id", queue: "DUPLICADOS_POSSIVEIS", duplicateGroup: "G-1" }),
+      row({ pilotId: "DUP-002", driveFileId: "same-id", queue: "DUPLICADOS_POSSIVEIS", duplicateGroup: "G-1" }),
+    ];
+    const result = validateManifest(rows);
+    expect(result.issues.some((i) => i.code === "DRIVE_FILE_ID_DUPLICADO")).toBe(true);
+    expect(result.aliases).toHaveLength(0);
+  });
+
+  it("reconhece o padrão canônico+alias (1 decidida + N candidatas com o mesmo drive_file_id) — NÃO é erro", () => {
+    const rows = [
+      row({ pilotId: "SEL-023", driveFileId: "same-id", queue: "SELECIONADOS" }),
+      row({ pilotId: "DUP-010", driveFileId: "same-id", queue: "DUPLICADOS_POSSIVEIS", duplicateGroup: "ATO-EUTICO-01" }),
+    ];
+    const result = validateManifest(rows);
+    expect(result.issues.some((i) => i.code === "DRIVE_FILE_ID_DUPLICADO")).toBe(false);
+    expect(result.aliases).toEqual([{ canonicalPilotId: "SEL-023", aliasPilotId: "DUP-010", driveFileId: "same-id" }]);
+    expect(result.physicalSourceCount).toBe(rows.length - 1);
   });
 
   it("não reporta erro de contagem quando as filas batem 37/1/12 e não há duplicidade", () => {
@@ -92,17 +114,31 @@ describe("loadManifest + validateManifest (manifesto REAL do piloto, docs/fase3-
     expect(result.countsByQueue).toEqual({ SELECIONADOS: 37, REVISAR: 1, DUPLICADOS_POSSIVEIS: 12 });
   });
 
-  it("DOCUMENTA um problema real encontrado na auditoria: SEL-023 e DUP-010 compartilham o mesmo drive_file_id " +
-    "('Êutico - At20.7-11.doc' aparece em SELECIONADOS e em DUPLICADOS_POSSIVEIS) — a validação detecta e " +
-    "reporta isso como erro, em vez de tratar os 50 candidatos como 50 arquivos distintos", () => {
+  it("SEL-023 e DUP-010 compartilham o mesmo drive_file_id ('Êutico - At20.7-11.doc') — reconhecido como " +
+    "canônico (SEL-023, decidido) + alias de manifesto (DUP-010, candidato) — DECISÃO DO USUÁRIO, não mais erro", () => {
     const result = validateManifest(loadManifest());
-    const issue = result.issues.find(
-      (i) => i.code === "DRIVE_FILE_ID_DUPLICADO" && i.pilotIds.includes("SEL-023") && i.pilotIds.includes("DUP-010"),
-    );
-    expect(issue).toBeDefined();
-    // Este achado por si só derruba `result.ok` para false — o manifesto
-    // não pode ser considerado 50/50 válido enquanto isto não for
-    // resolvido por decisão humana (ver docs/WORK_STATUS.md).
-    expect(result.ok).toBe(false);
+    expect(result.issues.some((i) => i.code === "DRIVE_FILE_ID_DUPLICADO")).toBe(false);
+    expect(result.aliases).toContainEqual({
+      canonicalPilotId: "SEL-023",
+      aliasPilotId: "DUP-010",
+      driveFileId: "1rsLe_r5-m6lpRojhPLbwcbYVOFdPaMXg",
+    });
+    // 50 linhas de manifesto, mas só 49 fontes físicas distintas (DUP-010
+    // é o mesmo arquivo de SEL-023, não um 50º arquivo).
+    expect(result.totalRows).toBe(50);
+    expect(result.physicalSourceCount).toBe(49);
+    expect(result.ok).toBe(true);
+  });
+
+  it("rowsToIngest exclui DUP-010 (alias) do lote a ingerir, mas preserva a linha em `loadManifest()` " +
+    "(nunca excluído silenciosamente do manifesto/relatório)", () => {
+    const rows = loadManifest();
+    const validation = validateManifest(rows);
+    const toIngest = rowsToIngest(rows, validation);
+
+    expect(rows.some((r) => r.pilotId === "DUP-010")).toBe(true); // continua no manifesto
+    expect(toIngest.some((r) => r.pilotId === "DUP-010")).toBe(false); // mas não é ingerido
+    expect(toIngest.some((r) => r.pilotId === "SEL-023")).toBe(true); // o canônico é ingerido normalmente
+    expect(toIngest).toHaveLength(49);
   });
 });

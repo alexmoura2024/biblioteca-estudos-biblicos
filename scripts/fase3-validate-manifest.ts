@@ -10,10 +10,20 @@ import { loadManifest, validateManifest } from "../src/lib/ingestion/manifest";
 const manifest = loadManifest();
 const validation = validateManifest(manifest);
 
-console.log(`Total de candidatos: ${validation.totalRows}`);
+console.log(`Total de linhas do manifesto: ${validation.totalRows}`);
+console.log(`Fontes físicas únicas: ${validation.physicalSourceCount}`);
+console.log(`Aliases de manifesto: ${validation.aliases.length}`);
 console.log(`Por fila: ${JSON.stringify(validation.countsByQueue)}`);
 console.log(`Válido (sem erros)? ${validation.ok ? "SIM" : "NÃO"}`);
 console.log("");
+
+if (validation.aliases.length > 0) {
+  console.log(`--- ${validation.aliases.length} alias(es) reconhecido(s) ---`);
+  for (const alias of validation.aliases) {
+    console.log(`${alias.aliasPilotId} é alias de ${alias.canonicalPilotId} (drive_file_id ${alias.driveFileId}) — não ingerido separadamente.`);
+  }
+  console.log("");
+}
 
 if (validation.issues.length > 0) {
   console.log(`--- ${validation.issues.length} issue(s) ---`);

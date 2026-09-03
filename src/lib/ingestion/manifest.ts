@@ -86,12 +86,29 @@ export interface ManifestIssue {
   pilotIds: string[];
 }
 
+/**
+ * Duas linhas do manifesto que são, comprovadamente, o MESMO arquivo
+ * físico do Drive (`drive_file_id` idêntico) — uma delas é a canônica
+ * (a que a ingestão de fato processa), a outra é só um alias de
+ * auditoria/manifesto (nunca gera um segundo `files`/`study`, nunca é
+ * buscada/extraída/ingerida por conta própria).
+ */
+export interface ManifestAlias {
+  canonicalPilotId: string;
+  aliasPilotId: string;
+  driveFileId: string;
+}
+
 export interface ManifestValidationResult {
   totalRows: number;
   countsByQueue: Record<ManifestQueue, number>;
   issues: ManifestIssue[];
   /** `true` só quando não há nenhum issue de severidade "error". */
   ok: boolean;
+  /** Pares canônico/alias reconhecidos automaticamente (ver `resolveDriveFileIdGroup`). */
+  aliases: ManifestAlias[];
+  /** `totalRows - aliases.length` — quantos arquivos físicos distintos o manifesto realmente representa. */
+  physicalSourceCount: number;
 }
 
 const EXPECTED_COUNTS: Record<ManifestQueue, number> = {
@@ -104,13 +121,16 @@ const EXPECTED_TOTAL = 50;
 /**
  * Valida as invariantes do manifesto exigidas pelo protocolo da Fase 3
  * (docs/fase3-piloto/CLAUDE_FASE3_EXECUCAO_PILOTO.md, "Validar o
- * manifesto"): exatamente 50 candidatos, filas 37/1/12, `pilot_id` e
- * `drive_file_id` únicos. Reporta problemas como dados (`issues`) em vez
- * de lançar exceção — a auditoria precisa conseguir listar TODOS os
- * problemas de uma vez, não parar no primeiro. Nunca corrige o manifesto
- * silenciosamente: um `drive_file_id` duplicado (ex.: o mesmo arquivo do
- * Drive listado sob dois `pilot_id` diferentes) é reportado como erro
- * para decisão humana, nunca deduplicado automaticamente aqui.
+ * manifesto"): exatamente 50 candidatos, filas 37/1/12, `pilot_id`
+ * único, e `drive_file_id` único OU explicitamente reconhecido como
+ * alias de manifesto (ver `ManifestAlias` — o mesmo arquivo físico do
+ * Drive listado sob dois `pilot_id`, um já decidido/canônico e o outro
+ * como candidato a duplicidade, nunca dois decididos com o mesmo id).
+ * Reporta problemas como dados (`issues`) em vez de lançar exceção — a
+ * auditoria precisa conseguir listar TODOS os problemas de uma vez, não
+ * parar no primeiro. Nunca corrige/decide o manifesto silenciosamente:
+ * um `drive_file_id` duplicado que NÃO se encaixa no padrão canônico+
+ * alias continua erro, decisão humana necessária.
  */
 export function validateManifest(rows: ManifestRow[]): ManifestValidationResult {
   const issues: ManifestIssue[] = [];
@@ -164,19 +184,42 @@ export function validateManifest(rows: ManifestRow[]): ManifestValidationResult 
     list.push(row);
     byDriveFileId.set(row.driveFileId, list);
   }
+  const aliases: ManifestAlias[] = [];
   for (const [driveFileId, group] of byDriveFileId) {
-    if (group.length > 1) {
-      issues.push({
-        severity: "error",
-        code: "DRIVE_FILE_ID_DUPLICADO",
-        message:
-          `drive_file_id "${driveFileId}" aparece em ${group.length} linhas do manifesto ` +
-          `(${group.map((r) => r.pilotId).join(", ")}) — é fisicamente o mesmo arquivo do Drive ` +
-          `listado mais de uma vez. Não deduplicado automaticamente; decisão humana necessária ` +
-          `sobre qual pilot_id remover/mesclar antes da ingestão.`,
-        pilotIds: group.map((r) => r.pilotId),
-      });
+    if (group.length <= 1) continue;
+
+    // Regra geral (não um caso hardcoded de pilot_id específico): um
+    // drive_file_id repetido só é permitido quando EXATAMENTE uma linha
+    // do grupo já foi decidida (queue SELECIONADOS ou REVISAR — ambas
+    // filas de candidatos "vivos") e todas as outras estão na fila
+    // DUPLICADOS_POSSIVEIS (candidatos a comparação, nunca decisões
+    // finais). Nesse caso a decidida é a canônica, as demais são só
+    // alias de manifesto/auditoria — não é erro, mas fica registrado em
+    // `aliases` para o relatório da ingestão nunca esconder o vínculo.
+    // Qualquer outro padrão (duas decididas com o mesmo id, ou nenhuma
+    // decidida) continua sendo erro — decisão humana necessária.
+    const decided = group.filter((r) => r.queue !== "DUPLICADOS_POSSIVEIS");
+    const candidates = group.filter((r) => r.queue === "DUPLICADOS_POSSIVEIS");
+
+    if (decided.length === 1 && candidates.length === group.length - 1) {
+      const canonical = decided[0];
+      for (const alias of candidates) {
+        aliases.push({ canonicalPilotId: canonical.pilotId, aliasPilotId: alias.pilotId, driveFileId });
+      }
+      continue;
     }
+
+    issues.push({
+      severity: "error",
+      code: "DRIVE_FILE_ID_DUPLICADO",
+      message:
+        `drive_file_id "${driveFileId}" aparece em ${group.length} linhas do manifesto ` +
+        `(${group.map((r) => r.pilotId).join(", ")}) — é fisicamente o mesmo arquivo do Drive ` +
+        `listado mais de uma vez, e não há exatamente uma linha já decidida (SELECIONADOS/REVISAR) ` +
+        `cobrindo as demais como alias em DUPLICADOS_POSSIVEIS. Não deduplicado automaticamente; ` +
+        `decisão humana necessária sobre qual pilot_id é o canônico antes da ingestão.`,
+      pilotIds: group.map((r) => r.pilotId),
+    });
   }
 
   // DUPLICADOS_POSSIVEIS sem duplicate_group preenchido é um sinal de que
@@ -198,5 +241,19 @@ export function validateManifest(rows: ManifestRow[]): ManifestValidationResult 
     countsByQueue,
     issues,
     ok: issues.every((issue) => issue.severity !== "error"),
+    aliases,
+    physicalSourceCount: rows.length - aliases.length,
   };
+}
+
+/**
+ * Filtra as linhas do manifesto que a ingestão deve de fato processar
+ * (`ingestFile`) — remove os aliases (`ManifestAlias.aliasPilotId`),
+ * nunca a linha canônica. Usar isto (não `rows` cru) para montar o lote
+ * a ingerir, para nunca disparar uma segunda ingestão do mesmo arquivo
+ * físico sob outro `pilot_id`.
+ */
+export function rowsToIngest(rows: ManifestRow[], validation: ManifestValidationResult): ManifestRow[] {
+  const aliasPilotIds = new Set(validation.aliases.map((a) => a.aliasPilotId));
+  return rows.filter((row) => !aliasPilotIds.has(row.pilotId));
 }
