@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "db:generate-seed": "tsx scripts/generate-supabase-seed.ts",
-    "fase3:validate-manifest": "tsx scripts/fase3-validate-manifest.ts"
+    "fase3:validate-manifest": "tsx scripts/fase3-validate-manifest.ts",
+    "fase1:ingest": "tsx scripts/fase1-ingest.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.114.0",

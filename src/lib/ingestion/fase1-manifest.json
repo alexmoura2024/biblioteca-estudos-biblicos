@@ -1,0 +1,42 @@
+{
+  "fase": "FASE1_TEXTUAL",
+  "descricao": "Lote 01 — 20 estudos textuais, excluindo Gênesis (para Fase posterior) e media (PPTX/admin)",
+  "data_definicao": "2026-09-03",
+  "total_estudos": 20,
+  "estudos": [
+    "SEL-005",
+    "SEL-006",
+    "SEL-007",
+    "SEL-008",
+    "SEL-009",
+    "SEL-010",
+    "SEL-011",
+    "SEL-013",
+    "SEL-014",
+    "SEL-015",
+    "SEL-016",
+    "SEL-017",
+    "SEL-018",
+    "SEL-019",
+    "SEL-020",
+    "SEL-021",
+    "SEL-022",
+    "SEL-023",
+    "SEL-024",
+    "SEL-025"
+  ],
+  "exclusoes": {
+    "media_pptx": ["SEL-012", "SEL-029"],
+    "recurso_administrativo": ["SEL-032"],
+    "fragmento": ["SEL-037"],
+    "genesis_fase_posterior": ["SEL-001", "SEL-002", "SEL-003", "SEL-004"]
+  },
+  "candidatos_nao_inclusos_fase1": ["SEL-026", "SEL-027", "SEL-028", "SEL-030", "SEL-031", "SEL-033", "SEL-034", "SEL-035", "SEL-036"],
+  "notas": [
+    "SEL-017 já foi dividido em 2 estudos (checkpoint 15)",
+    "Nenhum estudo será marcado como PUBLISHED",
+    "Gênesis será ingerido em fase posterior com própria janela de revisão",
+    "Estudos temáticos/doutrinários (SEL-030, SEL-031) para fase posterior",
+    "Estudos Apocalipse extras (SEL-026, SEL-027, SEL-028) para fase posterior"
+  ]
+}
