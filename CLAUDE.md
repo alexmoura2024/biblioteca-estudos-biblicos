@@ -52,25 +52,36 @@ acontecer. Só depois de checar de verdade é que `supabase db reset`/
 `test db` podem ser considerados bloqueados ou não.
 
 A Fase 3 (piloto com acervo real, `src/lib/ingestion/`) está **fechada**
-(checkpoint 13): 48 dos 49 candidatos físicos únicos do manifesto foram
-baixados/extraídos/transformados em `studies` de verdade (41 REVIEW + 7
-DRAFT, zero PUBLISHED, idempotência comprovada em múltiplas execuções
-reais, inclusive entre sessões diferentes) contra um Postgres local de
-verdade. Só `DUP-002` falhou (extração — arquivo provavelmente não é um
-`.doc` válido, não um bug). `LocalSyncedDriveSourceAdapter` (DEC-031,
-DEC-036) resolve pelo Drive já sincronizado no Windows — o usuário
-copiou cópias técnicas de todo o lote para uma pasta local em vez de
-sincronizar a árvore completa do acervo ou criar credenciais de API;
-`GoogleDriveSourceAdapter` continua não implementado por essa decisão.
-Ver `docs/WORK_STATUS.md` (checkpoint 13, "PENDÊNCIAS IMEDIATAS") para
-a lista completa de achados reais corrigidos (DEC-030 a DEC-036) e dois
-achados reais documentados mas NÃO corrigidos por estarem fora do
-escopo de fechar o piloto (DEC-037: convenção de abreviação bíblica
-tradicional não coberta pelo scanner; heurística de referência
-principal pode escolher uma ilustração em vez do texto-base) — vale a
-pena ler antes de mexer em `src/lib/ingestion/` de novo, para não
-reintroduzir um bug já corrigido nem duplicar esforço num achado já
-registrado.
+(checkpoint 13): 49 candidatos físicos únicos do manifesto foram
+baixados/extraídos/transformados em `studies` de verdade contra um
+Postgres local de verdade, idempotência comprovada em múltiplas
+execuções reais, inclusive entre sessões diferentes. `LocalSyncedDriveSourceAdapter`
+(DEC-031, DEC-036) resolve pelo Drive já sincronizado no Windows — o
+usuário copiou cópias técnicas de todo o lote para uma pasta local em
+vez de sincronizar a árvore completa do acervo ou criar credenciais de
+API; `GoogleDriveSourceAdapter` continua não implementado por essa
+decisão.
+
+A Fase 3.1 (saneamento determinístico pré-revisão) também está
+**fechada** (checkpoint 14, DEC-038 a DEC-041): abreviações bíblicas
+tradicionais ("Ex.", "II Sam.") e seleção determinística de referência
+MAIN (prioridade marcador explícito > título confirmado > predominância
+> primeira ocorrência) reduziram os 48 estudos reais de 41 REVIEW + 7
+DRAFT para **45 REVIEW + 3 DRAFT** (zero PUBLISHED). `DUP-002` continua
+sendo a única falha de extração, agora com diagnóstico verificado por
+bytes (é um `.doc` OLE genuíno, formato Word 6.0/95 — mais antigo do
+que `word-extractor` suporta, não corrompido, não MIME errado — DEC-040;
+recuperar o conteúdo exigiria um extrator dedicado, fora do escopo).
+`scripts/fase3-review-report.ts` organiza os 48 estudos em 4 grupos
+editoriais (A/B/C/D — DEC-041); o relatório GERADO
+(`docs/fase3-piloto/RELATORIO_REVISAO.md`) fica fora do git (contém
+texto real do acervo) — regere com `npx tsx scripts/fase3-review-report.ts`.
+Ver `docs/WORK_STATUS.md` (checkpoint 14, "PENDÊNCIAS IMEDIATAS") e
+`docs/fase3-piloto/FASE3.1_ANTES_DEPOIS.md` antes de mexer em
+`src/lib/ingestion/referenceScan.ts`/`extract/legacyDoc.ts` de novo,
+para não reintroduzir um bug já corrigido nem duplicar esforço num
+achado já registrado. **O próximo passo do projeto é a revisão humana
+propriamente dita dos 48 estudos — não código.**
 
 ## 3. Regras de arquitetura (não violar sem registrar uma decisão)
 

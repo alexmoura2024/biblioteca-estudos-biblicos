@@ -37,6 +37,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Fase 3 — relatório de revisão gerado (scripts/fase3-review-report.ts):
+# reproduz o TEXTO EXTRAÍDO INTEGRAL de documentos reais do acervo, não
+# dados mockados (DEC-011) — nunca deve entrar no histórico do git;
+# regenerável a qualquer momento contra o Supabase local.
+docs/fase3-piloto/RELATORIO_REVISAO.md
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
