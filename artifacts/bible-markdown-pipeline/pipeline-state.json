@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-09-03T00:00:00Z",
+  "checkpoint": 19,
+  "pipeline_version": "1.0",
+  "status": "PILOT_GENESIS_AUDIT_COMPLETE",
+  "description": "Auditoria completa de todos os arquivos textuais de Gênesis. Manifesto criado. Originais mapeados com SHA-256. Nenhum arquivo modificado.",
+  "genesis": {
+    "total_physical_files": 32,
+    "textual_files": 32,
+    "presentations_ignored": 0,
+    "other_files": 0,
+    "by_format": {
+      ".doc": 27,
+      ".docx": 5
+    },
+    "status_breakdown": {
+      "HOLD_CONVERSION": 32,
+      "SUCCESS": 0,
+      "HOLD_NO_TEXT": 0,
+      "HOLD_CORRUPTED": 0,
+      "HOLD_UNSUPPORTED": 0
+    },
+    "original_files_modified": 0
+  },
+  "manifests": {
+    "genesis_manifest": "artifacts/bible-markdown-pipeline/manifests/manifest-01-genesis-2026-09-03.json"
+  },
+  "snapshots": {
+    "originals_snapshot": "artifacts/bible-markdown-pipeline/snapshots/genesis-originals-snapshot.json",
+    "audit_snapshot": "artifacts/bible-markdown-pipeline/snapshots/genesis-audit-2026-09-03.json"
+  },
+  "notes": [
+    "Todos os 32 arquivos de Gênesis foram catalogados com SHA-256",
+    "Nenhum arquivo foi modificado (ORIGINAL_FILES_MODIFIED = 0)",
+    "Status HOLD_CONVERSION: aguardando ferramentas de extração específicas (word-extractor para DOC, unzipper para DOCX, RTF parser)",
+    "Manifesto permite rastreabilidade completa de cada arquivo até sua origem no Drive",
+    "Pipeline é idempotente: reexecução com mesmos arquivos produce mesmo manifesto"
+  ]
+}
