@@ -42,20 +42,31 @@ RLS, seed reproduzível e os repositórios Supabase foram validados
 contra um Postgres real (migrations aplicando do zero, os 15 asserts
 pgTAP de RLS passando, e o site rodando de fato via `Supabase*Repository`
 com resultado equivalente ao Mock — ver `docs/WORK_STATUS.md`,
-checkpoint 10). Este ambiente específico (Claude Code) continua sem
-Docker (DEC-024) — a validação acima foi feita rodando os comandos numa
-máquina com Docker e conferindo o resultado; não presuma que esse
-bloqueio de ambiente sumiu só porque a fase foi concluída.
+checkpoint 10).
 
-A Fase 3 (piloto com acervo real, `src/lib/ingestion/`) tem a
-infraestrutura pronta e testada (schema de proveniência, pipeline de
-ingestão determinística, 57 testes) mas **a ingestão real ainda não
-rodou** — falta acesso ao conteúdo dos arquivos do Drive (sem
-credenciais nesta sessão) e uma decisão humana sobre um achado real na
-auditoria do manifesto (`SEL-023`/`DUP-010` são o mesmo arquivo do
-Drive). Ver `docs/WORK_STATUS.md` ("PENDÊNCIAS IMEDIATAS") para a lista
-exata do que falta antes de rodar `scripts/fase3-ingest-piloto.ts`
-(ainda não escrito — não fazia sentido sem poder testá-lo de verdade).
+**Docker (DEC-024): NÃO presuma disponível nem indisponível — revalide
+com `docker info`/`npx supabase status` no início de cada sessão.** Este
+ambiente específico (Claude Code) já mudou de "sem Docker" para "com
+Docker funcional" entre sessões (checkpoint 12) — o inverso também pode
+acontecer. Só depois de checar de verdade é que `supabase db reset`/
+`test db` podem ser considerados bloqueados ou não.
+
+A Fase 3 (piloto com acervo real, `src/lib/ingestion/`) já rodou uma
+ingestão real (checkpoint 12): 14 dos 49 candidatos físicos únicos do
+manifesto foram baixados/extraídos/transformados em `studies` de
+verdade (12 REVIEW + 2 DRAFT, zero PUBLISHED, idempotência comprovada
+com duas execuções reais) contra um Postgres local de verdade. Os
+outros 35 falharam no FETCH de forma rastreável — não estão
+sincronizados nesta cópia local do Drive (`LocalSyncedDriveSourceAdapter`,
+DEC-031 — decisão do usuário de usar o Drive já sincronizado no Windows
+em vez de credenciais da API). `GoogleDriveSourceAdapter` continua não
+implementado por essa mesma decisão. Ver `docs/WORK_STATUS.md`
+(checkpoint 12, "PENDÊNCIAS IMEDIATAS") para o que falta para os
+outros 35 e a lista completa de achados reais corrigidos durante essa
+ingestão (DEC-030 a DEC-035) — vale a pena ler antes de mexer em
+`src/lib/ingestion/` de novo, para não reintroduzir um desses bugs já
+corrigidos (ex.: `service_role` sem GRANT, colisão de `slug`, varredura
+de referência).
 
 ## 3. Regras de arquitetura (não violar sem registrar uma decisão)
 
@@ -147,11 +158,10 @@ exata do que falta antes de rodar `scripts/fase3-ingest-piloto.ts`
   `scripts/generate-supabase-seed.ts`) a partir de
   `src/lib/data/*.ts` — não edite `seed.sql` à mão, edite o script ou os
   dados-fonte e regenere.
-- **Docker não está disponível neste ambiente** (DEC-024) — por isso
-  `supabase start`/`db reset`/`test db` nunca rodaram nesta máquina.
-  Se uma sessão futura tiver Docker disponível, essa é a próxima
-  validação pendente (não presuma que já passou só porque o SQL foi
-  escrito e revisado).
+- **Disponibilidade do Docker (DEC-024) já mudou de estado nesta
+  máquina** — revalide com `docker info`/`npx supabase status` a cada
+  sessão nova antes de assumir que `supabase start`/`db reset`/`test db`
+  estão bloqueados ou não. Não presuma nenhum dos dois sem checar.
 - **Nenhum estudo real (Fase 3+) pode nascer `PUBLISHED`** — a ingestão
   (`src/lib/ingestion/pipeline.ts`) só cria `DRAFT`/`REVIEW`; isso é
   garantido pelo TIPO de `UpsertStudyInput.status`
@@ -260,9 +270,12 @@ src/lib/supabase/client.ts   Cliente `anon` (@supabase/supabase-js) + isSupabase
 src/lib/supabase/serviceClient.ts  Cliente `service_role`, server-only, separado de client.ts de propósito (Fase 3, DEC-027)
 supabase/migrations/         Schema, índices, função search_studies, views de contagem, RLS/policies + proveniência da Fase 3 (files/ingestion_jobs) — SQL versionado, nesta ordem cronológica
 supabase/seed.sql            Gerado por `npm run db:generate-seed` a partir de src/lib/data/*.ts — não editar à mão
-supabase/tests/              Testes pgTAP de RLS (não executados nesta máquina — falta Docker, DEC-024)
+supabase/tests/              Testes pgTAP de RLS — 15/15 PASS confirmado nesta máquina (checkpoint 12); Docker pode não estar disponível numa sessão futura, revalide (DEC-024)
 scripts/generate-supabase-seed.ts  Gera supabase/seed.sql a partir dos dados mockados
-scripts/fase3-validate-manifest.ts Valida o manifesto do piloto da Fase 3 e diagnostica os 12 duplicados possíveis
+scripts/fase3-validate-manifest.ts Valida o manifesto do piloto da Fase 3 (contagens/aliases/issues) e diagnostica os 12 duplicados possíveis
+scripts/fase3-ingest-piloto.ts     Orquestra a ingestão real dos candidatos não-alias contra o Postgres local (idempotente — seguro rodar de novo)
+scripts/fase3-validate-db.ts       Consulta o banco real e comprova as invariantes (zero PUBLISHED, zero drive_file_id duplicado, casos editoriais)
+scripts/fase3-review-report.ts     Gera o relatório de revisão humana (Etapa 10) a partir do banco real — nunca uma página pública
 docs/fase3-piloto/           Manifesto real do piloto da Fase 3 (50 candidatos) — entregue pelo usuário, não gerado por código; fonte única para src/lib/ingestion/manifest.ts
 src/lib/ingestion/           Pipeline de ingestão determinística da Fase 3 (sem IA) — ver DEC-028
 src/lib/ingestion/manifest.ts      Lê/valida o manifesto do piloto (docs/fase3-piloto/) — nunca corrige duplicidade/contagem sozinho
@@ -271,7 +284,7 @@ src/lib/ingestion/extract/        Adaptadores de extração por formato (docx/le
 src/lib/ingestion/duplicates.ts   Diagnóstico conservador de duplicidade — nunca funde/exclui automaticamente
 src/lib/ingestion/repository.ts   Fronteira pipeline -> persistência (implementações: repository.inMemory.ts para teste, supabaseIngestionRepository.ts para produção)
 src/lib/ingestion/pipeline.ts     Orquestrador (ingestFile) — idempotente, nunca cria PUBLISHED
-src/lib/ingestion/sources/        Origem do arquivo (Drive) — googleDriveAdapter.ts ainda NÃO implementado (sem credenciais)
+src/lib/ingestion/sources/        Origem do arquivo — localSyncedDriveAdapter.ts (usado de fato, Drive sincronizado local), googleDriveAdapter.ts ainda NÃO implementado (decisão do usuário, sem credenciais)
 src/components/              Componentes de UI reutilizáveis
 src/app/                     Rotas (App Router)
 ```
