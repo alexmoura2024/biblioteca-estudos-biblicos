@@ -80,8 +80,20 @@ Ver `docs/WORK_STATUS.md` (checkpoint 14, "PENDÊNCIAS IMEDIATAS") e
 `docs/fase3-piloto/FASE3.1_ANTES_DEPOIS.md` antes de mexer em
 `src/lib/ingestion/referenceScan.ts`/`extract/legacyDoc.ts` de novo,
 para não reintroduzir um bug já corrigido nem duplicar esforço num
-achado já registrado. **O próximo passo do projeto é a revisão humana
-propriamente dita dos 48 estudos — não código.**
+achado já registrado.
+
+Um arquivo-fonte pode originar MAIS de um `study` — exclusivamente por
+DECISÃO EDITORIAL HUMANA explícita, nunca inferida sozinha pela pipeline
+(checkpoint 15, DEC-042): `SEL-017` continha duas mensagens
+independentes concatenadas no mesmo documento e virou 2 estudos
+distintos (`study_files`, N:N, novo status `files.status_processamento
+= 'DIVIDIDO_MANUALMENTE'` — a pipeline automática nunca reprocessa um
+arquivo nesse estado, para não sobrescrever a divisão). Os 48 estudos
+reais viraram **49**. Ver `src/lib/ingestion/manualSplit.ts`
+(`splitFileIntoStudies`, reutilizável para um caso futuro semelhante) e
+`scripts/fase3-split-sel017.ts` (execução real, específica de SEL-017).
+**O próximo passo do projeto é a revisão humana propriamente dita dos
+49 estudos — não código.**
 
 ## 3. Regras de arquitetura (não violar sem registrar uma decisão)
 
@@ -283,14 +295,15 @@ src/lib/search/queryParsing.ts    Ponte Fase A/B: texto livre -> SearchQuery est
 src/lib/search/search.ts          Motor de busca puro (scoreStudy, matchesFilters, WEIGHTS) — usado por MockSearchRepository
 src/lib/supabase/client.ts   Cliente `anon` (@supabase/supabase-js) + isSupabaseConfigured() — Fase 2 (política de segurança: DEC-020)
 src/lib/supabase/serviceClient.ts  Cliente `service_role`, server-only, separado de client.ts de propósito (Fase 3, DEC-027)
-supabase/migrations/         Schema, índices, função search_studies, views de contagem, RLS/policies + proveniência da Fase 3 (files/ingestion_jobs) — SQL versionado, nesta ordem cronológica
+supabase/migrations/         Schema, índices, função search_studies, views de contagem, RLS/policies + proveniência da Fase 3 (files/ingestion_jobs) + study_files (Fase 3.1, N:N estudo↔arquivo p/ divisão editorial manual, DEC-042) — SQL versionado, nesta ordem cronológica
 supabase/seed.sql            Gerado por `npm run db:generate-seed` a partir de src/lib/data/*.ts — não editar à mão
 supabase/tests/              Testes pgTAP de RLS — 15/15 PASS confirmado nesta máquina (checkpoint 12); Docker pode não estar disponível numa sessão futura, revalide (DEC-024)
 scripts/generate-supabase-seed.ts  Gera supabase/seed.sql a partir dos dados mockados
 scripts/fase3-validate-manifest.ts Valida o manifesto do piloto da Fase 3 (contagens/aliases/issues) e diagnostica os 12 duplicados possíveis
 scripts/fase3-ingest-piloto.ts     Orquestra a ingestão real dos candidatos não-alias contra o Postgres local (idempotente — seguro rodar de novo)
 scripts/fase3-validate-db.ts       Consulta o banco real e comprova as invariantes (zero PUBLISHED, zero drive_file_id duplicado, casos editoriais)
-scripts/fase3-review-report.ts     Gera o relatório de revisão humana (Etapa 10) a partir do banco real — nunca uma página pública
+scripts/fase3-review-report.ts     Gera o relatório de revisão humana (Etapa 10) em 4 grupos A/B/C/D (DEC-041) a partir do banco real, incluindo estudos vinculados via study_files — nunca uma página pública
+scripts/fase3-split-sel017.ts      One-off: aplica a divisão editorial manual de SEL-017 em 2 estudos (DEC-042) — específico desse caso, não reutilizável como está
 docs/fase3-piloto/           Manifesto real do piloto da Fase 3 (50 candidatos) — entregue pelo usuário, não gerado por código; fonte única para src/lib/ingestion/manifest.ts
 src/lib/ingestion/           Pipeline de ingestão determinística da Fase 3 (sem IA) — ver DEC-028
 src/lib/ingestion/manifest.ts      Lê/valida o manifesto do piloto (docs/fase3-piloto/) — nunca corrige duplicidade/contagem sozinho
@@ -298,7 +311,8 @@ src/lib/ingestion/referenceScan.ts Varre um documento INTEIRO por referências b
 src/lib/ingestion/extract/        Adaptadores de extração por formato (docx/legacyDoc/pdf/pptx) + roteador por MIME type
 src/lib/ingestion/duplicates.ts   Diagnóstico conservador de duplicidade — nunca funde/exclui automaticamente
 src/lib/ingestion/repository.ts   Fronteira pipeline -> persistência (implementações: repository.inMemory.ts para teste, supabaseIngestionRepository.ts para produção)
-src/lib/ingestion/pipeline.ts     Orquestrador (ingestFile) — idempotente, nunca cria PUBLISHED
+src/lib/ingestion/pipeline.ts     Orquestrador (ingestFile) — idempotente, nunca cria PUBLISHED; nunca reprocessa um arquivo DIVIDIDO_MANUALMENTE (DEC-042)
+src/lib/ingestion/manualSplit.ts  Divide um arquivo-fonte em múltiplos estudos — só por decisão editorial HUMANA explícita, nunca inferida (DEC-042)
 src/lib/ingestion/sources/        Origem do arquivo — localSyncedDriveAdapter.ts (usado de fato, Drive sincronizado local), googleDriveAdapter.ts ainda NÃO implementado (decisão do usuário, sem credenciais)
 src/components/              Componentes de UI reutilizáveis
 src/app/                     Rotas (App Router)

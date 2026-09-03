@@ -53,6 +53,8 @@ interface StudyReviewRow {
   duplicateGroupKey?: string;
   grupo: EditorialGroup;
   recomendacao: Recommendation;
+  /** Presente só quando este estudo veio de uma divisão editorial manual (DEC-042) — nota informativa, não uma pendência. */
+  notaDivisaoManual?: string;
 }
 
 /**
@@ -133,13 +135,34 @@ async function main() {
 
   const { data: falhas } = await client.from("files").select("drive_file_id, nome_original, status_processamento").is("study_id", null).neq("status_processamento", "PENDENTE");
 
+  // Normalmente 1 `files` -> 1 `study` (via `files.study_id`). Um arquivo
+  // dividido manualmente por decisão editorial humana (DEC-042) tem MAIS
+  // de um estudo vinculado via `study_files` — a tabela primária ainda só
+  // aponta para o primeiro, então completamos aqui com os demais para o
+  // relatório nunca esconder um estudo real só por causa desse detalhe
+  // estrutural (ver `manualSplit.ts`).
+  const { data: splitLinks } = await client.from("study_files").select("study_id, file_id");
+  const extraStudyIdsByFileId = new Map<string, string[]>();
+  for (const link of splitLinks ?? []) {
+    const list = extraStudyIdsByFileId.get(link.file_id) ?? [];
+    list.push(link.study_id);
+    extraStudyIdsByFileId.set(link.file_id, list);
+  }
+
+  const fileStudyPairs: Array<{ file: NonNullable<typeof files>[number]; studyId: string }> = [];
+  for (const file of files ?? []) {
+    const linkedIds = new Set(extraStudyIdsByFileId.get(file.id) ?? []);
+    linkedIds.add(file.study_id!); // sempre inclui o vínculo primário, mesmo que também apareça em study_files
+    for (const studyId of linkedIds) fileStudyPairs.push({ file, studyId });
+  }
+
   const rows: StudyReviewRow[] = [];
 
-  for (const file of files ?? []) {
+  for (const { file, studyId } of fileStudyPairs) {
     const { data: study } = await client
       .from("studies")
       .select("id, titulo, slug, status, resumo, conteudo, autor, data_origem, palavras_chave")
-      .eq("id", file.study_id)
+      .eq("id", studyId)
       .single();
     if (!study) continue;
 
@@ -152,7 +175,15 @@ async function main() {
     const { data: characterLinks } = await client.from("study_characters").select("characters(nome)").eq("study_id", study.id);
 
     const manifestRow = manifest.find((r) => r.driveFileId === file.drive_file_id);
-    const { divergencias } = recomputeClassification(manifestRow, study.conteudo);
+    // Um arquivo DIVIDIDO_MANUALMENTE (DEC-042) já teve sua referência
+    // decidida por um humano PARA CADA PARTE — recalcular divergência
+    // contra a `preliminary_reference` do manifesto (que descreve o
+    // arquivo INTEIRO, não uma parte) geraria um falso positivo (ex.:
+    // "Lucas 24:18" comparado contra o título que fala de "Isaías
+    // 25:8-9"). Pula o recálculo nesse caso — a decisão já está tomada.
+    const isManualSplit = file.status_processamento === "DIVIDIDO_MANUALMENTE";
+    const { divergencias } = isManualSplit ? { divergencias: [] as string[] } : recomputeClassification(manifestRow, study.conteudo);
+    const isSplitPart = isManualSplit && (extraStudyIdsByFileId.get(file.id)?.length ?? 0) > 0;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- supabase-js não infere a forma exata de um join aninhado; script local, não exportado.
     const referencias = (passages ?? []).map((p: any) => `${p.passages?.referencia_normalizada ?? "?"} (${p.tipo_relacao})`);
@@ -161,8 +192,9 @@ async function main() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const personagens = (characterLinks ?? []).map((c: any) => c.characters?.nome).filter(Boolean);
 
-    const pilotId = manifestRow?.pilotId ?? "(fora do manifesto)";
-    const duplicateGroupKey = duplicateGroupMap.get(pilotId);
+    const basePilotId = manifestRow?.pilotId ?? "(fora do manifesto)";
+    const pilotId = isSplitPart ? `${basePilotId} (dividido — ${study.titulo})` : basePilotId;
+    const duplicateGroupKey = duplicateGroupMap.get(basePilotId);
 
     const base = { status: study.status as string, divergencias, temas, personagens, duplicateGroupKey };
     const grupo = classifyGroup(base);
@@ -178,6 +210,13 @@ async function main() {
       duplicateGroupKey,
       grupo,
       recomendacao: recommendationFor(grupo),
+      notaDivisaoManual: isManualSplit
+        ? // `extraStudyIdsByFileId` já inclui TODOS os estudos vinculados via
+          // `study_files` para este arquivo — inclusive o primário (ver
+          // `manualSplit.ts`, que registra o vínculo para as duas partes),
+          // então o total é o tamanho da lista, sem "+1".
+          `Este estudo é uma das partes de "${basePilotId}" (${file.nome_original}), dividido em ${extraStudyIdsByFileId.get(file.id)?.length ?? 1} estudos independentes por decisão editorial humana (DEC-042) — nunca automático. Um único arquivo-fonte original preservado.`
+        : undefined,
     });
   }
 
@@ -211,11 +250,16 @@ async function main() {
       console.log(`- **Slug:** \`${r.study.slug}\``);
       console.log(`- **Origem (Drive):** [${r.file.nomeOriginal}](${r.file.driveUrl}) — drive_file_id \`${r.file.driveFileId}\` · MIME original: ${r.file.mimeType}`);
       console.log(`- **Autor:** ${r.study.autor} · **Data de origem:** ${r.study.dataOrigem}`);
-      console.log(`- **Título sugerido:** igual ao título original — nenhum algoritmo de sugestão de título existe ainda (decisão de título é sempre humana)`);
+      console.log(
+        r.notaDivisaoManual
+          ? `- **Título:** decidido por divisão editorial manual (DEC-042) — não é o título original do arquivo`
+          : `- **Título sugerido:** igual ao título original — nenhum algoritmo de sugestão de título existe ainda (decisão de título é sempre humana)`,
+      );
       console.log(`- **Referências detectadas:** ${r.referencias.join("; ") || "NENHUMA — classificação incompleta"}`);
       console.log(`- **Temas sugeridos:** ${r.temas.join(", ") || "(nenhum)"}`);
       console.log(`- **Personagens sugeridos:** ${r.personagens.join(", ") || "(nenhum)"}`);
       if (r.duplicateGroupKey) console.log(`- **Grupo de duplicidade do manifesto:** \`${r.duplicateGroupKey}\``);
+      if (r.notaDivisaoManual) console.log(`- **ℹ Divisão editorial manual:** ${r.notaDivisaoManual}`);
       if (r.divergencias.length > 0) {
         console.log("- **⚠ Divergências (revisão editorial necessária):**");
         for (const d of r.divergencias) console.log(`  - ${d}`);

@@ -45,14 +45,17 @@ export type IngestionOutcome =
       divergencias: string[];
     }
   | { outcome: "falha"; fileId?: string; stage: string; motivo: string }
-  | { outcome: "nao_suportado"; fileId: string; motivo: string };
+  | { outcome: "nao_suportado"; fileId: string; motivo: string }
+  | { outcome: "ignorado_divisao_manual"; fileId: string; motivo: string };
 
-function suggestTopicIds(texto: string, topics: Topic[]): string[] {
+/** Exportado também para `src/lib/ingestion/manualSplit.ts`/scripts de divisão manual reaproveitarem a MESMA lógica determinística por trecho de texto, em vez de duplicá-la. */
+export function suggestTopicIds(texto: string, topics: Topic[]): string[] {
   const normalized = normalizeText(texto);
   return topics.filter((topic) => normalized.includes(normalizeText(topic.nome))).map((topic) => topic.id);
 }
 
-function suggestCharacterIds(texto: string, characters: Character[]): string[] {
+/** Ver nota de `suggestTopicIds` acima — mesmo motivo de ser exportada. */
+export function suggestCharacterIds(texto: string, characters: Character[]): string[] {
   const normalized = normalizeText(texto);
   return characters.filter((character) => normalized.includes(normalizeText(character.nome))).map((character) => character.id);
 }
@@ -81,6 +84,19 @@ export async function ingestFile({ manifestRow, sourceAdapter, repository, topic
     mimeType: manifestRow.mimeType,
     driveUrl: manifestRow.sourceUrl,
   });
+
+  // 1.5) Um arquivo dividido manualmente por decisão editorial humana
+  // (`src/lib/ingestion/manualSplit.ts`, DEC-042) NUNCA é reprocessado
+  // pela pipeline automática — reprocessar reextrairia o texto INTEIRO
+  // (todas as mensagens juntas) e sobrescreveria a divisão de volta a um
+  // único estudo, apagando a decisão humana. A divisão em si já deixou
+  // os estudos corretos no lugar (via `study_files`); aqui só registramos
+  // que esta execução viu o arquivo e conscientemente não tocou nele.
+  if (file.statusProcessamento === "DIVIDIDO_MANUALMENTE") {
+    const motivo = "Arquivo dividido manualmente por decisão editorial humana (DEC-042) — pipeline automática nunca reprocessa, para não sobrescrever a divisão.";
+    await repository.logJobStage(file.id, "UPSERT_STUDY", "SKIPPED", { errorMessage: motivo });
+    return { outcome: "ignorado_divisao_manual", fileId: file.id, motivo };
+  }
 
   // 2) FETCH
   let sourceFile;

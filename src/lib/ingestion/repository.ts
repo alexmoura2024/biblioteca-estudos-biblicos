@@ -14,7 +14,7 @@ import type { StatusEditorial, TipoRelacaoPassagem } from "@/lib/types";
  * `..._fase3_provenance_rls.sql`).
  */
 
-export type StatusProcessamentoArquivo = "PENDENTE" | "EXTRAIDO" | "FALHA_EXTRACAO" | "NAO_SUPORTADO" | "PROCESSADO";
+export type StatusProcessamentoArquivo = "PENDENTE" | "EXTRAIDO" | "FALHA_EXTRACAO" | "NAO_SUPORTADO" | "PROCESSADO" | "DIVIDIDO_MANUALMENTE";
 export type IngestionStage =
   | "FETCH"
   | "EXTRACT"
@@ -100,6 +100,29 @@ export interface IngestionRepository {
    * para o mesmo arquivo (INGESTION_SPEC.md §9, idempotência).
    */
   upsertStudyForFile(fileId: string, input: UpsertStudyInput): Promise<{ studyId: string }>;
+
+  /**
+   * Cria um `study` novo standalone (DRAFT/REVIEW), SEM vincular
+   * automaticamente a `files.study_id` — usado só pelo fluxo de divisão
+   * editorial manual (`src/lib/ingestion/manualSplit.ts`), nunca pela
+   * pipeline determinística (`ingestFile`), que sempre usa
+   * `upsertStudyForFile`. Existe porque um arquivo pode originar MAIS de
+   * um estudo por decisão humana explícita (ver DEC-042) — algo que o
+   * vínculo 1:1 de `files.study_id` não consegue expressar sozinho.
+   */
+  createStandaloneStudy(input: UpsertStudyInput): Promise<{ studyId: string }>;
+
+  /**
+   * Registra um vínculo ADICIONAL estudo↔arquivo em `study_files` (N:N),
+   * complementar ao vínculo primário `files.study_id` (1:1) — usado só
+   * quando uma decisão editorial humana determina que um arquivo contém
+   * múltiplas mensagens/estudos independentes. Nunca chamado pela
+   * pipeline automática.
+   */
+  linkStudyToFile(studyId: string, fileId: string, papel: string): Promise<void>;
+
+  /** Lista os `study_id` vinculados a um arquivo via `study_files` — usado para a divisão manual ser idempotente (reexecutar não recria os estudos, só devolve os que já existem). */
+  listLinkedStudyIds(fileId: string): Promise<string[]>;
 
   /** Substitui TODAS as passagens do estudo pelo conjunto atual (delete-then-insert) — nunca acumula duplicatas entre reexecuções. */
   replaceStudyPassages(studyId: string, passages: StudyPassageInput[]): Promise<void>;

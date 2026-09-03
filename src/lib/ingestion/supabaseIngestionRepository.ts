@@ -147,6 +147,43 @@ export class SupabaseIngestionRepository implements IngestionRepository {
       throw new Error(`SupabaseIngestionRepository.upsertStudyForFile (update): ${error.message}`);
     }
 
+    return this.insertStudyWithSlugRetry(payload, disambiguatedSlug, "upsertStudyForFile");
+  }
+
+  /**
+   * Cria um `study` novo standalone (DRAFT/REVIEW) — nunca toca
+   * `files.study_id` (quem faz isso é `upsertStudyForFile`, ou o
+   * chamador explicitamente via `linkStudyToFile`). Único uso real: o
+   * fluxo de divisão editorial manual (`manualSplit.ts`, DEC-042), para
+   * o(s) estudo(s) ALÉM do primeiro (que reaproveita o já vinculado ao
+   * arquivo via `upsertStudyForFile`).
+   */
+  async createStandaloneStudy(input: UpsertStudyInput): Promise<{ studyId: string }> {
+    const payload = {
+      titulo: input.titulo,
+      slug: input.slug,
+      resumo: input.resumo,
+      conteudo: input.conteudo,
+      status: input.status,
+      autor: input.autor,
+      data_origem: input.dataOrigem,
+      palavras_chave: input.palavrasChave,
+    };
+    // Mesma desambiguação estável de `upsertStudyForFile` (nunca aleatória),
+    // mas sem um `drive_file_id` de referência aqui (não há um único
+    // arquivo "dono" deste estudo standalone) — usa o próprio `slug` de
+    // entrada como semente, ainda determinístico entre reexecuções do
+    // MESMO input.
+    const disambiguatedSlug = `${input.slug}-dividido`;
+    return this.insertStudyWithSlugRetry(payload, disambiguatedSlug, "createStandaloneStudy");
+  }
+
+  private async insertStudyWithSlugRetry(
+    payload: Record<string, unknown>,
+    disambiguatedSlug: string,
+    callerName: string,
+  ): Promise<{ studyId: string }> {
+    const client = getSupabaseServiceClient();
     const { data: inserted, error: insertError } = await client.from("studies").insert(payload).select("id").single();
     if (!insertError) return { studyId: (inserted as { id: string }).id };
 
@@ -156,11 +193,24 @@ export class SupabaseIngestionRepository implements IngestionRepository {
         .insert({ ...payload, slug: disambiguatedSlug })
         .select("id")
         .single();
-      if (retryError) throw new Error(`SupabaseIngestionRepository.upsertStudyForFile (insert, retry com slug desambiguado): ${retryError.message}`);
+      if (retryError) throw new Error(`SupabaseIngestionRepository.${callerName} (insert, retry com slug desambiguado): ${retryError.message}`);
       return { studyId: (retried as { id: string }).id };
     }
 
-    throw new Error(`SupabaseIngestionRepository.upsertStudyForFile (insert): ${insertError.message}`);
+    throw new Error(`SupabaseIngestionRepository.${callerName} (insert): ${insertError.message}`);
+  }
+
+  async linkStudyToFile(studyId: string, fileId: string, papel: string): Promise<void> {
+    const client = getSupabaseServiceClient();
+    const { error } = await client.from("study_files").upsert({ study_id: studyId, file_id: fileId, papel }, { onConflict: "study_id,file_id" });
+    if (error) throw new Error(`SupabaseIngestionRepository.linkStudyToFile: ${error.message}`);
+  }
+
+  async listLinkedStudyIds(fileId: string): Promise<string[]> {
+    const client = getSupabaseServiceClient();
+    const { data, error } = await client.from("study_files").select("study_id").eq("file_id", fileId);
+    if (error) throw new Error(`SupabaseIngestionRepository.listLinkedStudyIds: ${error.message}`);
+    return (data ?? []).map((row) => (row as { study_id: string }).study_id);
   }
 
   async replaceStudyPassages(studyId: string, passages: StudyPassageInput[]): Promise<void> {

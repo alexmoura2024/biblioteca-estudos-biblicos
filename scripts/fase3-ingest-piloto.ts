@@ -44,7 +44,9 @@ async function runBatch(rows: ReturnType<typeof loadManifest>, sourceAdapter: Lo
         ? `PROCESSADO (${outcome.status}, ${outcome.passagensValidas.length} passagem(ns) válida(s)${outcome.divergencias.length > 0 ? `, DIVERGÊNCIA(S): ${outcome.divergencias.length}` : ""})`
         : outcome.outcome === "nao_suportado"
           ? `NÃO SUPORTADO — ${outcome.motivo}`
-          : `FALHA (${outcome.stage}) — ${outcome.motivo}`;
+          : outcome.outcome === "ignorado_divisao_manual"
+            ? `IGNORADO (dividido manualmente por decisão editorial humana — DEC-042)`
+            : `FALHA (${outcome.stage}) — ${outcome.motivo}`;
     console.log(`${row.pilotId}: ${summary}`);
     if (outcome.outcome === "processado") {
       for (const divergencia of outcome.divergencias) console.log(`  ⚠ ${divergencia}`);

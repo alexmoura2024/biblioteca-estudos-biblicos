@@ -41,6 +41,8 @@ export class InMemoryIngestionRepository implements IngestionRepository {
   readonly files = new Map<string, FileRecord>(); // por drive_file_id
   readonly studies = new Map<string, InMemoryStudy>(); // por study id
   readonly jobLog: JobLogEntry[] = [];
+  /** Vínculos estudo↔arquivo de `study_files` (N:N) — só populado pelo fluxo de divisão manual (`manualSplit.ts`), nunca pela pipeline automática. */
+  readonly studyFiles: Array<{ studyId: string; fileId: string; papel: string }> = [];
 
   async upsertFile(input: UpsertFileInput): Promise<FileRecord> {
     const existing = this.files.get(input.driveFileId);
@@ -110,6 +112,22 @@ export class InMemoryIngestionRepository implements IngestionRepository {
     this.studies.set(studyId, { ...input, id: studyId, passages: [], topicIds: [], characterIds: [] });
     await this.updateFileStatus(fileId, fileEntry.statusProcessamento, { studyId });
     return { studyId };
+  }
+
+  async createStandaloneStudy(input: UpsertStudyInput): Promise<{ studyId: string }> {
+    const studyId = nextId("study");
+    this.studies.set(studyId, { ...input, id: studyId, passages: [], topicIds: [], characterIds: [] });
+    return { studyId };
+  }
+
+  async linkStudyToFile(studyId: string, fileId: string, papel: string): Promise<void> {
+    if (!this.studies.has(studyId)) throw new Error(`InMemoryIngestionRepository.linkStudyToFile: estudo "${studyId}" não encontrado.`);
+    const alreadyLinked = this.studyFiles.some((link) => link.studyId === studyId && link.fileId === fileId);
+    if (!alreadyLinked) this.studyFiles.push({ studyId, fileId, papel });
+  }
+
+  async listLinkedStudyIds(fileId: string): Promise<string[]> {
+    return this.studyFiles.filter((link) => link.fileId === fileId).map((link) => link.studyId);
   }
 
   async replaceStudyPassages(studyId: string, passages: StudyPassageInput[]): Promise<void> {
