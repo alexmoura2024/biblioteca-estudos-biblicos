@@ -59,8 +59,8 @@ async function main() {
 
   console.log(`\n3️⃣ PASSAGENS:`);
   console.log(`   Total relações: ${passages?.length || 0}`);
-  passages?.forEach((p) => {
-    const passage = (p as any).passages;
+  passages?.forEach((p: Record<string, unknown>) => {
+    const passage = p.passages;
     console.log(
       `   - ${passage?.books?.nome} ${passage?.capitulo}: ${passage?.referencia_normalizada} (${p.tipo_relacao})`
     );
@@ -79,9 +79,10 @@ async function main() {
 
   console.log(`\n4️⃣ TÓPICOS:`);
   console.log(`   Total: ${topics?.length || 0}`);
-  topics?.forEach((t) => {
-    const topic = (t as any).topics;
-    console.log(`   - ${topic?.nome} (peso: ${t.peso})`);
+  topics?.forEach((t: Record<string, unknown>) => {
+    const topic = t.topics;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    console.log(`   - ${(topic as any)?.nome} (peso: ${t.peso})`);
   });
 
   // 5. Buscar personagens
@@ -97,9 +98,10 @@ async function main() {
 
   console.log(`\n5️⃣ PERSONAGENS:`);
   console.log(`   Total: ${characters?.length || 0}`);
-  characters?.forEach((c) => {
-    const char = (c as any).characters;
-    console.log(`   - ${char?.nome} (peso: ${c.peso})`);
+  characters?.forEach((c: Record<string, unknown>) => {
+    const char = c.characters;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    console.log(`   - ${(char as any)?.nome} (peso: ${c.peso})`);
   });
 
   // 6. Buscar files (estudo↔arquivo)

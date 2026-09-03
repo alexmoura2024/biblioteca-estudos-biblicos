@@ -21,21 +21,6 @@ interface Study {
   palavras_chave: string[];
 }
 
-interface Passage {
-  id: string;
-  referencia_normalizada: string;
-  tipo_relacao: "MAIN" | "SECONDARY" | "CITED";
-}
-
-interface Topic {
-  id: string;
-  nome: string;
-}
-
-interface Character {
-  id: string;
-  nome: string;
-}
 
 async function getStudy(id: string) {
   const supabase = createClient(
@@ -73,9 +58,11 @@ async function getPassages(studyId: string) {
     .order("tipo_relacao", { ascending: true });
 
   if (error) return [];
-  return data.map((p: any) => ({
-    tipo_relacao: p.tipo_relacao,
-    referencia: p.passages?.referencia_normalizada || "desconhecida",
+  return data.map((p: Record<string, unknown>) => ({
+    tipo_relacao: (p.tipo_relacao as string) || "CITED",
+    referencia:
+      ((p.passages as Record<string, unknown>)?.referencia_normalizada as string) ||
+      "desconhecida",
   }));
 }
 
@@ -92,7 +79,11 @@ async function getTopics(studyId: string) {
     .eq("study_id", studyId);
 
   if (error) return [];
-  return data.map((t: any) => t.topics?.nome).filter(Boolean);
+  return data
+    .map((t: Record<string, unknown>) =>
+      (t.topics as Record<string, unknown>)?.nome as string
+    )
+    .filter(Boolean);
 }
 
 async function getCharacters(studyId: string) {
@@ -108,7 +99,11 @@ async function getCharacters(studyId: string) {
     .eq("study_id", studyId);
 
   if (error) return [];
-  return data.map((c: any) => c.characters?.nome).filter(Boolean);
+  return data
+    .map((c: Record<string, unknown>) =>
+      (c.characters as Record<string, unknown>)?.nome as string
+    )
+    .filter(Boolean);
 }
 
 export default async function AdminEstudoDetailPage({
@@ -131,9 +126,6 @@ export default async function AdminEstudoDetailPage({
     study.status === "REVIEW"
       ? "bg-blue-100 text-blue-800"
       : "bg-amber-100 text-amber-800";
-
-  const hasContent =
-    study.conteudo && study.conteudo.trim().length > 0;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">

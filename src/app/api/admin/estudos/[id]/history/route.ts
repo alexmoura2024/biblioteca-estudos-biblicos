@@ -16,7 +16,9 @@ export async function GET(
 
     const { data, error } = await supabase
       .from("study_edits")
-      .select("id, titulo_anterior, resumo_anterior, conteudo_anterior, campos_alterados, created_at")
+      .select(
+        "id, titulo_anterior, resumo_anterior, conteudo_anterior, campos_alterados, created_at"
+      )
       .eq("study_id", id)
       .order("created_at", { ascending: false });
 
@@ -27,10 +29,15 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ edits: data || [] });
+    type EditRecord = Record<string, unknown>;
+    return NextResponse.json({
+      edits: (data as EditRecord[] | null) || [],
+    });
   } catch (e) {
     return NextResponse.json(
-      { error: `Erro interno: ${(e as any).message}` },
+      {
+        error: `Erro interno: ${e instanceof Error ? e.message : "desconhecido"}`,
+      },
       { status: 500 }
     );
   }

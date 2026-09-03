@@ -92,7 +92,7 @@ async function main() {
 
   for (const nome of personagens) {
     // Buscar personagem
-    let { data: character } = await supabase
+    const { data: character } = await supabase
       .from("characters")
       .select("id")
       .eq("nome", nome)

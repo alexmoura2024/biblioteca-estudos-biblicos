@@ -29,18 +29,21 @@ export async function POST(
       );
     }
 
+    type StudyRecord = Record<string, unknown>;
+    const typedStudy = study as StudyRecord;
+
     // 2. Registrar histórico (snapshot anterior)
-    const changed = [];
-    if (body.titulo !== study.titulo) changed.push("titulo");
-    if (body.resumo !== study.resumo) changed.push("resumo");
-    if (body.conteudo !== study.conteudo) changed.push("conteudo");
+    const changed: string[] = [];
+    if (body.titulo !== typedStudy.titulo) changed.push("titulo");
+    if (body.resumo !== typedStudy.resumo) changed.push("resumo");
+    if (body.conteudo !== typedStudy.conteudo) changed.push("conteudo");
 
     if (changed.length > 0) {
       await supabase.from("study_edits").insert({
         study_id: id,
-        titulo_anterior: study.titulo,
-        resumo_anterior: study.resumo,
-        conteudo_anterior: study.conteudo,
+        titulo_anterior: typedStudy.titulo as string,
+        resumo_anterior: typedStudy.resumo as string,
+        conteudo_anterior: typedStudy.conteudo as string,
         campos_alterados: changed,
       });
     }
@@ -49,9 +52,9 @@ export async function POST(
     const { error } = await supabase
       .from("studies")
       .update({
-        titulo: body.titulo || study.titulo,
-        resumo: body.resumo || study.resumo,
-        conteudo: body.conteudo || study.conteudo,
+        titulo: (body.titulo as string) || (typedStudy.titulo as string),
+        resumo: (body.resumo as string) || (typedStudy.resumo as string),
+        conteudo: (body.conteudo as string) || (typedStudy.conteudo as string),
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);
@@ -70,7 +73,7 @@ export async function POST(
     });
   } catch (e) {
     return NextResponse.json(
-      { error: `Erro interno: ${(e as any).message}` },
+      { error: `Erro interno: ${e instanceof Error ? e.message : "desconhecido"}` },
       { status: 500 }
     );
   }

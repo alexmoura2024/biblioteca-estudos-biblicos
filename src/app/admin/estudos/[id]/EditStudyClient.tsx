@@ -27,7 +27,7 @@ export default function EditStudyClient({ study }: EditStudyClientProps) {
 
   const [savedMessage, setSavedMessage] = useState("");
   const [error, setError] = useState("");
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<Record<string, unknown>[]>([]);
 
   const handleChange = (
     field: "titulo" | "resumo" | "conteudo",
@@ -46,12 +46,12 @@ export default function EditStudyClient({ study }: EditStudyClientProps) {
         });
 
         if (!res.ok) {
-          const errData = await res.json();
+          const errData = (await res.json()) as { error?: string };
           setError(errData.error || "Erro ao salvar");
           return;
         }
 
-        const result = await res.json();
+        const result = (await res.json()) as { changed: string[] };
         setSavedMessage(
           `Alterações salvas: ${result.changed.join(", ") || "nenhuma mudança"}`
         );
@@ -64,7 +64,7 @@ export default function EditStudyClient({ study }: EditStudyClientProps) {
         // Recarregar histórico se ativado
         if (showHistory) loadHistory();
       } catch (e) {
-        setError(`Erro: ${(e as any).message}`);
+        setError(`Erro: ${e instanceof Error ? e.message : "desconhecido"}`);
       }
     });
   };
@@ -73,7 +73,7 @@ export default function EditStudyClient({ study }: EditStudyClientProps) {
     try {
       const res = await fetch(`/api/admin/estudos/${study.id}/history`);
       if (res.ok) {
-        const data = await res.json();
+        const data = (await res.json()) as { edits: Record<string, unknown>[] };
         setHistory(data.edits || []);
       }
     } catch (e) {
