@@ -45,9 +45,17 @@ com resultado equivalente ao Mock — ver `docs/WORK_STATUS.md`,
 checkpoint 10). Este ambiente específico (Claude Code) continua sem
 Docker (DEC-024) — a validação acima foi feita rodando os comandos numa
 máquina com Docker e conferindo o resultado; não presuma que esse
-bloqueio de ambiente sumiu só porque a fase foi concluída. Próximo
-passo: Fase 3 (piloto com um recorte do acervo real), ver
-`docs/WORK_STATUS.md` ("PENDÊNCIAS IMEDIATAS").
+bloqueio de ambiente sumiu só porque a fase foi concluída.
+
+A Fase 3 (piloto com acervo real, `src/lib/ingestion/`) tem a
+infraestrutura pronta e testada (schema de proveniência, pipeline de
+ingestão determinística, 57 testes) mas **a ingestão real ainda não
+rodou** — falta acesso ao conteúdo dos arquivos do Drive (sem
+credenciais nesta sessão) e uma decisão humana sobre um achado real na
+auditoria do manifesto (`SEL-023`/`DUP-010` são o mesmo arquivo do
+Drive). Ver `docs/WORK_STATUS.md` ("PENDÊNCIAS IMEDIATAS") para a lista
+exata do que falta antes de rodar `scripts/fase3-ingest-piloto.ts`
+(ainda não escrito — não fazia sentido sem poder testá-lo de verdade).
 
 ## 3. Regras de arquitetura (não violar sem registrar uma decisão)
 
@@ -144,6 +152,30 @@ passo: Fase 3 (piloto com um recorte do acervo real), ver
   Se uma sessão futura tiver Docker disponível, essa é a próxima
   validação pendente (não presuma que já passou só porque o SQL foi
   escrito e revisado).
+- **Nenhum estudo real (Fase 3+) pode nascer `PUBLISHED`** — a ingestão
+  (`src/lib/ingestion/pipeline.ts`) só cria `DRAFT`/`REVIEW`; isso é
+  garantido pelo TIPO de `UpsertStudyInput.status`
+  (`src/lib/ingestion/repository.ts`, `Extract<StatusEditorial,
+  "DRAFT"|"REVIEW">`), não só por disciplina de código — se um dia
+  precisar de publicação automática de conteúdo ingerido, isso exige
+  mudar esse tipo deliberadamente e registrar a decisão em
+  `docs/DECISIONS.md` primeiro, nunca só adicionar `"PUBLISHED"` a um
+  `as` silencioso em algum lugar.
+- **O cliente `service_role` fica em `src/lib/supabase/serviceClient.ts`,
+  separado de `src/lib/supabase/client.ts` de propósito** (DEC-027) —
+  nunca importe `serviceClient.ts` de `src/app/**`, `src/components/**`
+  nem de `src/lib/repositories/**` (só de `src/lib/ingestion/` e de
+  scripts em `scripts/`, sempre server-only). `files`/`ingestion_jobs`
+  não têm NENHUMA policy de RLS para `anon`/`authenticated` (nega tudo
+  por padrão) — nunca crie uma policy "temporária" nelas para depurar.
+- **A pipeline de ingestão (`src/lib/ingestion/`) é inteiramente
+  determinística, sem IA** (mesma regra de `src/lib/search/`) — varredura
+  de referências, sugestão de resumo/palavras-chave/tema/personagem e
+  diagnóstico de duplicidade são algoritmos explícitos e testáveis, nunca
+  uma chamada de modelo. Diagnóstico de duplicidade nunca funde/exclui
+  automaticamente (`DUPLICATE_EXACT` só com `drive_file_id`/hash
+  idênticos; o resto é sempre `POSSIBLE_DUPLICATE`, nunca `DISTINCT` por
+  suposição) — decisão de mesclar/descartar é sempre humana.
 - Qualquer mudança arquitetural relevante é registrada em
   `docs/DECISIONS.md` **antes ou junto** da implementação, não depois.
 
@@ -224,11 +256,22 @@ src/lib/search/normalize.ts       Normalização de texto (acentos, slugs, token
 src/lib/search/referenceParser.ts Fase B: texto -> referência bíblica (ou "ambiguous"/"invalid"/"none")
 src/lib/search/queryParsing.ts    Ponte Fase A/B: texto livre -> SearchQuery estruturado
 src/lib/search/search.ts          Motor de busca puro (scoreStudy, matchesFilters, WEIGHTS) — usado por MockSearchRepository
-src/lib/supabase/client.ts   Cliente real (@supabase/supabase-js) + isSupabaseConfigured() — Fase 2 (política de segurança: DEC-020)
-supabase/migrations/         Schema, índices, função search_studies, views de contagem, RLS/policies (SQL versionado, nesta ordem cronológica)
+src/lib/supabase/client.ts   Cliente `anon` (@supabase/supabase-js) + isSupabaseConfigured() — Fase 2 (política de segurança: DEC-020)
+src/lib/supabase/serviceClient.ts  Cliente `service_role`, server-only, separado de client.ts de propósito (Fase 3, DEC-027)
+supabase/migrations/         Schema, índices, função search_studies, views de contagem, RLS/policies + proveniência da Fase 3 (files/ingestion_jobs) — SQL versionado, nesta ordem cronológica
 supabase/seed.sql            Gerado por `npm run db:generate-seed` a partir de src/lib/data/*.ts — não editar à mão
 supabase/tests/              Testes pgTAP de RLS (não executados nesta máquina — falta Docker, DEC-024)
 scripts/generate-supabase-seed.ts  Gera supabase/seed.sql a partir dos dados mockados
+scripts/fase3-validate-manifest.ts Valida o manifesto do piloto da Fase 3 e diagnostica os 12 duplicados possíveis
+docs/fase3-piloto/           Manifesto real do piloto da Fase 3 (50 candidatos) — entregue pelo usuário, não gerado por código; fonte única para src/lib/ingestion/manifest.ts
+src/lib/ingestion/           Pipeline de ingestão determinística da Fase 3 (sem IA) — ver DEC-028
+src/lib/ingestion/manifest.ts      Lê/valida o manifesto do piloto (docs/fase3-piloto/) — nunca corrige duplicidade/contagem sozinho
+src/lib/ingestion/referenceScan.ts Varre um documento INTEIRO por referências bíblicas (diferente de search/referenceParser.ts, que só olha o início de uma consulta curta)
+src/lib/ingestion/extract/        Adaptadores de extração por formato (docx/legacyDoc/pdf/pptx) + roteador por MIME type
+src/lib/ingestion/duplicates.ts   Diagnóstico conservador de duplicidade — nunca funde/exclui automaticamente
+src/lib/ingestion/repository.ts   Fronteira pipeline -> persistência (implementações: repository.inMemory.ts para teste, supabaseIngestionRepository.ts para produção)
+src/lib/ingestion/pipeline.ts     Orquestrador (ingestFile) — idempotente, nunca cria PUBLISHED
+src/lib/ingestion/sources/        Origem do arquivo (Drive) — googleDriveAdapter.ts ainda NÃO implementado (sem credenciais)
 src/components/              Componentes de UI reutilizáveis
 src/app/                     Rotas (App Router)
 ```
