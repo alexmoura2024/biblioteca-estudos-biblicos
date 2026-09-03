@@ -31,10 +31,10 @@ const QUICK_LINKS = [
 ] as const;
 
 export default async function HomePage() {
-  const studies = await studyRepository.listPublished();
-  const destaques = [...studies]
-    .sort((a, b) => (a.dataOrigem < b.dataOrigem ? 1 : -1))
-    .slice(0, 6);
+  // listRecent(6), não listPublished()+sort+slice: a ordenação e o corte
+  // devem acontecer na fonte de dados (uma futura consulta SQL faria
+  // ORDER BY + LIMIT), não em memória na página — ver DEC-013.
+  const destaques = await studyRepository.listRecent(6);
 
   return (
     <div>

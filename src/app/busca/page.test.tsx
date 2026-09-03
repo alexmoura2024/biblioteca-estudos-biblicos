@@ -21,6 +21,20 @@ describe("BuscaPage", () => {
     expect(screen.getByText(/referência reconhecida/i)).toBeInTheDocument();
   });
 
+  it("mostra aviso explícito para referência inválida, nunca 'referência reconhecida' com números sem sentido", async () => {
+    render(await BuscaPage({ searchParams: searchParamsOf({ q: "João 999:999" }) }));
+    expect(screen.queryByText(/referência reconhecida/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/não é uma referência bíblica válida/i)).toBeInTheDocument();
+    expect(screen.getByText(/joão tem 21 capítulos/i)).toBeInTheDocument();
+  });
+
+  it("mostra o estudo multi-passagem tanto para João 3:16 (score menor) quanto para Romanos 4 (match exato)", async () => {
+    render(await BuscaPage({ searchParams: searchParamsOf({ q: "João 3:16" }) }));
+    expect(
+      screen.getByRole("heading", { name: "Fé que atravessa as Escrituras: de Abraão a Paulo" }),
+    ).toBeInTheDocument();
+  });
+
   it("mostra estado vazio quando nada é encontrado", async () => {
     render(await BuscaPage({ searchParams: searchParamsOf({ q: "xablauzinho inexistente 123" }) }));
     expect(screen.getByText(/nenhum estudo encontrado/i)).toBeInTheDocument();

@@ -1,6 +1,7 @@
 import {
   MockBookRepository,
   MockCharacterRepository,
+  MockSearchRepository,
   MockSeriesRepository,
   MockStudyRepository,
   MockTopicRepository,
@@ -19,10 +20,16 @@ export const bookRepository = new MockBookRepository();
 export const topicRepository = new MockTopicRepository();
 export const characterRepository = new MockCharacterRepository();
 export const seriesRepository = new MockSeriesRepository();
+export const searchRepository = new MockSearchRepository();
 
 export type {
   BookRepository,
   CharacterRepository,
+  NormalizedReference,
+  SearchOutcome,
+  SearchQuery,
+  SearchRepository,
+  SearchResultItem,
   SeriesRepository,
   StudyRepository,
   TopicRepository,

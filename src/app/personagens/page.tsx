@@ -21,6 +21,8 @@ export default async function PersonagensPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {characters.map((character) => {
+          // TODO(Fase 2, DEC-013): mesma ressalva de src/app/temas/page.tsx
+          // — contagem em memória, trocar por agregação no banco.
           const total = studies.filter((s) =>
             s.personagens.some((p) => p.character.id === character.id),
           ).length;

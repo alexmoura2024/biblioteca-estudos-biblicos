@@ -1,26 +1,44 @@
-import type { Book, Study } from "@/lib/types";
+import type { Study } from "@/lib/types";
+import type { NormalizedReference, SearchQuery } from "@/lib/repositories/types";
 import { normalizeText, tokenize } from "@/lib/search/normalize";
-import { parseReference } from "@/lib/search/referenceParser";
 
 /**
- * Motor de busca local (Fase A: lexical, Fase B: referência bíblica,
- * Fase C: filtros). Fases D/E (semântica e híbrida) são trabalho futuro
- * — ver docs/SEARCH_SPEC.md e docs/ROADMAP.md — e não têm nenhum código
- * aqui ainda, de propósito.
+ * Motor de busca em memória (Fase A: lexical, Fase C: filtros).
+ * Fases D/E (semântica e híbrida) são trabalho futuro — ver
+ * docs/SEARCH_SPEC.md e docs/ROADMAP.md — e não têm nenhum código aqui
+ * ainda, de propósito.
  *
- * Ranking (docs/SEARCH_SPEC.md, seção 5), da maior prioridade à menor:
- *   1. Correspondência exata de referência bíblica
- *   2. Título
- *   3. Tema explícito
- *   4. Personagem
- *   5. Palavras-chave
- *   6. Resumo
- * (similaridade semântica fica para a Fase D)
+ * Este módulo é implementação pura (nenhum acesso a dados): recebe um
+ * `Study` e um `SearchQuery` já estruturados e devolve uma pontuação.
+ * Quem decide QUAIS estudos avaliar e COMO paginar é
+ * `MockSearchRepository` (`src/lib/repositories/mock.ts`), que implementa
+ * `SearchRepository` (`src/lib/repositories/types.ts`) — essa é a
+ * fronteira que a Fase 2 substitui por uma consulta real no Postgres.
+ * A extração de uma referência bíblica de texto livre (Fase B) acontece
+ * antes disto, em `src/lib/search/queryParsing.ts`.
+ *
+ * RANKING — pesos de referência bíblica (três níveis, do mais específico
+ * ao menos específico; ver docs/SEARCH_SPEC.md §5 e DEC-014):
+ *   1. `referenceExactVerse` (1000) — a passagem do estudo contém (ou
+ *      sobrepõe) exatamente o(s) versículo(s) pedido(s). Ex.: consulta
+ *      "João 3:16" e o estudo tem uma passagem João 3:1-21 ou João 3:16.
+ *   2. `referenceChapter` (700) — mesmo livro e capítulo, mas sem
+ *      correspondência exata de versículo: a passagem do estudo está
+ *      classificada apenas no nível de capítulo (sem versículo
+ *      informado), ou os versículos não se sobrepõem. Ex.: consulta
+ *      "João 3:16" recupera, com score menor, um estudo cuja passagem é
+ *      só "João 3" (sem versículo) — mas nunca um estudo sem nenhuma
+ *      passagem em João 3.
+ *   3. `referenceBook` (500) — a consulta é só o nome do livro (sem
+ *      capítulo): qualquer passagem do estudo nesse livro conta.
+ * RANKING — pesos lexicais (Fase A), do mais específico ao menos
+ * específico: título (100) > tema explícito (80) > personagem (70) >
+ * palavra-chave (50) > resumo (30) > conteúdo completo (10).
  */
-
-const WEIGHTS = {
+export const WEIGHTS = {
   referenceExactVerse: 1000,
-  referenceChapterOrBook: 600,
+  referenceChapter: 700,
+  referenceBook: 500,
   title: 100,
   topic: 80,
   character: 70,
@@ -29,30 +47,20 @@ const WEIGHTS = {
   content: 10,
 } as const;
 
-export interface SearchFilters {
-  livro?: string; // slug do livro
-  testamento?: Book["testamento"];
-  tema?: string; // slug do tema
-  personagem?: string; // slug do personagem
-  serie?: string; // slug da série
-}
-
-export interface SearchResultItem {
-  study: Study;
+/** Resultado da pontuação de um único estudo contra uma consulta. */
+export interface StudyScore {
   score: number;
   /** Motivos do match, úteis para depuração e para destacar por que um resultado apareceu. */
   matchedOn: string[];
 }
 
-export interface SearchResult {
-  items: SearchResultItem[];
-  /** Presente quando a consulta começa com uma referência bíblica ambígua (ex.: "Jo" sem contexto). */
-  ambiguousReference?: { candidates: Book[]; matchedText: string };
-  /** Referência bíblica reconhecida no início da consulta, se houver. */
-  recognizedReference?: { book: Book; capitulo?: number; versiculoInicio?: number; versiculoFim?: number };
-}
+/**
+ * Critérios de filtro simples (Fase C) — o subconjunto de `SearchQuery`
+ * que não é texto/referência/paginação.
+ */
+type FilterCriteria = Pick<SearchQuery, "livro" | "testamento" | "tema" | "personagem" | "serie">;
 
-function passesFilters(study: Study, filters: SearchFilters): boolean {
+export function matchesFilters(study: Study, filters: FilterCriteria): boolean {
   if (filters.livro && !study.passagens.some((p) => p.book.slug === filters.livro)) return false;
   if (filters.testamento && !study.passagens.some((p) => p.book.testamento === filters.testamento)) return false;
   if (filters.tema && !study.temas.some((t) => t.topic.slug === filters.tema)) return false;
@@ -61,34 +69,46 @@ function passesFilters(study: Study, filters: SearchFilters): boolean {
   return true;
 }
 
-function referenceScore(
-  study: Study,
-  ref: { book: Book; capitulo?: number; versiculoInicio?: number; versiculoFim?: number },
-): number {
+function referenceScore(study: Study, ref: NormalizedReference): number {
   let best = 0;
+
   for (const { book, passage } of study.passagens) {
-    if (book.id !== ref.book.id) continue;
+    if (book.id !== ref.book.id) continue; // livro diferente nunca conta.
+
     if (ref.capitulo == null) {
-      best = Math.max(best, WEIGHTS.referenceChapterOrBook);
+      // Consulta é só o livro: qualquer capítulo do livro é relevante.
+      best = Math.max(best, WEIGHTS.referenceBook);
       continue;
     }
-    if (passage.capitulo !== ref.capitulo) continue;
+
+    if (passage.capitulo !== ref.capitulo) continue; // capítulo diferente: esta passagem não conta.
+
     if (ref.versiculoInicio == null) {
-      best = Math.max(best, WEIGHTS.referenceChapterOrBook);
+      // Consulta é livro+capítulo (sem versículo): match de capítulo é o teto.
+      best = Math.max(best, WEIGHTS.referenceChapter);
       continue;
     }
-    const passageStart = passage.versiculoInicio ?? 0;
+
+    if (passage.versiculoInicio == null) {
+      // A passagem do estudo está classificada só no nível de capítulo
+      // (sem versículo) — ainda relevante para uma busca por versículo
+      // específico, mas menos que um match exato.
+      best = Math.max(best, WEIGHTS.referenceChapter);
+      continue;
+    }
+
+    const passageStart = passage.versiculoInicio;
     const passageEnd = passage.versiculoFim ?? passageStart;
     const queryEnd = ref.versiculoFim ?? ref.versiculoInicio;
     const overlaps = ref.versiculoInicio <= passageEnd && queryEnd >= passageStart;
-    if (overlaps) {
-      best = Math.max(best, WEIGHTS.referenceExactVerse);
-    }
+
+    best = Math.max(best, overlaps ? WEIGHTS.referenceExactVerse : WEIGHTS.referenceChapter);
   }
+
   return best;
 }
 
-function lexicalScore(study: Study, queryTokens: string[]): { score: number; matchedOn: string[] } {
+function lexicalScore(study: Study, queryTokens: string[]): StudyScore {
   if (queryTokens.length === 0) return { score: 0, matchedOn: [] };
 
   const matchedOn: string[] = [];
@@ -132,89 +152,27 @@ function lexicalScore(study: Study, queryTokens: string[]): { score: number; mat
 }
 
 /**
- * Busca estudos publicados por texto livre, referência bíblica e filtros.
- *
- * `studies` deve já vir filtrado para o conjunto publicamente pesquisável
- * (ver `studyRepository.listPublished()`); esta função não filtra por
- * status editorial.
+ * Pontua um único estudo contra uma consulta já estruturada (referência
+ * normalizada e/ou texto livre). Não faz I/O, não decide paginação, não
+ * decide quais estudos avaliar — só calcula "o quanto este estudo
+ * combina com esta consulta". Usado por `MockSearchRepository`.
  */
-export function searchStudies(
-  studies: Study[],
-  rawQuery: string,
-  filters: SearchFilters = {},
-): SearchResult {
-  const query = rawQuery.trim();
-  const candidates = studies.filter((study) => passesFilters(study, filters));
+export function scoreStudy(study: Study, query: Pick<SearchQuery, "referencia" | "texto">): StudyScore {
+  let score = 0;
+  let matchedOn: string[] = [];
 
-  const parsed = parseReference(query);
-
-  if (parsed.type === "ambiguous") {
-    return { items: [], ambiguousReference: { candidates: parsed.candidates, matchedText: parsed.matchedText } };
-  }
-
-  let reference:
-    | { book: Book; capitulo?: number; versiculoInicio?: number; versiculoFim?: number }
-    | undefined;
-  let remainder = query;
-
-  if (parsed.type === "book") {
-    reference = { book: parsed.book };
-    remainder = query.slice(parsed.matchedText.length).trim();
-  } else if (parsed.type === "chapter") {
-    reference = { book: parsed.book, capitulo: parsed.capitulo };
-    remainder = query.slice(parsed.matchedText.length).trim();
-  } else if (parsed.type === "verse") {
-    reference = {
-      book: parsed.book,
-      capitulo: parsed.capitulo,
-      versiculoInicio: parsed.versiculoInicio,
-      versiculoFim: parsed.versiculoFim,
-    };
-    remainder = query.slice(parsed.matchedText.length).trim();
-  }
-
-  // Se a consulta inteira foi reconhecida como referência, o texto restante
-  // (para busca lexical) é o que sobrar após o trecho já interpretado.
-  const queryTokens = tokenize(remainder);
-
-  const items: SearchResultItem[] = [];
-
-  for (const study of candidates) {
-    let score = 0;
-    let matchedOn: string[] = [];
-
-    if (reference) {
-      const refScore = referenceScore(study, reference);
-      if (refScore > 0) {
-        score += refScore;
-        matchedOn.push("referência bíblica");
-      } else if (queryTokens.length === 0) {
-        // Consulta era só uma referência e este estudo não a contém: fora.
-        continue;
-      }
-    }
-
-    const lexical = lexicalScore(study, queryTokens);
-    score += lexical.score;
-    matchedOn = [...matchedOn, ...lexical.matchedOn];
-
-    // Sem nenhum texto de busca, mas com ao menos um filtro ativo (ex.:
-    // combo de tema/livro na página de busca), todo estudo que passou
-    // pelos filtros é um resultado válido — filtro puro sem texto ainda
-    // é uma navegação legítima. Sem filtro nenhum e sem texto, a consulta
-    // está vazia e não há nada a mostrar.
-    const hasActiveFilter = Object.values(filters).some((v) => v != null && v !== "");
-    const isFilterOnlyBrowse = !reference && queryTokens.length === 0 && hasActiveFilter;
-
-    if (score > 0 || isFilterOnlyBrowse) {
-      items.push({ study, score, matchedOn });
+  if (query.referencia) {
+    const refScore = referenceScore(study, query.referencia);
+    if (refScore > 0) {
+      score += refScore;
+      matchedOn.push("referência bíblica");
     }
   }
 
-  items.sort((a, b) => b.score - a.score || a.study.titulo.localeCompare(b.study.titulo, "pt-BR"));
+  const queryTokens = tokenize(query.texto ?? "");
+  const lexical = lexicalScore(study, queryTokens);
+  score += lexical.score;
+  matchedOn = [...matchedOn, ...lexical.matchedOn];
 
-  return {
-    items,
-    recognizedReference: reference,
-  };
+  return { score, matchedOn };
 }

@@ -21,6 +21,8 @@ export default async function SeriesListPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {seriesList.map((series) => {
+          // TODO(Fase 2, DEC-013): mesma ressalva de src/app/temas/page.tsx
+          // — contagem em memória, trocar por agregação no banco.
           const total = studies.filter((s) => s.series.some((se) => se.series.id === series.id)).length;
           return (
             <Link

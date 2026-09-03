@@ -26,8 +26,13 @@ describe("MockStudyRepository", () => {
 
   it("filtra estudos por livro e capítulo", async () => {
     const studies = await studyRepository.listByBookSlug("joao", 3);
-    expect(studies.length).toBe(1);
-    expect(studies[0].titulo).toContain("Nicodemos");
+    // "Nicodemos..." (passagem principal em João 3) e "Fé que atravessa
+    // as Escrituras..." (cita João 3 como passagem secundária/citada,
+    // ver src/lib/data/studies.ts) — prova de que um capítulo pode ter
+    // mais de um estudo relacionado.
+    expect(studies.length).toBe(2);
+    expect(studies.some((s) => s.titulo.includes("Nicodemos"))).toBe(true);
+    expect(studies.some((s) => s.titulo.startsWith("Fé que atravessa"))).toBe(true);
   });
 
   it("filtra estudos por tema", async () => {
