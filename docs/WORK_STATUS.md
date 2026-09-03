@@ -68,6 +68,41 @@ Edição editorial pronta para uso. Próxima fase: revisão humana dos 49 estudo
 
 ---
 
+CONCLUÍDO (sessão de 2026-09-03, checkpoint 17 — Purge de dados fake, preservação de corpus real)
+Continuação direta do checkpoint 16. Objetivo: remover definitivamente todos os registros fake/synthetic do banco operacional, deixando APENAS os 29 estudos Genesis reais.
+
+**Auditoria pré-purge (`scripts/db-purge-fake-studies.ts`):** Snapshot criado (`artifacts/database-cleanup/pre-purge-2026-09-03T19-03-48-827Z.json`) classificando 71 registros:
+- **20 PLACEHOLDER**: Lote 01 com autor `[Fase 1 - Lote 01]`, conteúdo genérico (ex. "Libertação em Cristo", "Esperança Viva")
+- **2 MOCK**: "O altar de Araúna" e "A mulher virtuosa", conteúdo claramente synthetic ("Este é um estudo em fase de...")
+- **20 PUBLISHED**: Seed de demonstração (6 Pr. José Ricardo Alves, 7 Profa. Marta Nascimento, 7 Equipe Editorial) — também conteúdo real, mas status PUBLISHED viola política de Fase 3 (conteúdo ingerido nunca nasce PUBLISHED)
+- **29 UNVERIFIED** (Genesis real): Autor "Autor não identificado", conteúdo real bíblico (títulos como "A Criação do Homem", "Isaque e Rebeca"), status REVIEW
+
+**Purge final (`scripts/db-purge-final.ts`):** Deletados 42 registros (20 placeholders + 2 mocks + 20 seed PUBLISHED), com limpeza completa de N:N (study_passages, study_topics, study_characters, study_files, study_edits) antes de cada estudo.
+
+**Resultado verificado:**
+- **Antes**: DB_TOTAL=71, GENESIS=29
+- **Depois**: DB_TOTAL=29, GENESIS=29
+- Todos 29 com status REVIEW (nenhum PUBLISHED)
+- Todos 29 com autor "Autor não identificado"
+- Zero placeholders, zero mocks, zero seed restante
+- Nenhuma regressão em qualidade de dados (conteúdo intacto)
+
+**Quality gates:**
+✅ Testes: `npx vitest run` — 255/255 PASS
+✅ ESLint: `npx eslint` — 0 erros (scripts corrigidos de `any` types com type annotations)
+✅ TypeScript: `npx tsc --noEmit` — sem erros
+✅ Build: `npm run build` — sucesso contra Supabase real
+✅ Database: Supabase local validado, 29 registros confirmados por SELECT
+
+**Commits:**
+1. `925d456`: "chore(db): purge fake studies and preserve real genesis corpus" — remover 42 fakes, preservar 29 Genesis
+2. `09df1eb`: "fix(scripts): resolve eslint errors in purge scripts" — correção de type safety
+
+**Verdict: PASS — Base operacional limpa**
+Banco agora contém APENAS dados reais (29 estudos Genesis). Infraestrutura editorial (admin, edição, versionamento) intacta. Próximo passo: revisão e aprovação humana dos 29 estudos para publicação.
+
+---
+
 **IMPORTANTE — mudança de ambiente (checkpoint 12): Docker/Supabase local PASSARAM A FUNCIONAR NESTA MÁQUINA (Claude Code).** DEC-024 registrava Docker como indisponível neste ambiente especificamente — isso não é mais verdade a partir desta sessão (`docker info` e `npx supabase status` respondem normalmente). Não presuma o bloqueio antigo sem revalidar (`docker info`) — mas também não presuma que vai continuar disponível para sempre; revalide a cada sessão nova.
 
 **FASE 2 (BANCO REAL SUPABASE/POSTGRESQL) — CONCLUÍDA.** Ver checkpoint 10.
@@ -82,8 +117,8 @@ ESTADO DO BANCO (referência rápida — detalhe completo nos checkpoints 8-15 a
 - **Migrations existentes** (`supabase/migrations/`, aplicam nesta ordem): `20260903011809_schema_core.sql`, `20260903011812_indexes.sql`, `20260903011816_search_function.sql`, `20260903011819_rls_policies.sql`, `20260903012745_counts_views.sql` (Fase 2); `20260903031727_fase3_provenance_files.sql`, `20260903031731_fase3_ingestion_jobs.sql`, `20260903031734_fase3_provenance_rls.sql`, `20260903083701_fase3_grant_service_role_provenance.sql` (Fase 3); `20260903120000_fase3_manual_split_study_files.sql` (checkpoint 15 — `study_files` + status `DIVIDIDO_MANUALMENTE`). **10 migrations no total; aplicam do zero sem erro (confirmado no checkpoint 14) e a última também aplica INCREMENTALMENTE via `npx supabase migration up` sem perder dados (confirmado no checkpoint 15).**
 - **Schema atual**: as 10 tabelas da Fase 2 (`books`, `studies`, `passages`, `study_passages`, `topics`, `study_topics`, `characters`, `study_characters`, `series`, `study_series`) + `files`/`ingestion_jobs` (Fase 3) + `study_files` (checkpoint 15, N:N estudo↔arquivo para divisão editorial manual) — todas com `id uuid`.
 - **Policies existentes**: RLS habilitada em todas. Fase 2: `books`/`topics`/`characters`/`series` público; `studies` só `PUBLISHED`+`publico`; tabelas de relacionamento só ligadas a um `studies` publicado. Fase 3: `files`/`ingestion_jobs`/`study_files` SEM NENHUMA policy para `anon`/`authenticated` (nega tudo). **Confirmado: `service_role` precisou de uma migration de GRANT explícito para acessar QUALQUER tabela (achado real, não específico da Fase 3 — DEC-032); depois da correção, `service_role` lê/escreve normalmente e os 15 asserts pgTAP continuam passando.**
-- **Último reset do banco**: `db reset` completo no checkpoint 14; checkpoint 15 aplicou só a migration nova INCREMENTALMENTE (`migration up`), preservando os 70 estudos já existentes — `docker info`/`npx supabase status` revalidados de novo antes.
-- **Estado do Supabase local**: rodando nesta máquina em `127.0.0.1:54321`, mesma instância desde o checkpoint 14 (sem `db reset` entre 14 e 15). **71 studies no total** (22 mockados Fase 2, 20 `PUBLISHED` deles; 49 reais Fase 3/3.1, `DRAFT`/`REVIEW`, zero `PUBLISHED`). `.env.local` foi recriado nesta sessão (valores de `npx supabase status`) e removido ao final (mesmo padrão de sempre) — o padrão de entrega do repositório continua sem `NEXT_PUBLIC_SUPABASE_URL` (Mock).
+- **Último reset do banco**: `db reset` completo no checkpoint 14; checkpoint 15 aplicou só a migration nova INCREMENTALMENTE (`migration up`), preservando os 70 estudos já existentes — `docker info`/`npx supabase status` revalidados de novo antes. **Checkpoint 17: purge de 42 fakes** (20 placeholders Lote 01 + 2 mocks + 20 seed PUBLISHED), preservando 29 Genesis reais — sem `db reset`, apenas deletes diretos com limpeza de N:N.
+- **Estado do Supabase local**: rodando nesta máquina em `127.0.0.1:54321`, mesma instância desde o checkpoint 14 (sem `db reset` entre 14 e 17). **29 studies no total após purge** (APENAS Genesis reais, status REVIEW, autor "Autor não identificado"). Purge executado e verificado em checkpoint 17. `.env.local` foi recriado nesta sessão (valores de `npx supabase status`) e removido ao final (mesmo padrão de sempre) — o padrão de entrega do repositório continua sem `NEXT_PUBLIC_SUPABASE_URL` (Mock).
 - **Seed**: `supabase/seed.sql` — carrega sem erro durante `db reset` (confirmado no checkpoint 14).
 - **Testes pgTAP**: 15 asserts, **15/15 PASS confirmado no checkpoint 15**, depois da migration incremental de `study_files`.
 - **Piloto técnico Fase 2 (checkpoint 10)**: site rodou contra este Postgres local via `Supabase*Repository`, equivalente ao Mock nos 14 pontos comparados.
