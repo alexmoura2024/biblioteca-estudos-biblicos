@@ -35,9 +35,16 @@ prova das relações N:N do domínio, fonte de verdade da documentação) e
 Marco 1.2 (DTO `StudySummary` separado de `Study` completo, remoção de
 `listPublished()` da interface pública, validação canônica de limite de
 versículos por capítulo com cobertura completa dos 66 livros, política
-de segurança do Supabase registrada antes da conexão, README real). Ver
-`docs/WORK_STATUS.md` para o estado exato e o próximo passo (Fase 2 —
-banco real).
+de segurança do Supabase registrada antes da conexão, README real).
+
+A Fase 2 (banco real Supabase/PostgreSQL) está com o lado TypeScript
+completo (schema, RLS, seed reproduzível, repositórios Supabase,
+testes) mas **não validada de ponta a ponta contra um Postgres real** —
+Docker não está disponível neste ambiente, então `supabase start`/
+`db reset`/`test db` nunca rodaram (DEC-024). Não declare a Fase 2
+concluída sem antes rodar essa validação; ver `docs/WORK_STATUS.md`
+("ESTADO DO BANCO" e "PENDÊNCIAS IMEDIATAS") para o estado exato e o
+próximo passo.
 
 ## 3. Regras de arquitetura (não violar sem registrar uma decisão)
 
@@ -105,6 +112,35 @@ banco real).
   `SUPABASE_SERVICE_ROLE_KEY` só server-side, e as policies testadas
   contra um projeto de staging antes de produção. Não conecte o
   Supabase sem reler DEC-020 primeiro.
+- **A escolha entre repositório mock e Supabase é automática por
+  variável de ambiente** (DEC-023, `src/lib/repositories/index.ts`):
+  `isSupabaseConfigured()` (`src/lib/supabase/client.ts`) checa
+  `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY`; se
+  ausentes, usa `Mock*Repository` (comportamento do Marco 1); se
+  presentes, usa `Supabase*Repository`
+  (`src/lib/repositories/supabase/`). Página/componente nunca escolhe
+  a implementação — sempre importa de `src/lib/repositories/index.ts`.
+  Ao alterar um contrato em `src/lib/repositories/types.ts`, as duas
+  implementações (mock e Supabase) precisam continuar satisfazendo a
+  mesma interface.
+- **Toda query Supabase fica dentro de `src/lib/repositories/supabase/`**
+  — nunca em página/componente, mesmo que pareça "só uma consulta
+  simples" (mantém a fronteira que já existia para o mock). Busca usa a
+  função SQL `search_studies` (`SECURITY INVOKER`, nunca `DEFINER` —
+  DEC-022) via `.rpc()`, nunca monta filtro livre em JavaScript sobre
+  todos os estudos.
+- **Migrations em `supabase/migrations/` são a única forma de alterar o
+  schema/policies** — nunca edite o Dashboard do Supabase manualmente
+  sem criar a migration correspondente. `supabase/seed.sql` é gerado
+  (`npm run db:generate-seed`, script em
+  `scripts/generate-supabase-seed.ts`) a partir de
+  `src/lib/data/*.ts` — não edite `seed.sql` à mão, edite o script ou os
+  dados-fonte e regenere.
+- **Docker não está disponível neste ambiente** (DEC-024) — por isso
+  `supabase start`/`db reset`/`test db` nunca rodaram nesta máquina.
+  Se uma sessão futura tiver Docker disponível, essa é a próxima
+  validação pendente (não presuma que já passou só porque o SQL foi
+  escrito e revisado).
 - Qualquer mudança arquitetural relevante é registrada em
   `docs/DECISIONS.md` **antes ou junto** da implementação, não depois.
 
@@ -178,12 +214,18 @@ docs/                        Especificação oficial do projeto (fonte da verdad
 src/lib/types.ts             Modelo de domínio (espelha DATA_MODEL.md) + StudySummary (DTO de listagem, DEC-017)
 src/lib/data/                Dados mockados (livros, temas, personagens, séries, estudos)
 src/lib/data/bibleVerseLimits.ts  Tabela COMPLETA (66 livros) de limites de versículo por capítulo, fonte documentada (DEC-019)
-src/lib/repositories/        Interfaces (incl. SearchRepository) + implementação mock (ponto de troca p/ Supabase)
+src/lib/repositories/        Interfaces (incl. SearchRepository) + implementação mock
+src/lib/repositories/index.ts     Seleção mock/Supabase por variável de ambiente (DEC-023) — ponto único de importação
+src/lib/repositories/supabase/    Implementação Supabase de cada repositório (rows.ts, mappers.ts, books/topics/characters/series/studies/search.ts)
 src/lib/search/normalize.ts       Normalização de texto (acentos, slugs, tokens)
 src/lib/search/referenceParser.ts Fase B: texto -> referência bíblica (ou "ambiguous"/"invalid"/"none")
 src/lib/search/queryParsing.ts    Ponte Fase A/B: texto livre -> SearchQuery estruturado
 src/lib/search/search.ts          Motor de busca puro (scoreStudy, matchesFilters, WEIGHTS) — usado por MockSearchRepository
-src/lib/supabase/client.ts   Stub não usado — só documenta o ponto de entrada da Fase 2 (política de segurança: DEC-020)
+src/lib/supabase/client.ts   Cliente real (@supabase/supabase-js) + isSupabaseConfigured() — Fase 2 (política de segurança: DEC-020)
+supabase/migrations/         Schema, índices, função search_studies, views de contagem, RLS/policies (SQL versionado, nesta ordem cronológica)
+supabase/seed.sql            Gerado por `npm run db:generate-seed` a partir de src/lib/data/*.ts — não editar à mão
+supabase/tests/              Testes pgTAP de RLS (não executados nesta máquina — falta Docker, DEC-024)
+scripts/generate-supabase-seed.ts  Gera supabase/seed.sql a partir dos dados mockados
 src/components/              Componentes de UI reutilizáveis
 src/app/                     Rotas (App Router)
 ```
