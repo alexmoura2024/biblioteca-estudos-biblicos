@@ -75,16 +75,16 @@ async function main() {
   console.log("📚 Biblioteca Virtual de Estudos Bíblicos — FASE 1 INGESTÃO");
   console.log(`Timestamp: ${new Date().toISOString()}\n`);
 
-  const manifest = loadManifest("docs/fase3-piloto/PILOTO_FASE3_MANIFEST.csv");
-  const validation = validateManifest(manifest);
+  const manifestRows = loadManifest();
+  const validation = validateManifest(manifestRows);
 
   if (!validation.ok) {
     console.error("❌ Manifesto inválido:");
-    validation.issues.forEach((issue) => console.error(`  - ${issue}`));
+    validation.issues.forEach((issue) => console.error(`  - ${issue.message}`));
     process.exit(1);
   }
 
-  const selectedRows = rowsToIngest(manifest.rows, validation);
+  const selectedRows = rowsToIngest(manifestRows, validation);
 
   console.log(`✓ Manifesto validado: ${selectedRows.length} candidatos (SELECIONADOS)`);
   console.log(`✓ Aliases resolvidos: ${Object.keys(validation.aliases).length}\n`);
@@ -94,7 +94,11 @@ async function main() {
     process.exit(1);
   }
 
-  const sourceAdapter = new LocalSyncedDriveSourceAdapter(EXPORTS_DIR, ACERVO_ROOT);
+  const sourceAdapter = new LocalSyncedDriveSourceAdapter({
+    acervoRoot: ACERVO_ROOT,
+    exportsDir: EXPORTS_DIR,
+    manifestRows: selectedRows,
+  });
   const repository = new SupabaseIngestionRepository();
   const topicRepo = new SupabaseTopicRepository();
   const characterRepo = new SupabaseCharacterRepository();
