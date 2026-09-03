@@ -3,7 +3,7 @@ import { extractText } from "@/lib/ingestion/extract";
 import { suggestKeywords, suggestSummary } from "@/lib/ingestion/metadataSuggestion";
 import { normalizeExtractedText } from "@/lib/ingestion/normalizeExtractedText";
 import type { ManifestRow } from "@/lib/ingestion/manifest";
-import { classifyReferences, scanReferences, type ClassifiedReference, type DetectedReference } from "@/lib/ingestion/referenceScan";
+import { classifyReferences, scanReferences, selectMainReference, type ClassifiedReference, type DetectedReference } from "@/lib/ingestion/referenceScan";
 import type { IngestionRepository, StudyPassageInput } from "@/lib/ingestion/repository";
 import type { SourceAdapter } from "@/lib/ingestion/sources/types";
 import { normalizeText, slugify } from "@/lib/search/normalize";
@@ -123,7 +123,9 @@ export async function ingestFile({ manifestRow, sourceAdapter, repository, topic
   // inválidas ficam disponíveis no resultado para alertar a revisão
   // humana, nunca viram uma linha de study_passages.
   const detected = scanReferences(textoNormalizado);
-  const classified = classifyReferences(detected);
+  const validDetected = detected.filter((ref) => ref.valid);
+  const mainSelection = selectMainReference(validDetected, textoNormalizado, manifestRow.preliminaryReference);
+  const classified = classifyReferences(detected, mainSelection.main);
   const referenciasInvalidas = detected.filter((ref) => !ref.valid);
   await repository.logJobStage(file.id, "REFERENCE_DETECTION", "SUCCESS");
 
@@ -133,6 +135,21 @@ export async function ingestFile({ manifestRow, sourceAdapter, repository, topic
   // pelo título/pasta").
   const divergencias: string[] = [];
   const principal = classified[0];
+
+  // Fase 3.1 (checkpoint 14): quando `selectMainReference` não encontra
+  // evidência clara o bastante para escolher entre 2+ referências
+  // candidatas (Prioridades A/B/C todas inconclusivas), o resultado
+  // ainda precisa de UM valor para preencher `study_passages` (Prioridade
+  // D, fallback determinístico) — mas a incerteza real nunca fica
+  // escondida: vira uma divergência explícita para a revisão humana
+  // decidir, em vez de apresentar a escolha de fallback como um fato.
+  if (mainSelection.reason === "ambiguous" && principal) {
+    divergencias.push(
+      `MAIN_REFERENCE_AMBIGUOUS: duas ou mais referências têm evidência semelhante para ser a referência principal ` +
+        `(nenhum marcador explícito, título não confirma e nenhuma referência é claramente predominante no conteúdo). ` +
+        `Escolhida "${principal.matchedText}" só como fallback determinístico (primeira em ordem de aparição) — requer confirmação editorial.`,
+    );
+  }
 
   // Caso "O evangelho eterno": o testamento indicado pelo caminho de
   // origem no manifesto não bate com o testamento do livro da
