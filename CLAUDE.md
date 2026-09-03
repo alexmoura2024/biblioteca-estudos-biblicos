@@ -51,22 +51,26 @@ Docker funcional" entre sessões (checkpoint 12) — o inverso também pode
 acontecer. Só depois de checar de verdade é que `supabase db reset`/
 `test db` podem ser considerados bloqueados ou não.
 
-A Fase 3 (piloto com acervo real, `src/lib/ingestion/`) já rodou uma
-ingestão real (checkpoint 12): 14 dos 49 candidatos físicos únicos do
-manifesto foram baixados/extraídos/transformados em `studies` de
-verdade (12 REVIEW + 2 DRAFT, zero PUBLISHED, idempotência comprovada
-com duas execuções reais) contra um Postgres local de verdade. Os
-outros 35 falharam no FETCH de forma rastreável — não estão
-sincronizados nesta cópia local do Drive (`LocalSyncedDriveSourceAdapter`,
-DEC-031 — decisão do usuário de usar o Drive já sincronizado no Windows
-em vez de credenciais da API). `GoogleDriveSourceAdapter` continua não
-implementado por essa mesma decisão. Ver `docs/WORK_STATUS.md`
-(checkpoint 12, "PENDÊNCIAS IMEDIATAS") para o que falta para os
-outros 35 e a lista completa de achados reais corrigidos durante essa
-ingestão (DEC-030 a DEC-035) — vale a pena ler antes de mexer em
-`src/lib/ingestion/` de novo, para não reintroduzir um desses bugs já
-corrigidos (ex.: `service_role` sem GRANT, colisão de `slug`, varredura
-de referência).
+A Fase 3 (piloto com acervo real, `src/lib/ingestion/`) está **fechada**
+(checkpoint 13): 48 dos 49 candidatos físicos únicos do manifesto foram
+baixados/extraídos/transformados em `studies` de verdade (41 REVIEW + 7
+DRAFT, zero PUBLISHED, idempotência comprovada em múltiplas execuções
+reais, inclusive entre sessões diferentes) contra um Postgres local de
+verdade. Só `DUP-002` falhou (extração — arquivo provavelmente não é um
+`.doc` válido, não um bug). `LocalSyncedDriveSourceAdapter` (DEC-031,
+DEC-036) resolve pelo Drive já sincronizado no Windows — o usuário
+copiou cópias técnicas de todo o lote para uma pasta local em vez de
+sincronizar a árvore completa do acervo ou criar credenciais de API;
+`GoogleDriveSourceAdapter` continua não implementado por essa decisão.
+Ver `docs/WORK_STATUS.md` (checkpoint 13, "PENDÊNCIAS IMEDIATAS") para
+a lista completa de achados reais corrigidos (DEC-030 a DEC-036) e dois
+achados reais documentados mas NÃO corrigidos por estarem fora do
+escopo de fechar o piloto (DEC-037: convenção de abreviação bíblica
+tradicional não coberta pelo scanner; heurística de referência
+principal pode escolher uma ilustração em vez do texto-base) — vale a
+pena ler antes de mexer em `src/lib/ingestion/` de novo, para não
+reintroduzir um bug já corrigido nem duplicar esforço num achado já
+registrado.
 
 ## 3. Regras de arquitetura (não violar sem registrar uma decisão)
 
