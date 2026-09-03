@@ -1,4 +1,4 @@
-import type { StatusEditorial, TestamentoBiblico } from "@/lib/types";
+import type { StatusEditorial, TestamentoBiblico, TipoEstudo } from "@/lib/types";
 
 /**
  * Formas das linhas devolvidas pelo Postgres (colunas em snake_case,
@@ -60,6 +60,7 @@ export interface StudyRow {
   conteudo: string;
   status: StatusEditorial;
   visibilidade: "publico" | "privado";
+  tipo_estudo: TipoEstudo;
   autor: string;
   data_origem: string;
   palavras_chave: string[] | null;

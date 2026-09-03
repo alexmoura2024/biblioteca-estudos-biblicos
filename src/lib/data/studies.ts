@@ -2,6 +2,7 @@ import type {
   Study,
   StatusEditorial,
   TipoRelacaoPassagem,
+  TipoEstudo,
 } from "@/lib/types";
 import { getBookBySlug } from "@/lib/data/books";
 import { getTopicBySlug } from "@/lib/data/topics";
@@ -32,6 +33,8 @@ interface StudySeed {
   resumo: string;
   conteudo: string[];
   status?: StatusEditorial;
+  /** Tipo de estudo (EXPOSITIVO, THEMATIC, PANORAMA, DOUTRINÁRIO). Padrão: EXPOSITIVO. */
+  tipoEstudo?: TipoEstudo;
   autor: string;
   dataOrigem: string;
   palavrasChave: string[];
@@ -501,6 +504,7 @@ function buildStudy(seed: StudySeed, index: number): Study {
     conteudo: seed.conteudo.join("\n\n"),
     status: seed.status ?? "PUBLISHED",
     visibilidade: "publico",
+    tipoEstudo: seed.tipoEstudo ?? "EXPOSITIVO",
     autor: seed.autor,
     dataOrigem: seed.dataOrigem,
     createdAt,

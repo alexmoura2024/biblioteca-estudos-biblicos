@@ -99,6 +99,7 @@ export function assembleStudy(
     conteudo: studyRow.conteudo,
     status: studyRow.status,
     visibilidade: studyRow.visibilidade,
+    tipoEstudo: studyRow.tipo_estudo,
     autor: studyRow.autor,
     dataOrigem: studyRow.data_origem,
     createdAt: studyRow.created_at,

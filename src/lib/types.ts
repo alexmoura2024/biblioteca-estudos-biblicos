@@ -156,6 +156,8 @@ export interface IngestionJob {
  * pela busca local. A camada de repositório é responsável por montar este
  * formato a partir das tabelas relacionais (hoje: mock; futuramente: Supabase).
  */
+export type TipoEstudo = "EXPOSITIVO" | "THEMATIC" | "PANORAMA" | "DOUTRINÁRIO";
+
 export interface Study {
   id: string;
   titulo: string;
@@ -164,6 +166,8 @@ export interface Study {
   conteudo: string;
   status: StatusEditorial;
   visibilidade: "publico" | "privado";
+  /** Tipo de estudo (EXPOSITIVO, THEMATIC, PANORAMA, DOUTRINÁRIO). Padrão: EXPOSITIVO. */
+  tipoEstudo: TipoEstudo;
   autor: string;
   /** Data de origem do estudo (ISO 8601), ex.: data do documento original. */
   dataOrigem: string;

@@ -42,6 +42,7 @@ const STUDY_ROW: StudyRow = {
   conteudo: "conteúdo completo",
   status: "PUBLISHED",
   visibilidade: "publico",
+  tipo_estudo: "EXPOSITIVO",
   autor: "Profa. Marta Nascimento",
   data_origem: "2024-10-15",
   palavras_chave: ["fé", "justificação"],
