@@ -1,0 +1,10 @@
+[33m8d21368[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m docs(checkpoint16): comprehensive status report - Etapa 1 complete, etapas 2-6 pending
+[33mbbf712a[m docs(checkpoint16): document progress on technical closure - Etapa 1 complete
+[33ma3d8168[m feat(checkpoint16): add tipo_estudo field to studies schema (Migration 11)
+[33mf12427d[m feat(ingestion): divisão editorial manual de SEL-017 em dois estudos (DEC-042)
+[33m701636e[m feat(ingestion): fecha a Fase 3.1 — reprocessamento real e relatório em 4 grupos
+[33m57cc858[m diag(ingestion): identifica DUP-002 como Word 6.0/95 genuíno, não corrompido
+[33m0222493[m feat(ingestion): abreviações bíblicas tradicionais e seleção determinística de MAIN
+[33m0331855[m docs: fecha o piloto tecnico da Fase 3 (checkpoint 13)
+[33m14ced21[m feat(ingestion): cópia técnica vira Prioridade 1 para todas as 49 fontes físicas
+[33m37e97bb[m docs: registra a ingestao real do piloto da Fase 3 (checkpoint 12)
