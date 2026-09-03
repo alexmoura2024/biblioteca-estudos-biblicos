@@ -1,28 +1,63 @@
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
 /**
- * Stub de preparação para o cliente Supabase (Fase 2 — docs/ROADMAP.md).
+ * Cliente Supabase público (papel `anon`), sujeito a RLS — ver
+ * docs/DECISIONS.md, DEC-020. Este é o ÚNICO cliente Supabase que este
+ * projeto instancia até agora: não existe (e não deve existir, por
+ * enquanto) nenhum cliente com `SUPABASE_SERVICE_ROLE_KEY` em lugar
+ * nenhum do código — administração/ingestão são fora de escopo da
+ * Fase 2 (ver docs/WORK_STATUS.md). Quando essa camada existir, o
+ * cliente de serviço vai para um módulo server-only separado (nunca
+ * este arquivo, que pode ser importado por código que roda no cliente).
  *
- * Este arquivo NÃO é importado por nenhum código ativo do Marco 1. Ele
- * existe apenas para documentar, desde já, o ponto de entrada que a
- * Fase 2 vai preencher: quando o banco relacional entrar (DEC-002 em
- * docs/DECISIONS.md), uma `SupabaseStudyRepository` (implementando as
- * interfaces de `src/lib/repositories/types.ts`) vai chamar este cliente
- * em vez de ler os arrays de `src/lib/data/*`.
- *
- * Para ativar na Fase 2:
- *   1. `npm install @supabase/supabase-js`
- *   2. Preencher `.env.local` a partir de `.env.example`
- *   3. Substituir o corpo de `getSupabaseClient` pela chamada real a
- *      `createClient(supabaseUrl, supabaseAnonKey)`
- *   4. Implementar `Supabase*Repository` em `src/lib/repositories/` e
- *      trocar as instâncias exportadas por `src/lib/repositories/index.ts`
- *
- * Até lá, chamar esta função é um erro de programação (não deveria
- * acontecer em nenhum fluxo do Marco 1) — por isso ela lança em vez de
- * retornar `null` silenciosamente.
+ * Usado por `src/lib/repositories/supabase/*` — nunca importado
+ * diretamente por uma página ou componente (mesma regra de sempre:
+ * toda leitura de dados passa pelos repositórios, CLAUDE.md §3).
  */
-export function getSupabaseClient(): never {
-  throw new Error(
-    "Supabase ainda não está configurado — Marco 1 usa apenas dados mockados em memória " +
-      "(src/lib/data). Ver src/lib/supabase/client.ts e docs/ROADMAP.md (Fase 2).",
-  );
+let cachedClient: SupabaseClient | undefined;
+
+/**
+ * Verdadeiro quando as duas variáveis públicas necessárias
+ * (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`) estão
+ * definidas. `src/lib/repositories/index.ts` usa isto para decidir
+ * entre a implementação mock e a Supabase — sem essas variáveis, a
+ * aplicação continua funcionando inteiramente sobre os dados mockados.
+ */
+export function isSupabaseConfigured(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
+/**
+ * Devolve o cliente Supabase (papel `anon`), criando-o na primeira
+ * chamada. Lança um erro claro se as variáveis de ambiente não
+ * estiverem configuradas — chame `isSupabaseConfigured()` antes se o
+ * chamador precisar de um fallback em vez de uma exceção (é isso que
+ * `src/lib/repositories/index.ts` faz).
+ */
+export function getSupabaseClient(): SupabaseClient {
+  if (cachedClient) return cachedClient;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anonKey) {
+    throw new Error(
+      "Supabase não está configurado — defina NEXT_PUBLIC_SUPABASE_URL e " +
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY (ver .env.example) antes de usar os " +
+        "repositórios Supabase. Sem essas variáveis, use os repositórios mock " +
+        "(src/lib/repositories/mock.ts), que é o que src/lib/repositories/index.ts " +
+        "faz automaticamente.",
+    );
+  }
+
+  cachedClient = createClient(url, anonKey, {
+    auth: {
+      // Este cliente só faz leitura pública anônima nesta fase — não há
+      // sessão de usuário para persistir (autenticação pública é fora
+      // de escopo, ver docs/WORK_STATUS.md).
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+  return cachedClient;
 }
