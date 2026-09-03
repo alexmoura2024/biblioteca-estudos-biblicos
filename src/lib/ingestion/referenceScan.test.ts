@@ -79,6 +79,22 @@ describe("scanReferences", () => {
     expect(scanReferences(conteudo)).toHaveLength(0);
   });
 
+  it("reconhece nome completo de livro SEM o acento — achado real ao rodar contra o piloto (REV-001 escreve 'Galatas' sem acento)", () => {
+    const conteudo = "Mas faço-vos saber, irmãos, que o evangelho por mim anunciado. Galatas 1:11-12.";
+    const [ref] = classifyReferences(scanReferences(conteudo));
+    expect(ref).toMatchObject({ capitulo: 1, versiculoInicio: 11, versiculoFim: 12 });
+    expect(ref.book.slug).toBe("galatas");
+  });
+
+  it("nunca reconhece uma ABREVIAÇÃO sem o acento correto (só nomes completos ganham o fallback insensível a acento)", () => {
+    // "Jo" já é a abreviação exata de João; o que este teste prova é que
+    // uma abreviação com acento ERRADO/removido não ganha um fallback —
+    // "Rm" é Romanos; sem o acento não faria diferença (não tem acento),
+    // então usamos um caso onde a abreviação tem acento: "Êx" (Êxodo).
+    const conteudo = "Isso é discutido em Ex 3:14, o nome revelado a Moisés.";
+    expect(scanReferences(conteudo)).toHaveLength(0);
+  });
+
   it("distingue João de Jó pelo acento da abreviação, sem fallback ambíguo (só a passagem sensível a acento é usada)", () => {
     // "Jo" (sem acento) é literalmente a abreviação de João; "Jó" (com
     // acento) é a de Jó — como a varredura de ingestão nunca cai para um

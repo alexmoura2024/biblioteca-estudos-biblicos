@@ -18,12 +18,23 @@ import type { Book, TipoRelacaoPassagem } from "@/lib/types";
  * não devem virar publicação automaticamente"; uma referência inválida é
  * menos ainda do que uma sugestão — é um alerta de revisão).
  *
- * Mais restritivo que o parser da busca de propósito: só reconhece
- * aliases SENSÍVEIS A ACENTO (nunca a passagem de fallback sem acento
- * que resolve "Jo"/"Jó" por ambiguidade) — um documento inteiro é grande
- * demais para arriscar falsos positivos de abreviações curtas ambíguas.
- * Uma referência ambígua em texto livre nunca é resolvida silenciosamente
- * (mesma regra da busca) — aqui ela simplesmente não é reconhecida.
+ * Mais restritivo que o parser da busca de propósito PARA ABREVIAÇÕES:
+ * abreviações (ex.: "Jo", "At") só são reconhecidas sensíveis a acento —
+ * nunca o fallback ambíguo que resolveria "Jo"/"Jó" (um documento
+ * inteiro é grande demais para arriscar falsos positivos de abreviações
+ * curtas ambíguas). Uma referência ambígua em texto livre nunca é
+ * resolvida silenciosamente (mesma regra da busca).
+ *
+ * Para NOMES COMPLETOS de livro (ex.: "Gálatas", "Êxodo"), o risco de
+ * falso positivo por remover o acento é muito menor (são palavras
+ * distintivas, não abreviações de 2-3 letras) — achado real ao rodar
+ * contra o piloto (Fase 3, checkpoint 12): o documento de REV-001
+ * escreve "Galatas 1:11-12" sem o acento, e a varredura só sensível a
+ * acento não reconhecia isso, mesmo com a referência claramente
+ * presente no texto. Por isso há uma segunda passagem, só para nomes
+ * completos, insensível a acento — verificando antes que nenhum outro
+ * nome de livro normalize para a mesma forma (colisão realmente
+ * ambígua fica de fora dessa passagem, nunca resolvida por suposição).
  */
 
 export interface DetectedReference {
@@ -61,6 +72,27 @@ function bookAliases(book: Book): string[] {
 // aqui, mas a ordem por tamanho evita esse tipo de problema em geral).
 const ALIASES: AliasEntry[] = books
   .flatMap((book) => bookAliases(book).map((alias) => ({ alias, book })))
+  .sort((a, b) => b.alias.length - a.alias.length);
+
+/** Remove diacríticos SEM alterar o comprimento da string (mantém 1 caractere = 1 posição, ao contrário de `normalizeText`, que colapsa espaços). */
+function stripDiacriticsPreservingOffsets(value: string): string {
+  return value.normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+// Segunda passagem: só nomes COMPLETOS de livro (nunca abreviações),
+// insensível a acento. Livros cujo nome normalizado colide com o de
+// outro (nenhum caso real neste cânon, mas verificado defensivamente)
+// ficam de fora — ambiguidade nunca resolvida por suposição.
+const NORMALIZED_FULL_NAME_MAP = new Map<string, Book[]>();
+for (const book of books) {
+  const key = stripDiacriticsPreservingOffsets(book.nome.toLowerCase());
+  const existing = NORMALIZED_FULL_NAME_MAP.get(key);
+  if (existing) existing.push(book);
+  else NORMALIZED_FULL_NAME_MAP.set(key, [book]);
+}
+const NORMALIZED_FULL_NAME_ALIASES: AliasEntry[] = [...NORMALIZED_FULL_NAME_MAP.entries()]
+  .filter(([, candidates]) => candidates.length === 1)
+  .map(([alias, candidates]) => ({ alias, book: candidates[0] }))
   .sort((a, b) => b.alias.length - a.alias.length);
 
 function isBoundary(char: string | undefined): boolean {
@@ -116,20 +148,24 @@ function validateChapterVerse(
   return undefined;
 }
 
-/** Varre `text` inteiro e devolve toda referência bíblica reconhecida, válida ou não. */
-export function scanReferences(text: string): DetectedReference[] {
-  const lower = text.toLowerCase();
-  const results: DetectedReference[] = [];
-
-  for (const { alias, book } of ALIASES) {
+/**
+ * Varre `haystack` (já em minúsculas, mesmo comprimento/offsets de
+ * `text`) usando `aliasList`, empurrando resultados em `results` e
+ * marcando as posições ocupadas em `occupied` (para a segunda passagem
+ * nunca re-matchar — nem duplicar — o que a primeira já encontrou).
+ */
+function scanWithAliases(text: string, haystack: string, aliasList: AliasEntry[], results: DetectedReference[], occupied: Array<[number, number]>): void {
+  for (const { alias, book } of aliasList) {
     let searchFrom = 0;
-    while (searchFrom <= lower.length) {
-      const idx = lower.indexOf(alias, searchFrom);
+    while (searchFrom <= haystack.length) {
+      const idx = haystack.indexOf(alias, searchFrom);
       if (idx === -1) break;
       searchFrom = idx + alias.length;
 
-      const before = idx > 0 ? lower[idx - 1] : undefined;
-      const after = lower[idx + alias.length];
+      if (occupied.some(([start, end]) => idx < end && idx + alias.length > start)) continue;
+
+      const before = idx > 0 ? haystack[idx - 1] : undefined;
+      const after = haystack[idx + alias.length];
       if (!isBoundary(before) || !isBoundary(after)) continue;
 
       const rest = text.slice(idx + alias.length);
@@ -138,6 +174,8 @@ export function scanReferences(text: string): DetectedReference[] {
 
       const capitulo = Number(match[1]);
       const matchedText = text.slice(idx, idx + alias.length) + match[0];
+      const fullSpan = matchedText.length;
+      occupied.push([idx, idx + fullSpan]);
       const verseSpecRaw = match[2];
 
       if (verseSpecRaw === undefined) {
@@ -165,6 +203,20 @@ export function scanReferences(text: string): DetectedReference[] {
       }
     }
   }
+}
+
+/** Varre `text` inteiro e devolve toda referência bíblica reconhecida, válida ou não. */
+export function scanReferences(text: string): DetectedReference[] {
+  const results: DetectedReference[] = [];
+  const occupied: Array<[number, number]> = [];
+
+  // Passagem 1: todos os aliases (nomes + abreviações) sensíveis a acento.
+  scanWithAliases(text, text.toLowerCase(), ALIASES, results, occupied);
+  // Passagem 2: só nomes completos, insensível a acento — cobre o que a
+  // passagem 1 perdeu por falta de acento no documento original (ex.:
+  // "Galatas" em vez de "Gálatas"), sem reabrir o risco de falso
+  // positivo de abreviações curtas ambíguas.
+  scanWithAliases(text, stripDiacriticsPreservingOffsets(text).toLowerCase(), NORMALIZED_FULL_NAME_ALIASES, results, occupied);
 
   return results.sort((a, b) => a.offset - b.offset);
 }
