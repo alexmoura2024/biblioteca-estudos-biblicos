@@ -1,42 +1,60 @@
 {
   "fase": "FASE1_TEXTUAL",
-  "descricao": "Lote 01 — 20 estudos textuais, excluindo Gênesis (para Fase posterior) e media (PPTX/admin)",
+  "descricao": "Lote 01 — 20 estudos textuais do piloto original (inclui Genesis SEL-001-004), excluindo FASE2_MEDIA e recursos administrativos",
   "data_definicao": "2026-09-03",
   "total_estudos": 20,
   "estudos": [
+    "SEL-001",
+    "SEL-002",
+    "SEL-003",
+    "SEL-004",
     "SEL-005",
     "SEL-006",
     "SEL-007",
     "SEL-008",
-    "SEL-009",
     "SEL-010",
     "SEL-011",
-    "SEL-013",
-    "SEL-014",
-    "SEL-015",
     "SEL-016",
-    "SEL-017",
     "SEL-018",
     "SEL-019",
     "SEL-020",
     "SEL-021",
-    "SEL-022",
-    "SEL-023",
     "SEL-024",
-    "SEL-025"
+    "SEL-027",
+    "SEL-033",
+    "SEL-034",
+    "SEL-036"
   ],
   "exclusoes": {
-    "media_pptx": ["SEL-012", "SEL-029"],
+    "media_pptx_fase2": ["SEL-012", "SEL-029"],
     "recurso_administrativo": ["SEL-032"],
-    "fragmento": ["SEL-037"],
-    "genesis_fase_posterior": ["SEL-001", "SEL-002", "SEL-003", "SEL-004"]
+    "fragmento_sel027": ["SEL-037"]
   },
-  "candidatos_nao_inclusos_fase1": ["SEL-026", "SEL-027", "SEL-028", "SEL-030", "SEL-031", "SEL-033", "SEL-034", "SEL-035", "SEL-036"],
+  "candidatos_nao_inclusos_fase1": [
+    "SEL-009",
+    "SEL-012 (FASE2_MEDIA)",
+    "SEL-013",
+    "SEL-014",
+    "SEL-015",
+    "SEL-017 (dividido em 2 estudos — checkpoint 15)",
+    "SEL-022",
+    "SEL-023",
+    "SEL-025",
+    "SEL-026",
+    "SEL-028",
+    "SEL-029 (FASE2_MEDIA)",
+    "SEL-030",
+    "SEL-031",
+    "SEL-032 (administrativo)",
+    "SEL-035"
+  ],
   "notas": [
-    "SEL-017 já foi dividido em 2 estudos (checkpoint 15)",
+    "SEL-001 a SEL-004: Gênesis do piloto ORIGINAL (não novos 34)",
+    "SEL-017 já foi dividido em 2 estudos (DEC-042, checkpoint 15)",
+    "SEL-012 e SEL-029: preservados em provenance mas não na ingestão textual (FASE2_MEDIA)",
+    "SEL-032: recurso administrativo, não é study",
+    "SEL-037: fragmento de SEL-027, não contagem própria",
     "Nenhum estudo será marcado como PUBLISHED",
-    "Gênesis será ingerido em fase posterior com própria janela de revisão",
-    "Estudos temáticos/doutrinários (SEL-030, SEL-031) para fase posterior",
-    "Estudos Apocalipse extras (SEL-026, SEL-027, SEL-028) para fase posterior"
+    "Os 34 novos estudos de Gênesis: NOT included in this batch (future phase)"
   ]
 }
