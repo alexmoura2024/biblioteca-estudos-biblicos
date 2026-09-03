@@ -40,8 +40,14 @@ interface StudySeed {
   temas: Array<{ slug: string; peso?: number }>;
   /** slugs de personagens, com papel opcional */
   personagens?: Array<{ slug: string; papel?: string }>;
-  /** slug da série, com ordem */
-  serie?: { slug: string; ordem: number };
+  /**
+   * Séries às quais o estudo pertence, cada uma com sua própria ordem
+   * dentro da série (relação N:N — um estudo pode pertencer a várias
+   * séries, ver docs/DATA_MODEL.md e DEC-015 em docs/DECISIONS.md).
+   * Antes do Marco 1.1 este campo era `serie?: {...}` (singular,
+   * simplificação indevida do mock para 1:1) — nunca reintroduzir isso.
+   */
+  series?: Array<{ slug: string; ordem: number }>;
 }
 
 const STUDY_SEEDS: StudySeed[] = [
@@ -124,7 +130,7 @@ const STUDY_SEEDS: StudySeed[] = [
     passagens: [{ livro: "1-samuel", capitulo: 17, versiculoInicio: 32, versiculoFim: 50, tipoRelacao: "principal", prioridade: 1 }],
     temas: [{ slug: "fe", peso: 3 }],
     personagens: [{ slug: "davi", papel: "protagonista" }],
-    serie: { slug: "vida-de-davi", ordem: 1 },
+    series: [{ slug: "vida-de-davi", ordem: 1 }],
   },
   {
     titulo: "Davi, Natã e o arrependimento",
@@ -141,7 +147,7 @@ const STUDY_SEEDS: StudySeed[] = [
     passagens: [{ livro: "2-samuel", capitulo: 12, versiculoInicio: 1, versiculoFim: 13, tipoRelacao: "principal", prioridade: 1 }],
     temas: [{ slug: "perdao", peso: 3 }],
     personagens: [{ slug: "davi", papel: "protagonista" }],
-    serie: { slug: "vida-de-davi", ordem: 2 },
+    series: [{ slug: "vida-de-davi", ordem: 2 }],
   },
   {
     titulo: "O Senhor é o meu pastor",
@@ -224,7 +230,7 @@ const STUDY_SEEDS: StudySeed[] = [
     passagens: [{ livro: "mateus", capitulo: 13, versiculoInicio: 1, versiculoFim: 23, tipoRelacao: "principal", prioridade: 1 }],
     temas: [{ slug: "fe", peso: 2 }],
     personagens: [{ slug: "jesus", papel: "protagonista" }],
-    serie: { slug: "parabolas-de-jesus", ordem: 1 },
+    series: [{ slug: "parabolas-de-jesus", ordem: 1 }],
   },
   {
     titulo: "A parábola do filho pródigo",
@@ -241,7 +247,7 @@ const STUDY_SEEDS: StudySeed[] = [
     passagens: [{ livro: "lucas", capitulo: 15, versiculoInicio: 11, versiculoFim: 32, tipoRelacao: "principal", prioridade: 1 }],
     temas: [{ slug: "graca", peso: 3 }, { slug: "perdao", peso: 2 }],
     personagens: [{ slug: "jesus", papel: "narrador" }],
-    serie: { slug: "parabolas-de-jesus", ordem: 2 },
+    series: [{ slug: "parabolas-de-jesus", ordem: 2 }],
   },
   {
     titulo: "O bom samaritano e o mandamento do amor",
@@ -258,7 +264,7 @@ const STUDY_SEEDS: StudySeed[] = [
     passagens: [{ livro: "lucas", capitulo: 10, versiculoInicio: 25, versiculoFim: 37, tipoRelacao: "principal", prioridade: 1 }],
     temas: [{ slug: "amor", peso: 3 }],
     personagens: [{ slug: "jesus", papel: "narrador" }],
-    serie: { slug: "parabolas-de-jesus", ordem: 3 },
+    series: [{ slug: "parabolas-de-jesus", ordem: 3 }],
   },
   {
     titulo: "Nicodemos e o novo nascimento",
@@ -326,7 +332,7 @@ const STUDY_SEEDS: StudySeed[] = [
     passagens: [{ livro: "efesios", capitulo: 6, versiculoInicio: 10, versiculoFim: 18, tipoRelacao: "principal", prioridade: 1 }],
     temas: [{ slug: "fe", peso: 2 }, { slug: "obediencia", peso: 2 }],
     personagens: [{ slug: "paulo", papel: "autor" }],
-    serie: { slug: "cartas-de-paulo", ordem: 1 },
+    series: [{ slug: "cartas-de-paulo", ordem: 1 }],
   },
   {
     titulo: "Fé que se prova nas provações",
@@ -359,6 +365,47 @@ const STUDY_SEEDS: StudySeed[] = [
     passagens: [{ livro: "apocalipse", capitulo: 21, versiculoInicio: 1, versiculoFim: 8, tipoRelacao: "principal", prioridade: 1 }],
     temas: [{ slug: "segunda-vinda", peso: 3 }, { slug: "esperanca", peso: 2 }],
     personagens: [{ slug: "joao", papel: "autor" }],
+  },
+  {
+    // Estudo de prova das relações N:N do domínio (Marco 1.1, DEC-015):
+    // múltiplas passagens em livros diferentes (principal + secundária +
+    // duas citadas, uma delas classificada só no nível de capítulo, sem
+    // versículo — usada também para provar o ranking de referência por
+    // capítulo vs. versículo, ver docs/SEARCH_SPEC.md e DEC-014),
+    // múltiplos temas, múltiplos personagens e múltiplas séries.
+    titulo: "Fé que atravessa as Escrituras: de Abraão a Paulo",
+    resumo:
+      "Como a fé de Abraão, imputada como justiça em Gênesis, ecoa em Habacuque e é retomada por Paulo em Romanos — com um aceno ao chamado à fé em João 3.",
+    conteudo: [
+      "Em Gênesis 15, diante da promessa de uma descendência tão numerosa quanto as estrelas, Abrão simplesmente 'creu no Senhor, e o Senhor imputou isto à sua justiça' (15:6). A fé, não o mérito, é o que o coloca em posição correta diante de Deus.",
+      "Séculos depois, o profeta Habacuque recebe uma resposta semelhante em meio à angústia por não ver o juízo de Deus se cumprir: 'o justo viverá pela sua fé' (Hc 2:4) — uma frase curta que se torna eixo de toda uma teologia.",
+      "Paulo recupera exatamente esses dois textos em Romanos 4 para argumentar que a justificação sempre foi pela fé, não pela lei ou pelas obras — Abraão creu antes mesmo da circuncisão, tornando-se pai de todos os que creem, circuncisos ou não.",
+      "O mesmo convite ecoa em João 3, no diálogo de Jesus com Nicodemos: o novo nascimento também é recebido pela fé, não conquistado por mérito religioso — o mesmo fio que atravessa Gênesis, Habacuque e Romanos chega ao evangelho.",
+    ],
+    autor: "Profa. Marta Nascimento",
+    dataOrigem: "2024-10-15",
+    palavrasChave: ["fé", "justificação", "Abraão", "justo viverá pela fé"],
+    passagens: [
+      { livro: "romanos", capitulo: 4, versiculoInicio: 1, versiculoFim: 12, tipoRelacao: "principal", prioridade: 1 },
+      { livro: "genesis", capitulo: 15, versiculoInicio: 1, versiculoFim: 6, tipoRelacao: "secundaria", prioridade: 2 },
+      { livro: "habacuque", capitulo: 2, versiculoInicio: 2, versiculoFim: 4, tipoRelacao: "citada", prioridade: 3 },
+      // Passagem classificada só no nível de capítulo (sem versículo):
+      // representa uma citação de contexto amplo, não uma exposição
+      // detalhada de um versículo específico.
+      { livro: "joao", capitulo: 3, tipoRelacao: "citada", prioridade: 4 },
+    ],
+    temas: [{ slug: "fe", peso: 3 }, { slug: "graca", peso: 2 }],
+    personagens: [
+      { slug: "abraao", papel: "citado" },
+      { slug: "paulo", papel: "autor" },
+    ],
+    // Duas séries (relação N:N — não simplificar para uma só): o estudo
+    // é ao mesmo tempo um fundamento da fé cristã e parte da exposição
+    // das cartas de Paulo.
+    series: [
+      { slug: "fundamentos-da-fe", ordem: 1 },
+      { slug: "cartas-de-paulo", ordem: 2 },
+    ],
   },
   {
     titulo: "A mulher virtuosa: rascunho em revisão",
@@ -418,15 +465,13 @@ function buildStudy(seed: StudySeed, index: number): Study {
     return { character, papel: papel ?? "mencionado" };
   });
 
-  const series = seed.serie
-    ? (() => {
-        const seriesEntity = getSeriesBySlug(seed.serie!.slug);
-        if (!seriesEntity) {
-          throw new Error(`Estudo "${seed.titulo}": série desconhecida "${seed.serie!.slug}"`);
-        }
-        return [{ series: seriesEntity, ordem: seed.serie!.ordem }];
-      })()
-    : [];
+  const series = (seed.series ?? []).map(({ slug: seriesSlug, ordem }) => {
+    const seriesEntity = getSeriesBySlug(seriesSlug);
+    if (!seriesEntity) {
+      throw new Error(`Estudo "${seed.titulo}": série desconhecida "${seriesSlug}"`);
+    }
+    return { series: seriesEntity, ordem };
+  });
 
   return {
     id,
