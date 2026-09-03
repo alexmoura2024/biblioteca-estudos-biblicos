@@ -118,4 +118,50 @@ describe("parseReference", () => {
     expect(parseReference("oração e misericórdia")).toEqual({ type: "none" });
     expect(parseReference("")).toEqual({ type: "none" });
   });
+
+  describe("referências estruturalmente inválidas (Marco 1.1)", () => {
+    it("rejeita capítulo além do total do livro: João 999:999", () => {
+      // João tem 21 capítulos.
+      const result = parseReference("João 999:999");
+      expect(result).toMatchObject({ type: "invalid", reason: "capitulo_fora_do_intervalo", capitulo: 999 });
+      if (result.type === "invalid") expect(result.book.nome).toBe("João");
+    });
+
+    it("rejeita capítulo zero: João 0", () => {
+      const result = parseReference("João 0");
+      expect(result).toMatchObject({ type: "invalid", reason: "capitulo_fora_do_intervalo", capitulo: 0 });
+    });
+
+    it("rejeita capítulo exatamente um a mais que o total do livro (fronteira)", () => {
+      const judas = books.find((b) => b.nome === "Judas");
+      expect(judas?.totalCapitulos).toBe(1);
+      const result = parseReference("Judas 2");
+      expect(result).toMatchObject({ type: "invalid", reason: "capitulo_fora_do_intervalo", capitulo: 2 });
+    });
+
+    it("aceita o último capítulo válido do livro (fronteira)", () => {
+      const result = parseReference("Judas 1");
+      expect(result).toMatchObject({ type: "chapter", capitulo: 1 });
+    });
+
+    it("rejeita versículo zero: João 3:0", () => {
+      const result = parseReference("João 3:0");
+      expect(result).toMatchObject({ type: "invalid", reason: "versiculo_menor_que_um", capitulo: 3, versiculoInicio: 0 });
+    });
+
+    it("rejeita intervalo de versículos invertido: João 3:20-16", () => {
+      const result = parseReference("João 3:20-16");
+      expect(result).toMatchObject({
+        type: "invalid",
+        reason: "intervalo_de_versiculos_invertido",
+        versiculoInicio: 20,
+        versiculoFim: 16,
+      });
+    });
+
+    it("aceita intervalo com início igual ao fim (não é considerado invertido)", () => {
+      const result = parseReference("João 3:16-16");
+      expect(result).toMatchObject({ type: "verse", versiculoInicio: 16, versiculoFim: 16 });
+    });
+  });
 });

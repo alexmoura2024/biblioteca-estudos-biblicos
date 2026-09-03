@@ -24,7 +24,22 @@ import { normalizeText } from "@/lib/search/normalize";
  * passagens: primeiro sensível a acentos (onde "Jo" e "Jó" são
  * inequívocos), e só then, se nada casar, cai para uma passagem sem
  * acentos — que sinaliza ambiguidade em vez de escolher um livro.
+ *
+ * Regra de segurança adicional (Marco 1.1 — hardening arquitetural):
+ * nunca interpretar silenciosamente uma referência estruturalmente
+ * impossível (capítulo fora do intervalo do livro, versículo menor que
+ * 1, ou intervalo de versículos invertido). Esses casos retornam
+ * `{ type: "invalid", reason, ... }` em vez de um resultado "válido" com
+ * números sem sentido — o chamador decide como comunicar isso ao usuário
+ * (ver `src/lib/search/queryParsing.ts`), mas nunca deve exibir algo como
+ * "Referência reconhecida: João 999:999".
  */
+
+/** Motivo de uma referência estruturalmente inválida — ver `parseReference`. */
+export type InvalidReferenceReason =
+  | "capitulo_fora_do_intervalo"
+  | "versiculo_menor_que_um"
+  | "intervalo_de_versiculos_invertido";
 
 export type ParsedReference =
   | { type: "book"; book: Book; matchedText: string }
@@ -35,6 +50,15 @@ export type ParsedReference =
       capitulo: number;
       versiculoInicio: number;
       versiculoFim?: number;
+      matchedText: string;
+    }
+  | {
+      type: "invalid";
+      book: Book;
+      capitulo: number;
+      versiculoInicio?: number;
+      versiculoFim?: number;
+      reason: InvalidReferenceReason;
       matchedText: string;
     }
   | { type: "ambiguous"; candidates: Book[]; matchedText: string }
@@ -145,12 +169,51 @@ export function parseReference(query: string): ParsedReference {
   const capitulo = Number(numbers[1]);
   const fullMatch = matchedText + numbers[0];
 
+  // "Capítulo inteiro" é garantido pelo regex (só dígitos, sem ponto
+  // decimal), mas validamos explicitamente por clareza e defesa em
+  // profundidade caso o regex mude no futuro.
+  if (!Number.isInteger(capitulo) || capitulo < 1 || capitulo > book.totalCapitulos) {
+    return {
+      type: "invalid",
+      book,
+      capitulo,
+      versiculoInicio: numbers[2] !== undefined ? Number(numbers[2]) : undefined,
+      versiculoFim: numbers[3] !== undefined ? Number(numbers[3]) : undefined,
+      reason: "capitulo_fora_do_intervalo",
+      matchedText: fullMatch,
+    };
+  }
+
   if (numbers[2] === undefined) {
     return { type: "chapter", book, capitulo, matchedText: fullMatch };
   }
 
   const versiculoInicio = Number(numbers[2]);
   const versiculoFim = numbers[3] !== undefined ? Number(numbers[3]) : undefined;
+
+  if (versiculoInicio < 1) {
+    return {
+      type: "invalid",
+      book,
+      capitulo,
+      versiculoInicio,
+      versiculoFim,
+      reason: "versiculo_menor_que_um",
+      matchedText: fullMatch,
+    };
+  }
+
+  if (versiculoFim !== undefined && versiculoFim < versiculoInicio) {
+    return {
+      type: "invalid",
+      book,
+      capitulo,
+      versiculoInicio,
+      versiculoFim,
+      reason: "intervalo_de_versiculos_invertido",
+      matchedText: fullMatch,
+    };
+  }
 
   return {
     type: "verse",
