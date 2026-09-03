@@ -10,13 +10,19 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "db:generate-seed": "tsx scripts/generate-supabase-seed.ts"
+    "db:generate-seed": "tsx scripts/generate-supabase-seed.ts",
+    "fase3:validate-manifest": "tsx scripts/fase3-validate-manifest.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.114.0",
+    "csv-parse": "^7.0.2",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.12.2",
     "next": "16.3.4",
+    "pdf-parse": "^2.4.5",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "word-extractor": "^1.0.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -26,6 +32,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/word-extractor": "^1.0.6",
     "@vitejs/plugin-react": "^6.1.1",
     "@vitest/ui": "^4.1.11",
     "eslint": "^9",
