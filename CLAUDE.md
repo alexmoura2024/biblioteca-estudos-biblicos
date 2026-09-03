@@ -29,8 +29,11 @@ palavra-chave, com uma futura camada de IA subordinada às fontes do
 acervo (nunca o contrário — ver DEC-005 em `docs/DECISIONS.md`).
 
 O projeto avança por marcos incrementais (`docs/ROADMAP.md`). O Marco 1
-(protótipo visual com dados mockados) foi concluído nesta sessão — ver
-`docs/WORK_STATUS.md` para o estado exato e o próximo passo.
+(protótipo visual com dados mockados) e o Marco 1.1 (hardening
+arquitetural — busca desacoplada de `listPublished()`, parser de
+referências mais rigoroso, prova das relações N:N do domínio, fonte de
+verdade da documentação) estão concluídos — ver `docs/WORK_STATUS.md`
+para o estado exato e o próximo passo (Fase 2 — banco real).
 
 ## 3. Regras de arquitetura (não violar sem registrar uma decisão)
 
@@ -46,6 +49,17 @@ O projeto avança por marcos incrementais (`docs/ROADMAP.md`). O Marco 1
   diretamente de uma página ou componente. É esse indireto que permite
   trocar a implementação mock por Supabase na Fase 2 sem tocar em UI,
   rotas ou busca.
+- **Busca é sempre via `searchRepository.search()`**, nunca
+  `studyRepository.listPublished()` + filtrar/pontuar em JavaScript numa
+  página (DEC-013). Extrair uma referência bíblica de texto livre é
+  trabalho de `src/lib/search/queryParsing.ts` (Fase A/B), que entrega um
+  `SearchQuery` já estruturado ao repositório — o repositório nunca lida
+  com strings de busca ambíguas. Da mesma forma, "últimos estudos" usa
+  `listRecent(limit)`, não `listPublished()+sort+slice`.
+- **Referência bíblica estruturalmente impossível nunca é aceita**
+  (ex.: "João 999:999") — `parseReference` retorna `{ type: "invalid",
+  reason, ... }`; a UI mostra um aviso explícito, nunca "Referência
+  reconhecida: João 999:999" (DEC-014).
 - **Um estudo pode ter múltiplas passagens, temas, personagens e
   séries** — não simplifique o modelo de dados para 1:1.
 - **Toda IA futura responde apenas com base em trechos recuperados do
@@ -129,11 +143,14 @@ trabalho.
 ## 7. Onde as coisas estão
 
 ```
-docs/                        Especificação oficial do projeto (fonte da verdade)
+docs/                        Especificação oficial do projeto (fonte da verdade — DEC-016; nunca o Drive)
 src/lib/types.ts             Modelo de domínio (espelha DATA_MODEL.md)
 src/lib/data/                Dados mockados (livros, temas, personagens, séries, estudos)
-src/lib/repositories/        Interfaces + implementação mock (ponto de troca p/ Supabase)
-src/lib/search/              normalize, referenceParser (Fase B), search (Fase A/C)
+src/lib/repositories/        Interfaces (incl. SearchRepository) + implementação mock (ponto de troca p/ Supabase)
+src/lib/search/normalize.ts       Normalização de texto (acentos, slugs, tokens)
+src/lib/search/referenceParser.ts Fase B: texto -> referência bíblica (ou "ambiguous"/"invalid"/"none")
+src/lib/search/queryParsing.ts    Ponte Fase A/B: texto livre -> SearchQuery estruturado
+src/lib/search/search.ts          Motor de busca puro (scoreStudy, matchesFilters, WEIGHTS) — usado por MockSearchRepository
 src/lib/supabase/client.ts   Stub não usado — só documenta o ponto de entrada da Fase 2
 src/components/              Componentes de UI reutilizáveis
 src/app/                     Rotas (App Router)

@@ -1,7 +1,16 @@
 WORK\_STATUS — Biblioteca Virtual de Estudos Bíblicos
 
 ESTADO ATUAL
-**MARCO 1 CONCLUÍDO.** MVP profissional e navegável, com Next.js 16 + TypeScript + Tailwind v4, dados 100% mockados, busca local funcional (lexical + parser de referências + filtros), navegação por Bíblia/temas/personagens/séries, página individual de estudo, arquitetura preparada para Supabase (camada de repositórios + stub), testes automatizados (61 testes) e `next build` limpo (123 páginas). Nenhuma das funcionalidades da lista "NÃO IMPLEMENTAR AINDA" foi tocada. Ver `docs/ROADMAP.md` — próximo é a FASE 2 (banco real).
+**MARCO 1.1 (HARDENING ARQUITETURAL) CONCLUÍDO.** Os quatro pontos da auditoria externa do Marco 1 foram corrigidos: (1) busca desacoplada de `listPublished()` via `SearchRepository`; (2) parser de referências rejeita referências estruturalmente impossíveis e o ranking diferencia capítulo de versículo em três níveis; (3) um estudo mockado prova as relações N:N do domínio (múltiplas passagens em livros diferentes, múltiplos temas/personagens/séries); (4) fonte de verdade da documentação técnica formalizada (`docs/` no Git, nunca o Drive). 92 testes, `tsc`/`eslint`/`build` limpos (124 páginas). Nenhuma das funcionalidades da lista "NÃO IMPLEMENTAR AINDA" foi tocada — Supabase real ainda não foi implementado, só a fronteira de busca foi corrigida. Ver `docs/ROADMAP.md` — próximo é a FASE 2 (banco real), agora sobre uma base mais sólida.
+
+CONCLUÍDO (sessão de 2026-09-02, checkpoint 5 — Marco 1.1: hardening arquitetural)
+- **Ponto 1 (fronteira de busca):** nova interface `SearchRepository` (`src/lib/repositories/types.ts`) com `search(query: SearchQuery): Promise<SearchOutcome>` — recebe texto residual, referência bíblica já normalizada (`NormalizedReference`), filtros e paginação (`page`/`limit`), devolve itens com score e `total`. Implementação `MockSearchRepository` em `src/lib/repositories/mock.ts`, registrada como `searchRepository` em `src/lib/repositories/index.ts`. `src/app/busca/page.tsx` reescrito para usar `parseSearchQuery()` + `searchRepository.search()` em vez de `listPublished()` + função pura. Adicionado `StudyRepository.listRecent(limit)` e a home page passou a usá-lo em vez de `listPublished()+sort+slice`. `listPublished()` documentado como não-definitivo para agregação/paginação. `/temas`, `/personagens`, `/series` marcados com `TODO(Fase 2, DEC-013)` nas contagens em memória (não refeitos agora, apenas sinalizados). Ver DEC-013.
+- **Ponto 2 (parser + ranking):** `parseReference` (`src/lib/search/referenceParser.ts`) agora valida capítulo (`1..totalCapitulos` do livro) e versículo (`>=1`, intervalo não invertido), retornando `{ type: "invalid", reason, ... }` em vez de aceitar "João 999:999" silenciosamente. Nova camada `src/lib/search/queryParsing.ts` (`parseSearchQuery`) traduz isso para a UI: aviso explícito de referência inválida (nunca "referência reconhecida" com números sem sentido), com fallback para busca lexical no texto integral. Ranking de referência em `src/lib/search/search.ts` (`scoreStudy`) passou de 2 para 3 níveis documentados: `referenceExactVerse` (1000) > `referenceChapter` (700, inclui passagem classificada só no capítulo) > `referenceBook` (500). Ver DEC-014.
+- **Ponto 3 (relações N:N):** campo `serie?: {...}` (singular) em `src/lib/data/studies.ts` virou `series?: Array<{...}>`, e os 6 estudos que usavam o campo antigo foram migrados. Novo estudo "Fé que atravessa as Escrituras: de Abraão a Paulo" com 4 passagens em livros diferentes (Romanos principal, Gênesis secundária, Habacuque e João citadas — a de João classificada só no capítulo, sem versículo, servindo também de prova do ranking do Ponto 2), 2 temas, 2 personagens e 2 séries (Fundamentos da Fé + Cartas de Paulo). `publishedStudies` passa de 19 para 20 (ainda dentro de 12–20). Ver DEC-015.
+- **Ponto 4 (fonte de verdade):** DEC-016 registrada — `docs/` no Git é a única fonte técnica ativa; Drive é acervo editorial e pode receber snapshots ao final dos marcos, nunca o inverso.
+- Testes novos/reescritos: `referenceParser.test.ts` (+8 casos de referência inválida), `search.test.ts` (reescrito para testar `scoreStudy`/`matchesFilters` diretamente, incluindo os 3 níveis de ranking), `src/lib/repositories/search.test.ts` (NOVO — 15 casos: filtros, paginação com `total`/`page`/`limit`, ranking exato-vs-capítulo de ponta a ponta, referência inválida, e as 7 provas do estudo multi-passagem/multi-série), `mock.test.ts` (ajustado: João 3 agora tem 2 estudos), `busca/page.test.tsx` (+2 casos: aviso de referência inválida, estudo multi-passagem aparecendo), `estudo/[slug]/page.test.tsx` (+1 caso: todas as 4 referências/2 séries/2 temas/2 personagens visíveis). Total: 92 testes.
+- Verificação visual manual (Claude Browser): `/busca?q=João 999:999` mostra o aviso vermelho de referência inválida (não "referência reconhecida") e ainda lista resultados lexicais; `/estudo/fe-que-atravessa-as-escrituras-de-abraao-a-paulo` mostra as 4 referências, 2 temas, 2 personagens e 2 séries corretamente.
+- Checagem final: `npx tsc --noEmit`, `npx eslint`, `npx vitest run` (92 testes) e `npm run build` (124 páginas) todos limpos.
 
 CONCLUÍDO (sessão de 2026-09-02, checkpoint 4 — fechamento do Marco 1)
 - Testes de página/rota (Testing Library) para home, `/busca` (referência reconhecida, filtro sem texto, estado vazio), `/estudo/[slug]` (renderização + 404 para slug inexistente e para estudo DRAFT), `/biblia`, `/biblia/[livro]` e `/biblia/[livro]/[capitulo]` (capítulo com/sem estudos, 404 para livro/capítulo inválido). Total do projeto: 61 testes, todos passando.
@@ -46,16 +55,17 @@ CONCLUÍDO (checkpoint anterior, mesma sessão)
 - Teste `src/lib/data/studies.test.ts` cobrindo contagem de estudos publicados (12–20), unicidade de slugs, integridade referencial (livros/temas existentes) e cobertura AT+NT. `npm run test` e `npx eslint` passam sem erros. `npx tsc --noEmit` sem erros.
 
 DECISÕES TOMADAS NESTA SESSÃO
-Ver docs/DECISIONS.md — DEC-008 (camada de repositório para preparar Supabase), DEC-009 (Vitest como framework de testes), DEC-010 (busca 100% local/em memória no Marco 1), DEC-011 (dados mockados versionados como código TypeScript, não JSON solto), DEC-012 (Marco 1 usa apenas tema claro — sem dark mode automático).
+Ver docs/DECISIONS.md — DEC-008 a DEC-012 (Marco 1, ver checkpoints anteriores) e, do Marco 1.1: DEC-013 (busca desacoplada de `listPublished()` via `SearchRepository`), DEC-014 (parser rejeita referências inválidas; ranking de referência em 3 níveis), DEC-015 (dados mockados devem espelhar fielmente as relações N:N do domínio), DEC-016 (fonte de verdade da documentação técnica é `docs/` no Git, não o Drive).
 
 PENDÊNCIAS IMEDIATAS (próximo passo exato — início da FASE 2 do roadmap)
-1. Ler docs/ROADMAP.md (Fase 2 — Banco real) e docs/DATA_MODEL.md antes de tocar em código.
-2. Decidir e documentar em docs/DECISIONS.md: schema/migrations do Supabase (tabelas espelhando `src/lib/types.ts`), estratégia de migrations (SQL puro vs. Supabase CLI), e como popular o banco inicial (reaproveitar `src/lib/data/*` como seed?).
+1. Ler docs/ROADMAP.md (Fase 2 — Banco real), docs/DATA_MODEL.md e as novas interfaces `SearchRepository`/`SearchQuery`/`SearchOutcome` em `src/lib/repositories/types.ts` antes de tocar em código — a Fase 2 implementa essas interfaces, não as reinventa.
+2. Decidir e documentar em docs/DECISIONS.md: schema/migrations do Supabase (tabelas espelhando `src/lib/types.ts`), estratégia de migrations (SQL puro vs. Supabase CLI), como popular o banco inicial (reaproveitar `src/lib/data/*` como seed?), e a estratégia de full-text search/índices que vai implementar `SearchRepository.search()` no Postgres (ver o contrato documentado em `src/lib/repositories/types.ts` — texto vira `to_tsquery`, referência normalizada vira `WHERE book_id=... AND capitulo=...`, `page`/`limit` viram `LIMIT`/`OFFSET`).
 3. `npm install @supabase/supabase-js` e implementar `getSupabaseClient` em `src/lib/supabase/client.ts` (hoje um stub que lança erro de propósito).
-4. Implementar `Supabase*Repository` para cada interface em `src/lib/repositories/types.ts`, trocar as instâncias em `src/lib/repositories/index.ts` (esse é o único arquivo que UI/rotas/busca dependem — não deve ser necessário tocar em `src/app/**` nem `src/components/**`).
-5. Preencher `.env.local` a partir de `.env.example` (nunca commitar `.env.local`).
-6. Manter os testes de `src/lib/repositories/mock.test.ts` como estão (cobrem a implementação mock) e adicionar testes equivalentes para a implementação Supabase quando ela existir (idealmente contra um banco de teste, não mockando o cliente).
-7. Repetir o fluxo de qualidade (tsc/eslint/vitest/build) e atualizar este arquivo a cada etapa concluída — não esperar a Fase 2 inteira terminar para o primeiro commit.
+4. Implementar `Supabase*Repository` para cada interface em `src/lib/repositories/types.ts` — incluindo `SupabaseSearchRepository` — e trocar as instâncias em `src/lib/repositories/index.ts` (esse é o único arquivo que UI/rotas/busca dependem — não deve ser necessário tocar em `src/app/**`, `src/components/**` nem `src/lib/search/**`).
+5. Ao migrar os dados, implementar também `listRecent()` com `ORDER BY data_origem DESC LIMIT $1` (não carregar tudo e ordenar em JS) e considerar resolver os `TODO(Fase 2, DEC-013)` de contagem em `/temas`, `/personagens`, `/series` com agregação SQL (`COUNT(*) ... GROUP BY`).
+6. Preencher `.env.local` a partir de `.env.example` (nunca commitar `.env.local`).
+7. Manter os testes de `src/lib/repositories/mock.test.ts` e `search.test.ts` como estão (cobrem a implementação mock) e adicionar testes equivalentes para as implementações Supabase quando existirem (idealmente contra um banco de teste, não mockando o cliente).
+8. Repetir o fluxo de qualidade (tsc/eslint/vitest/build) e atualizar este arquivo a cada etapa concluída — não esperar a Fase 2 inteira terminar para o primeiro commit.
 
 NOTA TÉCNICA (testes de página, útil para a Fase 2 também): as páginas em `src/app/**/page.tsx` são Server Components `async` que chamam os repositórios diretamente. Testar com Testing Library exige `render(await PageComponent({ params: ..., searchParams: ... }))` (chamando a função e aguardando a Promise antes de passar a `render`), já que Vitest/RTL não executa o pipeline de Server Components do Next. Ver exemplos em `src/app/page.test.tsx`, `src/app/busca/page.test.tsx`, `src/app/estudo/[slug]/page.test.tsx` e `src/app/biblia/biblia.test.tsx`.
 
@@ -64,33 +74,34 @@ RAG. Embeddings. Chatbot. pgvector operacional. Ingestão automática do Google 
 
 ARQUIVOS CRIADOS/ALTERADOS NA SESSÃO DE 2026-09-02 (acumulado; ver `git log` para detalhe por checkpoint/commit)
 - Scaffold completo do create-next-app + vitest.config.ts/vitest.setup.ts.
-- src/lib/types.ts, src/lib/search/{normalize,reference,referenceParser,search}.ts (+ .test.ts).
+- src/lib/types.ts, src/lib/search/{normalize,reference,referenceParser,search,queryParsing}.ts (+ .test.ts para normalize/referenceParser/search).
 - src/lib/data/{books,topics,characters,series,studies}.ts (+ studies.test.ts).
-- src/lib/repositories/{types,mock,index}.ts (+ mock.test.ts).
+- src/lib/repositories/{types,mock,index}.ts (+ mock.test.ts, search.test.ts).
 - src/lib/site.ts, src/lib/supabase/client.ts (stub, Fase 2).
 - src/components/{Header,Footer,SearchForm,StudyCard,Badge,Breadcrumbs,EmptyState}.tsx.
 - src/app/layout.tsx, globals.css, not-found.tsx, page.tsx (+ page.test.tsx).
-- src/app/busca/page.tsx (+ page.test.tsx).
+- src/app/busca/page.tsx (+ page.test.tsx) — reescrito no Marco 1.1 para usar SearchRepository.
 - src/app/biblia/page.tsx, biblia/[livro]/page.tsx, biblia/[livro]/[capitulo]/page.tsx (+ biblia.test.tsx).
-- src/app/temas/page.tsx, temas/[slug]/page.tsx.
-- src/app/personagens/page.tsx, personagens/[slug]/page.tsx.
-- src/app/series/page.tsx, series/[slug]/page.tsx.
+- src/app/temas/page.tsx, temas/[slug]/page.tsx (TODO de contagem adicionado no Marco 1.1).
+- src/app/personagens/page.tsx, personagens/[slug]/page.tsx (idem).
+- src/app/series/page.tsx, series/[slug]/page.tsx (idem).
 - src/app/estudo/[slug]/page.tsx (+ page.test.tsx).
 - src/app/admin/page.tsx.
 - next.config.ts (turbopack.root), .claude/launch.json, .env.example, .gitignore (exceção para .env.example).
 - CLAUDE.md (raiz, definitivo).
-- docs/WORK_STATUS.md (este arquivo), docs/DECISIONS.md (DEC-008 a DEC-012).
+- docs/WORK_STATUS.md (este arquivo), docs/DECISIONS.md (DEC-008 a DEC-016).
 
 ERROS ENCONTRADOS
-Nenhum erro pendente ao final da sessão. `npx tsc --noEmit`, `npx eslint`, `npx vitest run` (61 testes) e `npm run build` (123 páginas) passam limpos.
-Bugs encontrados e corrigidos durante o desenvolvimento (nenhum pendente): (1) busca por filtro sem texto retornava lista vazia — corrigido; (2) teste do parser assumia que "jo" sem acento deveria ser ambíguo — corrigido o teste, pois o comportamento correto é resolver por convenção de acento; (3) tema escuro automático do sistema quebrava contraste na home — corrigido (DEC-012); (4) `.env.example` estava sendo ignorado pelo `.gitignore` (`padrão .env*`) — corrigido com exceção; (5) cards da home concatenavam texto sem espaço para leitores de tela — corrigido.
+Nenhum erro pendente ao final da sessão. `npx tsc --noEmit`, `npx eslint`, `npx vitest run` (92 testes) e `npm run build` (124 páginas) passam limpos.
+Bugs/ajustes encontrados e corrigidos durante o Marco 1 (histórico, nenhum pendente): busca por filtro sem texto retornava lista vazia; teste do parser assumia ambiguidade indevida para "jo"; tema escuro automático quebrava contraste (DEC-012); `.env.example` era ignorado pelo próprio `.gitignore`; cards da home concatenavam texto sem espaço para leitores de tela.
+Ajuste esperado do Marco 1.1: `mock.test.ts` assumia 1 único estudo em João 3 — corrigido para 2, já que o novo estudo multi-passagem também cita João 3 (comportamento correto, não um bug).
 
 TESTES EXECUTADOS (estado final da sessão)
 - `npx tsc --noEmit` → sem erros.
 - `npx eslint` → sem erros/avisos.
-- `npx vitest run` → 8 arquivos, 61 testes, todos passando: studies.test.ts, mock.test.ts, referenceParser.test.ts, search.test.ts, page.test.tsx (home), busca/page.test.tsx, estudo/[slug]/page.test.tsx, biblia/biblia.test.tsx.
-- `npm run build` → sucesso, 123 páginas geradas, sem erros nem avisos.
-- Verificação visual manual (Claude Browser): home, /busca?q=João 3:16, /estudo/nicodemos-e-o-novo-nascimento, /biblia/joao/3, viewport mobile (375px) — todos corretos.
+- `npx vitest run` → 9 arquivos, 92 testes, todos passando: studies.test.ts, mock.test.ts, search.test.ts (repositories), referenceParser.test.ts, search.test.ts (lib/search), page.test.tsx (home), busca/page.test.tsx, estudo/[slug]/page.test.tsx, biblia/biblia.test.tsx.
+- `npm run build` → sucesso, 124 páginas geradas, sem erros nem avisos.
+- Verificação visual manual (Claude Browser, Marco 1.1): `/busca?q=João 999:999` (aviso de referência inválida + fallback lexical), `/estudo/fe-que-atravessa-as-escrituras-de-abraao-a-paulo` (4 referências, 2 temas, 2 personagens, 2 séries). Verificação do Marco 1: home, /busca?q=João 3:16, página de estudo, navegação Bíblia→livro→capítulo, mobile (375px).
 
 PROTOCOLO DE CONTINUIDADE PARA CLAUDE
 No início de cada nova sessão, ler CLAUDE.md (raiz), ARCHITECTURE, DATA_MODEL, SEARCH_SPEC, INGESTION_SPEC, DECISIONS, ROADMAP e este WORK_STATUS.md, nesta ordem.
