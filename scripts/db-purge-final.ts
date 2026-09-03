@@ -32,8 +32,9 @@ async function main() {
     .from("studies")
     .select("id, titulo, autor, status, conteudo");
 
+  type StudyRecord = Record<string, unknown>;
   const genesisBefore = (allStudies || []).filter(
-    (s: any) => s.autor === "Autor não identificado"
+    (s: StudyRecord) => s.autor === "Autor não identificado"
   ).length;
 
   console.log(`📊 ANTES:\n`);
@@ -45,12 +46,12 @@ async function main() {
 
   // Deletar Lote 01 placeholders
   const lote01 = (allStudies || []).filter(
-    (s: any) => s.autor === "[Fase 1 - Lote 01]"
+    (s: StudyRecord) => s.autor === "[Fase 1 - Lote 01]"
   );
-  lote01.forEach((s: any) => {
+  lote01.forEach((s: StudyRecord) => {
     toDelete.push({
-      id: s.id,
-      titulo: s.titulo,
+      id: s.id as string,
+      titulo: s.titulo as string,
       reason: "Placeholder Lote 01",
     });
   });
@@ -58,7 +59,7 @@ async function main() {
   // Deletar mocks (conteúdo synthetic "Este é um estudo em fase de...")
   const mockIds = ["e80ab0b8-f00b-410c-acab-7c4d21397bca", "9e8e6047-a1bf-4f15-907c-158341c95b7f"];
   mockIds.forEach((mockId) => {
-    const mock = (allStudies || []).find((s: any) => s.id === mockId);
+    const mock = (allStudies || []).find((s: StudyRecord) => s.id === mockId);
     if (mock) {
       toDelete.push({
         id: mock.id,
@@ -70,9 +71,9 @@ async function main() {
 
   // Deletar 20 estudos PUBLISHED (seed de demonstração)
   const published = (allStudies || []).filter(
-    (s: any) => s.status === "PUBLISHED" && s.autor !== "[Fase 1 - Lote 01]"
+    (s: StudyRecord) => s.status === "PUBLISHED" && s.autor !== "[Fase 1 - Lote 01]"
   );
-  published.forEach((s: any) => {
+  published.forEach((s: StudyRecord) => {
     toDelete.push({
       id: s.id,
       titulo: s.titulo,
@@ -135,7 +136,7 @@ async function main() {
     .select("id, titulo, autor, status");
 
   const finalGenesis = (finalStudies || []).filter(
-    (s: any) => s.autor === "Autor não identificado"
+    (s: StudyRecord) => s.autor === "Autor não identificado"
   ).length;
 
   const finalTotal = finalStudies?.length || 0;

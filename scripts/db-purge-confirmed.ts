@@ -28,8 +28,9 @@ async function main() {
     .from("studies")
     .select("id, titulo, autor, conteudo");
 
-  const genesisCount = (allStudies || []).filter((s: any) =>
-    s.titulo?.toLowerCase().includes("genesis")
+  type StudyRecord = Record<string, unknown>;
+  const genesisCount = (allStudies || []).filter((s: StudyRecord) =>
+    (s.titulo as string)?.toLowerCase().includes("genesis")
   ).length;
 
   console.log(`📊 ANTES:\n`);
@@ -53,7 +54,6 @@ async function main() {
   console.log(`🗑️  Deletando 20 placeholders do Lote 01...\n`);
 
   let deleted = 0;
-  let errors = 0;
 
   for (const uuidPrefix of placeholderIds) {
     // Buscar estudo completo pelo prefixo do UUID
@@ -65,7 +65,6 @@ async function main() {
 
     if (findError || !studies || studies.length === 0) {
       console.log(`  ⚠️  Prefixo ${uuidPrefix}... não encontrado`);
-      errors++;
       continue;
     }
 
@@ -171,8 +170,8 @@ async function main() {
     .from("studies")
     .select("id, titulo, conteudo, status");
 
-  const finalGenesisCount = (finalStudies || []).filter((s: any) =>
-    s.titulo?.toLowerCase().includes("genesis")
+  const finalGenesisCount = (finalStudies || []).filter((s: StudyRecord) =>
+    (s.titulo as string)?.toLowerCase().includes("genesis")
   ).length;
 
   const finalTotal = finalStudies?.length || 0;
