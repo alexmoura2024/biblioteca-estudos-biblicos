@@ -23,11 +23,14 @@ async function getStudies() {
     { auth: { persistSession: false } }
   );
 
-  // Buscar todos os estudos, depois filtrar server-side
+  // Buscar estudos REAIS (não mocks)
+  // Mocks são do protótipo fase 2 (autor = "[Fase 2 - Prototipo]" ou similar)
+  // Reais têm autor = "[Fase 1 - Lote 01]", "[Ingestão...]" etc
   const { data, error } = await supabase
     .from("studies")
-    .select("id, titulo, slug, status, data_origem")
+    .select("id, titulo, slug, status, data_origem, autor")
     .in("status", ["DRAFT", "REVIEW"])
+    .not("autor", "ilike", "%Prototipo%") // Excluir mocks
     .order("data_origem", { ascending: false });
 
   if (error) {
@@ -114,9 +117,11 @@ export default async function AdminEstudosPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {new Date(study.data_origem).toLocaleDateString(
-                        "pt-BR"
-                      )}
+                      {study.data_origem && study.data_origem !== "1969-12-31"
+                        ? new Date(study.data_origem).toLocaleDateString(
+                            "pt-BR"
+                          )
+                        : "Sem data"}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <Link
