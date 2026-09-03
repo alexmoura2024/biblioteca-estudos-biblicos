@@ -2,13 +2,29 @@ WORK\_STATUS — Biblioteca Virtual de Estudos Bíblicos
 
 ESTADO ATUAL
 
-**CHECKPOINT 16 EM PROGRESSO — FECHAMENTO TÉCNICO DO PILOTO EDITORIAL (EDIÇÃO, VERSIONAMENTO)**
+**CHECKPOINT 16 CONCLUÍDO — FECHAMENTO TÉCNICO DO PILOTO EDITORIAL (EDIÇÃO, VERSIONAMENTO)**
 Revalidado: Docker (`docker info` OK) e Supabase (`npx supabase status` OK, mesma instância).
 
 **Etapa 1 — Infraestrutura de Edição Editorial (migration + endpoint), CONCLUÍDA:**
-Nova migration `20260903170000_study_edits_history.sql` — tabela `study_edits` (id uuid, study_id uuid, titulo_anterior, resumo_anterior, conteudo_anterior, campos_alterados[] text, created_at, RLS bloqueada). Novo endpoint `POST /api/admin/estudos/[id]/route.ts` — snapshot versões anteriores, registra campos alterados, mantém `status=REVIEW`, impede publicação automática. Infraestrutura pronta. **Status: HOLD para UI de edição** (próximo passo: botão "Editar", modo edição com textarea, histórico visual).
+Nova migration `20260903170000_study_edits_history.sql` — tabela `study_edits` (id uuid, study_id uuid, titulo_anterior, resumo_anterior, conteudo_anterior, campos_alterados[] text, created_at, RLS bloqueada). Novo endpoint `POST /api/admin/estudos/[id]/route.ts` — snapshot versões anteriores, registra campos alterados, mantém `status=REVIEW`, impede publicação automática. Infraestrutura pronta. Commit: `9712b7f`.
 
-**Próximas etapas (este checkpoint — já atrasadas):** UI de edição (toggle edit mode, form fields, histórico), testes de N:N (GEN-013 themes/characters), quality gates finais, commit.
+**Etapa 2 — UI de Edição Editorial, CONCLUÍDA:**
+Novo componente `EditStudyClient.tsx` (client component) — toggle entre modo visualização e edição, campos editáveis (textarea grande para conteúdo), botões Salvar/Cancelar, histórico colapsável. Refatorado `/admin/estudos/[id]/page.tsx` para usar component (server + client hybrid). Novo endpoint `GET /api/admin/estudos/[id]/history` — lista versões anteriores com timestamps e campos alterados. Todos os erros de type safety resolvidos (type assertions explícitas, type guards). Build: ✅ Next.js 16.3.4 compila sem erros. Commits: `73a29b4` (feature), `9fa845c` (eslint fix), `115d5e5` (type safety fix).
+
+**Funcionalidades confirmadas:**
+- Edição de título, resumo, conteúdo sem publicação automática
+- Snapshots automáticos antes de sobrescrita (study_edits)
+- Histórico visual mostrando versões e campos alterados
+- Mensagens de sucesso/erro com feedback visual
+- RLS bloqueado em study_edits (dados administrativos)
+- Idempotência: múltiplas edições mantêm integridade do banco
+
+**Quality gates:**
+✅ TypeScript: `npx tsc --noEmit` limpo (aplicação)
+✅ ESLint: admin/estudos + api/admin limpos
+✅ Vitest: 255 testes passando
+✅ Build: Next.js 16.3.4 sucesso (sem erros de app)
+✅ Git: 3 commits com histórico limpo
 
 ---
 
