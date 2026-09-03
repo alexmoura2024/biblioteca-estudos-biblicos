@@ -41,7 +41,8 @@ export type IngestionOutcome =
       status: "DRAFT" | "REVIEW";
       passagensValidas: ClassifiedReference[];
       referenciasInvalidas: DetectedReference[];
-      divergenciaClassificacao?: string;
+      /** Alertas de divergência entre o que o manifesto presumia e o que o CONTEÚDO real sustenta — nunca corrigidos sozinhos, sempre para revisão humana. */
+      divergencias: string[];
     }
   | { outcome: "falha"; fileId?: string; stage: string; motivo: string }
   | { outcome: "nao_suportado"; fileId: string; motivo: string };
@@ -86,6 +87,10 @@ export async function ingestFile({ manifestRow, sourceAdapter, repository, topic
   try {
     sourceFile = await sourceAdapter.fetchFile(manifestRow.driveFileId);
     await repository.logJobStage(file.id, "FETCH", "SUCCESS");
+    // Só grava modified_time/tamanho quando o adaptador confirma que são
+    // metadados do ORIGINAL (nunca de uma cópia técnica exportada — ver
+    // o comentário de `recordFetchMetadata` em repository.ts).
+    await repository.recordFetchMetadata(file.id, { modifiedTime: sourceFile.modifiedTime, tamanhoBytes: sourceFile.tamanhoBytes });
   } catch (error) {
     const motivo = (error as Error).message;
     await repository.logJobStage(file.id, "FETCH", "FAILED", { errorMessage: motivo });
@@ -122,17 +127,44 @@ export async function ingestFile({ manifestRow, sourceAdapter, repository, topic
   const referenciasInvalidas = detected.filter((ref) => !ref.valid);
   await repository.logJobStage(file.id, "REFERENCE_DETECTION", "SUCCESS");
 
-  // Divergência de classificação (caso "O evangelho eterno"): o
-  // testamento indicado pelo caminho de origem no manifesto não bate com
-  // o testamento do livro da referência PRINCIPAL detectada no conteúdo.
-  // Isto NUNCA move o arquivo nem corrige o manifesto — só é reportado.
-  let divergenciaClassificacao: string | undefined;
+  // Divergências entre o que o manifesto presumia e o que o CONTEÚDO
+  // real sustenta — nunca corrigidas/movidas sozinhas, só reportadas
+  // para decisão humana (Etapa 7: "extrair do conteúdo, nunca forçar
+  // pelo título/pasta").
+  const divergencias: string[] = [];
   const principal = classified[0];
+
+  // Caso "O evangelho eterno": o testamento indicado pelo caminho de
+  // origem no manifesto não bate com o testamento do livro da
+  // referência PRINCIPAL detectada no conteúdo.
   if (manifestRow.testament && principal && principal.book.testamento !== manifestRow.testament) {
-    divergenciaClassificacao =
+    divergencias.push(
       `Origem classificada como ${manifestRow.testament} (${manifestRow.sourcePath}), mas a referência ` +
-      `principal detectada no conteúdo (${principal.book.nome} ${principal.capitulo}) é do ${principal.book.testamento}. ` +
-      "Não movido/renomeado automaticamente — requer decisão editorial.";
+        `principal detectada no conteúdo (${principal.book.nome} ${principal.capitulo}) é do ${principal.book.testamento}. ` +
+        "Não movido/renomeado automaticamente — requer decisão editorial.",
+    );
+  }
+
+  // Caso "Caminho, Verdade e Vida" (SEL-009): a referência preliminar do
+  // manifesto (geralmente extraída do TÍTULO do arquivo) não bate com a
+  // referência principal que o CONTEÚDO realmente sustenta. Comparação
+  // best-effort: só dispara quando a referência preliminar também é
+  // reconhecível pelo mesmo scanner determinístico (nunca um "quase
+  // igual" adivinhado).
+  if (manifestRow.preliminaryReference && principal) {
+    const preliminaryParsed = classifyReferences(scanReferences(manifestRow.preliminaryReference))[0];
+    if (
+      preliminaryParsed &&
+      (preliminaryParsed.book.slug !== principal.book.slug ||
+        preliminaryParsed.capitulo !== principal.capitulo ||
+        preliminaryParsed.versiculoInicio !== principal.versiculoInicio)
+    ) {
+      divergencias.push(
+        `Referência preliminar do manifesto ("${manifestRow.preliminaryReference}", geralmente do título/nome do ` +
+          `arquivo) diverge da referência principal que o CONTEÚDO real sustenta (${principal.matchedText}). ` +
+          "Título original preservado sem alteração — requer confirmação editorial de qual referência está correta.",
+      );
+    }
   }
 
   // 6) METADATA_SUGGESTION
@@ -176,5 +208,5 @@ export async function ingestFile({ manifestRow, sourceAdapter, repository, topic
   await repository.logJobStage(file.id, "UPSERT_STUDY", "SUCCESS");
   await repository.updateFileStatus(file.id, "PROCESSADO", { studyId });
 
-  return { outcome: "processado", fileId: file.id, studyId, status, passagensValidas: classified, referenciasInvalidas, divergenciaClassificacao };
+  return { outcome: "processado", fileId: file.id, studyId, status, passagensValidas: classified, referenciasInvalidas, divergencias };
 }

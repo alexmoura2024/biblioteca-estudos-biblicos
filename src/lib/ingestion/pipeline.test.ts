@@ -225,6 +225,7 @@ describe("ingestFile", () => {
       sourcePath: "01 - Antigo Testamento / 02 - Êxodo",
       testament: "AT", // arquivo está fisicamente classificado como AT (pasta Êxodo)
       title: "O evangelho eterno",
+      preliminaryReference: "Gálatas 1:11–12", // já bate com o conteúdo — isola o teste na divergência de TESTAMENTO
     });
     const source = new InMemorySourceAdapter(
       new Map([[row.driveFileId, { buffer: Buffer.from("Paulo afirma isso em Gálatas 1:11–12, o evangelho que ele pregou."), mimeType: "text/plain", nomeOriginal: row.title }]]),
@@ -234,12 +235,35 @@ describe("ingestFile", () => {
     const outcome = await ingestFile({ manifestRow: row, sourceAdapter: source, repository: repo, topics: [], characters: [] });
     if (outcome.outcome !== "processado") throw new Error("esperado 'processado'");
 
-    expect(outcome.divergenciaClassificacao).toBeDefined();
-    expect(outcome.divergenciaClassificacao).toContain("AT");
-    expect(outcome.divergenciaClassificacao).toContain("NT");
+    expect(outcome.divergencias).toHaveLength(1);
+    expect(outcome.divergencias[0]).toContain("AT");
+    expect(outcome.divergencias[0]).toContain("NT");
     // Continua REVIEW (não DRAFT) — a referência foi detectada com
     // segurança; a divergência é um alerta à parte, não uma falha de
     // classificação.
     expect(outcome.status).toBe("REVIEW");
+  });
+
+  it("detecta divergência entre a referência preliminar do manifesto (do título) e a que o CONTEÚDO sustenta — caso 'Caminho, Verdade e Vida' (SEL-009)", async () => {
+    const row = manifestRow({ title: "Caminho, Verdade e Vida", preliminaryReference: "João 14:6" });
+    const source = new InMemorySourceAdapter(
+      new Map([[row.driveFileId, { buffer: Buffer.from("MENSAGEM\n\nTEXTO: Joao 14:5\n\n(CT 1:12) - Eu sou o Caminho."), mimeType: "text/plain", nomeOriginal: row.title }]]),
+    );
+    const repo = new InMemoryIngestionRepository();
+
+    const outcome = await ingestFile({ manifestRow: row, sourceAdapter: source, repository: repo, topics: [], characters: [] });
+    if (outcome.outcome !== "processado") throw new Error("esperado 'processado'");
+
+    // O conteúdo manda — a referência principal é João 14:5 (do texto),
+    // nunca forçada para João 14:6 (o que o manifesto/título presumia).
+    expect(outcome.passagensValidas[0]).toMatchObject({ capitulo: 14, versiculoInicio: 5 });
+    expect(outcome.passagensValidas[0].book.slug).toBe("joao");
+
+    expect(outcome.divergencias.some((d) => d.includes("João 14:6") && d.includes("14:5"))).toBe(true);
+    expect(outcome.status).toBe("REVIEW");
+
+    // Título original nunca é reescrito por causa da divergência.
+    const study = repo.studies.get(outcome.studyId);
+    expect(study?.titulo).toBe("Caminho, Verdade e Vida");
   });
 });

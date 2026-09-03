@@ -91,12 +91,25 @@ export class SupabaseIngestionRepository implements IngestionRepository {
     if (error) throw new Error(`SupabaseIngestionRepository.updateFileStatus: ${error.message}`);
   }
 
+  async recordFetchMetadata(fileId: string, patch: { modifiedTime?: string; tamanhoBytes?: number }): Promise<void> {
+    if (patch.modifiedTime === undefined && patch.tamanhoBytes === undefined) return;
+    const client = getSupabaseServiceClient();
+    const { error } = await client
+      .from("files")
+      .update({
+        ...(patch.modifiedTime !== undefined ? { modified_time: patch.modifiedTime } : {}),
+        ...(patch.tamanhoBytes !== undefined ? { tamanho_bytes: patch.tamanhoBytes } : {}),
+      })
+      .eq("id", fileId);
+    if (error) throw new Error(`SupabaseIngestionRepository.recordFetchMetadata: ${error.message}`);
+  }
+
   async upsertStudyForFile(fileId: string, input: UpsertStudyInput): Promise<{ studyId: string }> {
     const client = getSupabaseServiceClient();
 
-    const { data: fileRow, error: fileError } = await client.from("files").select("study_id").eq("id", fileId).single();
+    const { data: fileRow, error: fileError } = await client.from("files").select("study_id, drive_file_id").eq("id", fileId).single();
     if (fileError) throw new Error(`SupabaseIngestionRepository.upsertStudyForFile (ler files): ${fileError.message}`);
-    const existingStudyId = (fileRow as { study_id: string | null }).study_id;
+    const { study_id: existingStudyId, drive_file_id: driveFileId } = fileRow as { study_id: string | null; drive_file_id: string };
 
     const payload = {
       titulo: input.titulo,
@@ -109,17 +122,45 @@ export class SupabaseIngestionRepository implements IngestionRepository {
       palavras_chave: input.palavrasChave,
     };
 
+    // `slug` é UNIQUE (schema_core.sql) — um título real pode coincidir
+    // com o de outro estudo já existente (ex.: um estudo mockado do
+    // Marco 1, como "O Senhor é o meu pastor" — achado real durante a
+    // ingestão do piloto). Isto é um conflito TÉCNICO de identificador,
+    // não editorial: nunca alteramos `titulo`, só desambiguamos `slug`
+    // com um sufixo ESTÁVEL derivado do `drive_file_id` (nunca aleatório
+    // — reexecutar a ingestão do mesmo arquivo sempre produz o mesmo
+    // sufixo, então insert E update precisam aplicar a mesma regra, ou a
+    // segunda execução tentaria voltar para o slug original colidindo de
+    // novo — bug real encontrado e corrigido nesta sessão).
+    const disambiguatedSlug = `${input.slug}-${driveFileId.slice(-6).toLowerCase()}`;
+
     if (existingStudyId) {
       // Reexecução (idempotência, INGESTION_SPEC.md §9): ATUALIZA o
       // mesmo study, nunca insere um segundo para o mesmo arquivo.
       const { error } = await client.from("studies").update(payload).eq("id", existingStudyId);
-      if (error) throw new Error(`SupabaseIngestionRepository.upsertStudyForFile (update): ${error.message}`);
-      return { studyId: existingStudyId };
+      if (!error) return { studyId: existingStudyId };
+      if (error.code === "23505" && error.message.includes("studies_slug_key")) {
+        const { error: retryError } = await client.from("studies").update({ ...payload, slug: disambiguatedSlug }).eq("id", existingStudyId);
+        if (retryError) throw new Error(`SupabaseIngestionRepository.upsertStudyForFile (update, retry com slug desambiguado): ${retryError.message}`);
+        return { studyId: existingStudyId };
+      }
+      throw new Error(`SupabaseIngestionRepository.upsertStudyForFile (update): ${error.message}`);
     }
 
     const { data: inserted, error: insertError } = await client.from("studies").insert(payload).select("id").single();
-    if (insertError) throw new Error(`SupabaseIngestionRepository.upsertStudyForFile (insert): ${insertError.message}`);
-    return { studyId: (inserted as { id: string }).id };
+    if (!insertError) return { studyId: (inserted as { id: string }).id };
+
+    if (insertError.code === "23505" && insertError.message.includes("studies_slug_key")) {
+      const { data: retried, error: retryError } = await client
+        .from("studies")
+        .insert({ ...payload, slug: disambiguatedSlug })
+        .select("id")
+        .single();
+      if (retryError) throw new Error(`SupabaseIngestionRepository.upsertStudyForFile (insert, retry com slug desambiguado): ${retryError.message}`);
+      return { studyId: (retried as { id: string }).id };
+    }
+
+    throw new Error(`SupabaseIngestionRepository.upsertStudyForFile (insert): ${insertError.message}`);
   }
 
   async replaceStudyPassages(studyId: string, passages: StudyPassageInput[]): Promise<void> {

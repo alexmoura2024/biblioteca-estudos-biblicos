@@ -83,6 +83,17 @@ export interface IngestionRepository {
   updateFileStatus(fileId: string, status: StatusProcessamentoArquivo, patch?: { hashConteudo?: string; studyId?: string }): Promise<void>;
 
   /**
+   * Registra `modified_time`/`tamanho_bytes` obtidos no FETCH — método
+   * separado de `updateFileStatus` porque nem todo `SourceAdapter`
+   * fornece esses dois de forma confiável para o ORIGINAL (ex.:
+   * `LocalSyncedDriveSourceAdapter` resolve um Google Doc nativo via uma
+   * cópia técnica exportada — o `mtime`/tamanho dessa cópia não é
+   * metadado do original, então o adaptador deixa os dois `undefined`
+   * nesse caso, e esta chamada simplesmente não altera nada).
+   */
+  recordFetchMetadata(fileId: string, patch: { modifiedTime?: string; tamanhoBytes?: number }): Promise<void>;
+
+  /**
    * Cria um `study` novo (DRAFT/REVIEW) na primeira vez que `fileId` é
    * processado com sucesso, ou ATUALIZA o mesmo `study` (via
    * `files.study_id` já vinculado) numa reexecução — nunca duas linhas

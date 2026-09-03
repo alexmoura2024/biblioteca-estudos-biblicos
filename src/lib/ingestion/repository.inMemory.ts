@@ -80,6 +80,20 @@ export class InMemoryIngestionRepository implements IngestionRepository {
     throw new Error(`InMemoryIngestionRepository.updateFileStatus: arquivo "${fileId}" não encontrado.`);
   }
 
+  async recordFetchMetadata(fileId: string, patch: { modifiedTime?: string; tamanhoBytes?: number }): Promise<void> {
+    for (const [driveFileId, file] of this.files) {
+      if (file.id === fileId) {
+        this.files.set(driveFileId, {
+          ...file,
+          ...(patch.modifiedTime !== undefined ? { modifiedTime: patch.modifiedTime } : {}),
+          ...(patch.tamanhoBytes !== undefined ? { tamanhoBytes: patch.tamanhoBytes } : {}),
+        });
+        return;
+      }
+    }
+    throw new Error(`InMemoryIngestionRepository.recordFetchMetadata: arquivo "${fileId}" não encontrado.`);
+  }
+
   async upsertStudyForFile(fileId: string, input: UpsertStudyInput): Promise<{ studyId: string }> {
     const fileEntry = [...this.files.values()].find((f) => f.id === fileId);
     if (!fileEntry) throw new Error(`InMemoryIngestionRepository.upsertStudyForFile: arquivo "${fileId}" não encontrado.`);

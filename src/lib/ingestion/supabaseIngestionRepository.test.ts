@@ -43,7 +43,7 @@ describe("SupabaseIngestionRepository.upsertStudyForFile", () => {
   it("INSERE um study novo quando o arquivo ainda não tem study_id (primeira execução)", async () => {
     const client = createMockSupabaseClient({
       tables: {
-        files: { data: { study_id: null }, error: null },
+        files: { data: { study_id: null, drive_file_id: "drive-1" }, error: null },
         studies: { data: { id: "study-novo" }, error: null },
       },
     });
@@ -67,7 +67,7 @@ describe("SupabaseIngestionRepository.upsertStudyForFile", () => {
   it("ATUALIZA o study existente quando o arquivo já tem study_id vinculado (reexecução idempotente)", async () => {
     const client = createMockSupabaseClient({
       tables: {
-        files: { data: { study_id: "study-existente" }, error: null },
+        files: { data: { study_id: "study-existente", drive_file_id: "drive-1" }, error: null },
         studies: { data: null, error: null },
       },
     });
