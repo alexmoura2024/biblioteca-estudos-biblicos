@@ -60,7 +60,8 @@ async function main() {
   console.log(`\n3️⃣ PASSAGENS:`);
   console.log(`   Total relações: ${passages?.length || 0}`);
   passages?.forEach((p: Record<string, unknown>) => {
-    const passage = p.passages;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const passage = p.passages as any;
     console.log(
       `   - ${passage?.books?.nome} ${passage?.capitulo}: ${passage?.referencia_normalizada} (${p.tipo_relacao})`
     );

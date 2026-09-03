@@ -38,7 +38,24 @@ export async function POST(
     type StudyRecord = Record<string, unknown>;
     const typedStudy = study as StudyRecord;
 
-    // Buscar topics/characters atuais
+    // Buscar passages/topics/characters atuais
+    const { data: currentPassages } = await supabase
+      .from("study_passages")
+      .select(
+        "passage_id, tipo_relacao, passages(referencia_normalizada)"
+      )
+      .eq("study_id", id);
+
+    const passages = (currentPassages || []).map(
+      (p: Record<string, unknown>) => ({
+        passage_id: (p.passage_id as string) || "",
+        referencia_normalizada:
+          ((p.passages as Record<string, unknown>)?.referencia_normalizada as string) ||
+          "",
+        tipo_relacao: (p.tipo_relacao as string) || "CITED",
+      })
+    ) as PassageData[];
+
     const { data: currentTopics } = await supabase
       .from("study_topics")
       .select("topic_id")
@@ -146,16 +163,16 @@ export async function POST(
     }
 
     // 6. Atualizar referências (passages)
-    const newPassages = body.passages || [];
+    const newPassages = (body.passages || []) as Array<{ referencia_normalizada: string; tipo_relacao: string }>;
     const oldPassagesSet = new Set(
-      (passages as PassageData[])?.map(
+      passages.map(
         (p) => `${p.referencia_normalizada}|${p.tipo_relacao}`
-      ) || []
+      )
     );
     const newPassagesSet = new Set(
       newPassages.map(
-        (p: Record<string, unknown>) =>
-          `${p.referencia_normalizada as string}|${p.tipo_relacao as string}`
+        (p) =>
+          `${p.referencia_normalizada}|${p.tipo_relacao}`
       )
     );
 
@@ -173,8 +190,8 @@ export async function POST(
       if (newPassages.length > 0) {
         // Buscar ou criar passages por referência_normalizada
         for (const passage of newPassages) {
-          const ref = passage.referencia_normalizada as string;
-          const tipoRelacao = passage.tipo_relacao as string;
+          const ref = passage.referencia_normalizada;
+          const tipoRelacao = passage.tipo_relacao;
 
           // Procurar passage existente
           let { data: existingPassage } = await supabase
