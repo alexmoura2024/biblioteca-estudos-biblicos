@@ -181,3 +181,35 @@ export interface Study {
   personagens: Array<{ character: Character; papel: string }>;
   series: Array<{ series: Series; ordem: number }>;
 }
+
+/** A referência principal de um estudo, na forma enxuta usada por `StudySummary`. */
+export interface StudyReferenceSummary {
+  referenciaNormalizada: string;
+  bookSlug: string;
+  capitulo: number;
+}
+
+/**
+ * Projeção enxuta de `Study` para listagens, cards e resultados de busca
+ * (Marco 1.2 — DEC-017). Contém só o que a UI de listagem mostra: nada
+ * de `conteudo` integral, `palavrasChave`, `personagens` ou do array
+ * completo de `passagens` — só a referência principal já resolvida.
+ *
+ * Em Postgres, isto é literalmente um `SELECT` mais estreito (menos
+ * colunas, menos joins) do que o usado por `getPublishedBySlug()`; não é
+ * um recorte feito depois de buscar tudo. Use `Study` completo apenas
+ * onde a página realmente precisa do conteúdo/relações inteiras (hoje,
+ * só a página de detalhe do estudo).
+ */
+export interface StudySummary {
+  id: string;
+  slug: string;
+  titulo: string;
+  resumo: string;
+  autor: string;
+  dataOrigem: string;
+  /** Passagem com `tipoRelacao: "principal"` (ou a primeira, se nenhuma marcada) — undefined só é possível se o estudo não tiver nenhuma passagem, o que a integridade de dados não permite hoje. */
+  referenciaPrincipal?: StudyReferenceSummary;
+  temas: Array<{ topic: Topic; peso: number }>;
+  series: Array<{ series: Series; ordem: number }>;
+}

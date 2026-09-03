@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { characterRepository, studyRepository } from "@/lib/repositories";
+import { characterRepository } from "@/lib/repositories";
 
 export const metadata: Metadata = {
   title: "Personagens",
 };
 
 export default async function PersonagensPage() {
-  const [characters, studies] = await Promise.all([
+  // Marco 1.2 (DEC-018): agregação dedicada, ver src/app/temas/page.tsx.
+  const [characters, counts] = await Promise.all([
     characterRepository.listAll(),
-    studyRepository.listPublished(),
+    characterRepository.countPublishedStudies(),
   ]);
 
   return (
@@ -21,11 +22,7 @@ export default async function PersonagensPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {characters.map((character) => {
-          // TODO(Fase 2, DEC-013): mesma ressalva de src/app/temas/page.tsx
-          // — contagem em memória, trocar por agregação no banco.
-          const total = studies.filter((s) =>
-            s.personagens.some((p) => p.character.id === character.id),
-          ).length;
+          const total = counts[character.id] ?? 0;
           return (
             <Link
               key={character.id}

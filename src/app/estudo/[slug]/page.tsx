@@ -9,8 +9,11 @@ interface StudyPageProps {
 }
 
 export async function generateStaticParams() {
-  const studies = await studyRepository.listPublished();
-  return studies.map((study) => ({ slug: study.slug }));
+  // Marco 1.2 (DEC-018): listPublishedSlugs() traz só os slugs — gerar
+  // as rotas estáticas do build não precisa carregar título, resumo,
+  // relações nem conteúdo de cada estudo.
+  const slugs = await studyRepository.listPublishedSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: StudyPageProps): Promise<Metadata> {

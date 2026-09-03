@@ -1,4 +1,12 @@
-import type { Book, Character, Series, Study, TestamentoBiblico, Topic } from "@/lib/types";
+import type {
+  Book,
+  Character,
+  Series,
+  Study,
+  StudySummary,
+  TestamentoBiblico,
+  Topic,
+} from "@/lib/types";
 
 /**
  * Contratos de repositório do acervo.
@@ -9,40 +17,44 @@ import type { Book, Character, Series, Study, TestamentoBiblico, Topic } from "@
  * roadmap, uma `SupabaseStudyRepository` implementará a mesma interface
  * consultando o Postgres via Supabase — sem exigir mudanças em páginas,
  * componentes ou na lógica de busca, que dependem apenas destas interfaces.
+ *
+ * Regra (Marco 1.2 — DEC-017/DEC-018): métodos de listagem devolvem
+ * `StudySummary`, nunca `Study` completo — cards e resultados de busca
+ * não precisam de `conteudo` integral nem de todas as relações. Só
+ * `getPublishedBySlug()` (a página de detalhe) devolve `Study` completo.
+ * Não existe mais um método que devolva "todos os estudos publicados";
+ * cada consumidor pede exatamente o que precisa (por livro, tema,
+ * personagem, série, os mais recentes, contagens, ou só os slugs), o que
+ * mapeia diretamente para consultas SQL com `WHERE`/`GROUP BY`/`LIMIT`
+ * em vez de "trazer tudo e filtrar depois".
  */
 export interface StudyRepository {
   /**
-   * Todos os estudos publicados e públicos.
-   *
-   * ATENÇÃO (Marco 1.1 — DEC-013): este método existe para casos que
-   * genuinamente precisam do conjunto inteiro (ex.: os testes de
-   * integridade de dados em `src/lib/data/studies.test.ts`). Ele NÃO é
-   * a interface definitiva para busca, contagens ou "últimos estudos" —
-   * usá-lo para isso significa carregar tudo na memória da aplicação e
-   * filtrar/ordenar/paginar em JavaScript, o que não escala para um
-   * banco real. Para busca, use `SearchRepository.search()`. Para os
-   * estudos mais recentes, use `listRecent()`. Se precisar de contagens
-   * por tema/personagem/série no futuro, adicione um método dedicado
-   * (`countByTopicSlug` etc.) em vez de reaproveitar este.
-   */
-  listPublished(): Promise<Study[]>;
-  /**
    * Os `limit` estudos publicados mais recentes (por `dataOrigem`,
-   * decrescente). Em Postgres isto vira `ORDER BY data_origem DESC
-   * LIMIT $1` — a implementação mock ordena em memória porque hoje o
-   * "banco" é um array, mas a assinatura já é a definitiva.
+   * decrescente), como `StudySummary`. Em Postgres isto vira `SELECT
+   * <colunas enxutas> ... ORDER BY data_origem DESC LIMIT $1` — a
+   * implementação mock ordena em memória porque hoje o "banco" é um
+   * array, mas a assinatura já é a definitiva.
    */
-  listRecent(limit: number): Promise<Study[]>;
-  /** Um estudo publicado pelo slug, ou undefined se não existir/não publicado. */
+  listRecent(limit: number): Promise<StudySummary[]>;
+  /** Um estudo publicado pelo slug, com todas as relações — para a página de detalhe. `undefined` se não existir/não publicado. */
   getPublishedBySlug(slug: string): Promise<Study | undefined>;
-  /** Estudos publicados que citam um livro (e opcionalmente um capítulo específico). */
-  listByBookSlug(bookSlug: string, capitulo?: number): Promise<Study[]>;
-  /** Estudos publicados vinculados a um tema. */
-  listByTopicSlug(topicSlug: string): Promise<Study[]>;
-  /** Estudos publicados vinculados a um personagem. */
-  listByCharacterSlug(characterSlug: string): Promise<Study[]>;
-  /** Estudos publicados vinculados a uma série, ordenados por `ordem`. */
-  listBySeriesSlug(seriesSlug: string): Promise<Study[]>;
+  /**
+   * Os slugs de todos os estudos publicados — nada além disso. Existe
+   * só para `generateStaticParams()` (`src/app/estudo/[slug]/page.tsx`):
+   * gerar as rotas estáticas do build não deve exigir carregar título,
+   * resumo, relações nem conteúdo de cada estudo. Em Postgres isto é
+   * `SELECT slug FROM studies WHERE status = 'PUBLISHED'`.
+   */
+  listPublishedSlugs(): Promise<string[]>;
+  /** Estudos publicados que citam um livro (e opcionalmente um capítulo específico), como `StudySummary`. */
+  listByBookSlug(bookSlug: string, capitulo?: number): Promise<StudySummary[]>;
+  /** Estudos publicados vinculados a um tema, como `StudySummary`. */
+  listByTopicSlug(topicSlug: string): Promise<StudySummary[]>;
+  /** Estudos publicados vinculados a um personagem, como `StudySummary`. */
+  listByCharacterSlug(characterSlug: string): Promise<StudySummary[]>;
+  /** Estudos publicados vinculados a uma série, como `StudySummary`, ordenados por `ordem`. */
+  listBySeriesSlug(seriesSlug: string): Promise<StudySummary[]>;
 }
 
 export interface BookRepository {
@@ -53,16 +65,29 @@ export interface BookRepository {
 export interface TopicRepository {
   listAll(): Promise<Topic[]>;
   getBySlug(slug: string): Promise<Topic | undefined>;
+  /**
+   * Quantidade de estudos publicados por tema, indexada por `topic.id`
+   * (temas sem nenhum estudo publicado simplesmente não aparecem —
+   * trate como 0). Em Postgres: `SELECT topic_id, COUNT(DISTINCT
+   * study_id) FROM study_topics st JOIN studies s ON s.id = st.study_id
+   * WHERE s.status = 'PUBLISHED' GROUP BY topic_id`. Usado por
+   * `/temas` para não precisar carregar todos os estudos só para contar.
+   */
+  countPublishedStudies(): Promise<Record<string, number>>;
 }
 
 export interface CharacterRepository {
   listAll(): Promise<Character[]>;
   getBySlug(slug: string): Promise<Character | undefined>;
+  /** Mesmo contrato de `TopicRepository.countPublishedStudies()`, indexado por `character.id`. Usado por `/personagens`. */
+  countPublishedStudies(): Promise<Record<string, number>>;
 }
 
 export interface SeriesRepository {
   listAll(): Promise<Series[]>;
   getBySlug(slug: string): Promise<Series | undefined>;
+  /** Mesmo contrato de `TopicRepository.countPublishedStudies()`, indexado por `series.id`. Usado por `/series`. */
+  countPublishedStudies(): Promise<Record<string, number>>;
 }
 
 /**
@@ -111,7 +136,8 @@ export interface SearchQuery {
 }
 
 export interface SearchResultItem {
-  study: Study;
+  /** `StudySummary`, não `Study` completo (Marco 1.2 — DEC-017): a lista de resultados é um card, não a página de detalhe. */
+  study: StudySummary;
   /** Pontuação de relevância — ver pesos documentados em `src/lib/search/search.ts`. */
   score: number;
   /** Motivos do match (referência, título, tema, personagem, palavra-chave, resumo, conteúdo). */

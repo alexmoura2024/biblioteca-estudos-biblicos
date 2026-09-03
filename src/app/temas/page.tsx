@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { studyRepository, topicRepository } from "@/lib/repositories";
+import { topicRepository } from "@/lib/repositories";
 
 export const metadata: Metadata = {
   title: "Temas",
 };
 
 export default async function TemasPage() {
-  const [topics, studies] = await Promise.all([
+  // Marco 1.2 (DEC-018): countPublishedStudies() é uma agregação
+  // dedicada (GROUP BY topic_id em Postgres), não um carregamento de
+  // todos os estudos filtrado em memória.
+  const [topics, counts] = await Promise.all([
     topicRepository.listAll(),
-    studyRepository.listPublished(),
+    topicRepository.countPublishedStudies(),
   ]);
 
   return (
@@ -21,13 +24,7 @@ export default async function TemasPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {topics.map((topic) => {
-          // TODO(Fase 2, DEC-013): contagem em memória sobre
-          // listPublished() — aceitável para ~20 estudos mockados, mas
-          // não escala para um banco real. Substituir por um método
-          // dedicado (ex.: `topicRepository.countStudies(topicId)` ou um
-          // `SELECT topic_id, COUNT(*) ... GROUP BY topic_id`) quando o
-          // Supabase entrar, em vez de carregar todos os estudos aqui.
-          const total = studies.filter((s) => s.temas.some((t) => t.topic.id === topic.id)).length;
+          const total = counts[topic.id] ?? 0;
           return (
             <Link
               key={topic.id}

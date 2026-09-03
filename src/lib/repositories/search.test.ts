@@ -4,12 +4,22 @@ import { parseSearchQuery } from "@/lib/search/queryParsing";
 import { WEIGHTS } from "@/lib/search/search";
 
 const MULTI_PASSAGE_TITLE = "Fé que atravessa as Escrituras: de Abraão a Paulo";
+const MULTI_PASSAGE_SLUG = "fe-que-atravessa-as-escrituras-de-abraao-a-paulo";
 
 describe("MockSearchRepository.search — filtros e paginação", () => {
   it("filtra por livro e testamento combinados", async () => {
     const outcome = await searchRepository.search({ texto: "fé", livro: "romanos" });
+    // `SearchResultItem.study` é StudySummary (Marco 1.2 — DEC-017), sem
+    // o array completo de passagens; verificamos o filtro por resultado
+    // esperado (só os dois estudos publicados com passagem em Romanos
+    // podem aparecer) em vez de inspecionar passagens que o DTO não
+    // expõe mais.
     expect(outcome.items.length).toBeGreaterThan(0);
-    expect(outcome.items.every((i) => i.study.passagens.some((p) => p.book.slug === "romanos"))).toBe(true);
+    const titles = outcome.items.map((i) => i.study.titulo);
+    const romanosStudyTitles = ["Nenhuma condenação: Romanos 8", MULTI_PASSAGE_TITLE];
+    expect(titles.every((t) => romanosStudyTitles.includes(t))).toBe(true);
+    // O estudo multi-passagem tem "Fé" no título, então bate com certeza.
+    expect(titles).toContain(MULTI_PASSAGE_TITLE);
   });
 
   it("navegação por filtro puro (sem texto) ainda retorna resultados", async () => {
@@ -78,7 +88,8 @@ describe("Busca de ponta a ponta via parseSearchQuery + SearchRepository", () =>
 
 describe("Estudo multi-passagem/multi-série (Marco 1.1, prova de relações N:N)", () => {
   it("tem 4+ passagens em livros diferentes, com principal, secundária e citada", async () => {
-    const study = (await studyRepository.listPublished()).find((s) => s.titulo === MULTI_PASSAGE_TITLE)!;
+    const study = await studyRepository.getPublishedBySlug(MULTI_PASSAGE_SLUG);
+    if (!study) throw new Error("estudo multi-passagem não encontrado pelo slug");
     expect(study).toBeDefined();
 
     expect(study.passagens.length).toBeGreaterThanOrEqual(3);
@@ -92,20 +103,23 @@ describe("Estudo multi-passagem/multi-série (Marco 1.1, prova de relações N:N
   });
 
   it("tem 2+ temas e 2+ personagens", async () => {
-    const study = (await studyRepository.listPublished()).find((s) => s.titulo === MULTI_PASSAGE_TITLE)!;
+    const study = await studyRepository.getPublishedBySlug(MULTI_PASSAGE_SLUG);
+    if (!study) throw new Error("estudo multi-passagem não encontrado pelo slug");
     expect(study.temas.length).toBeGreaterThanOrEqual(2);
     expect(study.personagens.length).toBeGreaterThanOrEqual(2);
   });
 
   it("pertence a 2+ séries (N:N) e mantém ordens independentes em cada uma", async () => {
-    const study = (await studyRepository.listPublished()).find((s) => s.titulo === MULTI_PASSAGE_TITLE)!;
+    const study = await studyRepository.getPublishedBySlug(MULTI_PASSAGE_SLUG);
+    if (!study) throw new Error("estudo multi-passagem não encontrado pelo slug");
     expect(study.series.length).toBeGreaterThanOrEqual(2);
     const slugs = study.series.map((s) => s.series.slug).sort();
     expect(slugs).toEqual(["cartas-de-paulo", "fundamentos-da-fe"]);
   });
 
   it("mantém uma referência principal previsível (uma única passagem tipo 'principal')", async () => {
-    const study = (await studyRepository.listPublished()).find((s) => s.titulo === MULTI_PASSAGE_TITLE)!;
+    const study = await studyRepository.getPublishedBySlug(MULTI_PASSAGE_SLUG);
+    if (!study) throw new Error("estudo multi-passagem não encontrado pelo slug");
     const principal = study.passagens.filter((p) => p.tipoRelacao === "principal");
     expect(principal).toHaveLength(1);
     expect(principal[0].book.slug).toBe("romanos");

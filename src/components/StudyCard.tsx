@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Study } from "@/lib/types";
+import type { StudySummary } from "@/lib/types";
 import { Badge } from "@/components/Badge";
 
 /**
@@ -7,11 +7,12 @@ import { Badge } from "@/components/Badge";
  * definidos em docs/SEARCH_SPEC.md, seção 6: título, referência
  * principal, resumo curto, temas, série (quando houver) e acesso ao
  * estudo completo.
+ *
+ * Recebe `StudySummary`, não `Study` completo (Marco 1.2 — DEC-017): um
+ * card nunca precisa do conteúdo integral do estudo nem de todas as
+ * suas relações.
  */
-export function StudyCard({ study }: { study: Study }) {
-  const referenciaPrincipal =
-    study.passagens.find((p) => p.tipoRelacao === "principal") ?? study.passagens[0];
-
+export function StudyCard({ study }: { study: StudySummary }) {
   return (
     <article className="flex flex-col gap-3 rounded-lg border border-stone-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
       <div>
@@ -20,9 +21,9 @@ export function StudyCard({ study }: { study: Study }) {
             {study.titulo}
           </Link>
         </h3>
-        {referenciaPrincipal && (
+        {study.referenciaPrincipal && (
           <p className="mt-1 text-sm font-medium text-amber-700">
-            {referenciaPrincipal.passage.referenciaNormalizada}
+            {study.referenciaPrincipal.referenciaNormalizada}
           </p>
         )}
       </div>

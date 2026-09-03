@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { seriesRepository, studyRepository } from "@/lib/repositories";
+import { seriesRepository } from "@/lib/repositories";
 
 export const metadata: Metadata = {
   title: "Séries",
 };
 
 export default async function SeriesListPage() {
-  const [seriesList, studies] = await Promise.all([
+  // Marco 1.2 (DEC-018): agregação dedicada, ver src/app/temas/page.tsx.
+  const [seriesList, counts] = await Promise.all([
     seriesRepository.listAll(),
-    studyRepository.listPublished(),
+    seriesRepository.countPublishedStudies(),
   ]);
 
   return (
@@ -21,9 +22,7 @@ export default async function SeriesListPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {seriesList.map((series) => {
-          // TODO(Fase 2, DEC-013): mesma ressalva de src/app/temas/page.tsx
-          // — contagem em memória, trocar por agregação no banco.
-          const total = studies.filter((s) => s.series.some((se) => se.series.id === series.id)).length;
+          const total = counts[series.id] ?? 0;
           return (
             <Link
               key={series.id}

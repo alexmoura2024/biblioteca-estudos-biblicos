@@ -8,10 +8,23 @@ import {
 } from "@/lib/repositories";
 
 describe("MockStudyRepository", () => {
-  it("lista apenas estudos publicados", async () => {
-    const studies = await studyRepository.listPublished();
-    expect(studies.length).toBeGreaterThan(0);
-    expect(studies.every((s) => s.status === "PUBLISHED")).toBe(true);
+  it("listPublishedSlugs traz só slugs de estudos publicados (sem o DRAFT)", async () => {
+    const slugs = await studyRepository.listPublishedSlugs();
+    expect(slugs.length).toBeGreaterThan(0);
+    expect(slugs).not.toContain("a-mulher-virtuosa-rascunho-em-revisao");
+    expect(slugs).toContain("o-senhor-e-o-meu-pastor");
+  });
+
+  it("listRecent devolve StudySummary ordenado por data decrescente, limitado", async () => {
+    const recentes = await studyRepository.listRecent(3);
+    expect(recentes).toHaveLength(3);
+    for (let i = 1; i < recentes.length; i++) {
+      expect(recentes[i - 1].dataOrigem >= recentes[i].dataOrigem).toBe(true);
+    }
+    // StudySummary: sem `conteudo`, sem `passagens` completo.
+    expect(recentes[0]).not.toHaveProperty("conteudo");
+    expect(recentes[0]).not.toHaveProperty("passagens");
+    expect(recentes[0].referenciaPrincipal?.referenciaNormalizada).toBeDefined();
   });
 
   it("não retorna o estudo em DRAFT pelo slug", async () => {
@@ -19,9 +32,10 @@ describe("MockStudyRepository", () => {
     expect(draft).toBeUndefined();
   });
 
-  it("busca por slug retorna o estudo esperado", async () => {
+  it("busca por slug retorna o estudo completo (Study, com conteudo)", async () => {
     const study = await studyRepository.getPublishedBySlug("o-senhor-e-o-meu-pastor");
     expect(study?.titulo).toBe("O Senhor é o meu pastor");
+    expect(study?.conteudo).toBeTruthy();
   });
 
   it("filtra estudos por livro e capítulo", async () => {
@@ -72,5 +86,46 @@ describe("outros repositórios mockados", () => {
   it("seriesRepository lista todas as séries", async () => {
     const all = await seriesRepository.listAll();
     expect(all.length).toBe(4);
+  });
+});
+
+describe("countPublishedStudies (Marco 1.2 — agregação dedicada, sem carregar todos os estudos)", () => {
+  it("topicRepository conta estudos publicados por tema", async () => {
+    const [topics, counts] = await Promise.all([
+      topicRepository.listAll(),
+      topicRepository.countPublishedStudies(),
+    ]);
+    const fe = topics.find((t) => t.slug === "fe")!;
+    const direct = (await studyRepository.listByTopicSlug("fe")).length;
+    expect(counts[fe.id]).toBe(direct);
+    expect(direct).toBeGreaterThan(0);
+  });
+
+  it("characterRepository conta estudos publicados por personagem", async () => {
+    const [chars, counts] = await Promise.all([
+      characterRepository.listAll(),
+      characterRepository.countPublishedStudies(),
+    ]);
+    const davi = chars.find((c) => c.slug === "davi")!;
+    expect(counts[davi.id]).toBe((await studyRepository.listByCharacterSlug("davi")).length);
+  });
+
+  it("seriesRepository conta estudos publicados por série", async () => {
+    const [seriesAll, counts] = await Promise.all([
+      seriesRepository.listAll(),
+      seriesRepository.countPublishedStudies(),
+    ]);
+    const vidaDeDavi = seriesAll.find((s) => s.slug === "vida-de-davi")!;
+    expect(counts[vidaDeDavi.id]).toBe(2);
+  });
+
+  it("uma entidade sem nenhum estudo publicado simplesmente não aparece no mapa de contagens (trate como 0)", async () => {
+    const [chars, counts] = await Promise.all([
+      characterRepository.listAll(),
+      characterRepository.countPublishedStudies(),
+    ]);
+    const maria = chars.find((c) => c.slug === "maria")!;
+    expect(maria).toBeDefined();
+    expect(counts[maria.id] ?? 0).toBe(0);
   });
 });
