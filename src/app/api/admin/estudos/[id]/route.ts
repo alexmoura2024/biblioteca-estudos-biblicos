@@ -1,6 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
+interface PassageData {
+  passage_id: string;
+  referencia_normalizada: string;
+  tipo_relacao: "MAIN" | "SECONDARY" | "CITED";
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -137,6 +143,85 @@ export async function POST(
           .from("study_characters")
           .insert(charactersToInsert);
       }
+    }
+
+    // 6. Atualizar referências (passages)
+    const newPassages = body.passages || [];
+    const oldPassagesSet = new Set(
+      (passages as PassageData[])?.map(
+        (p) => `${p.referencia_normalizada}|${p.tipo_relacao}`
+      ) || []
+    );
+    const newPassagesSet = new Set(
+      newPassages.map(
+        (p: Record<string, unknown>) =>
+          `${p.referencia_normalizada as string}|${p.tipo_relacao as string}`
+      )
+    );
+
+    if (oldPassagesSet.size !== newPassagesSet.size ||
+        ![...newPassagesSet].every((p) => oldPassagesSet.has(p))) {
+      changed.push("passages");
+
+      // Deletar todas as referências antigas
+      await supabase
+        .from("study_passages")
+        .delete()
+        .eq("study_id", id);
+
+      // Inserir novas referências
+      if (newPassages.length > 0) {
+        // Buscar ou criar passages por referência_normalizada
+        for (const passage of newPassages) {
+          const ref = passage.referencia_normalizada as string;
+          const tipoRelacao = passage.tipo_relacao as string;
+
+          // Procurar passage existente
+          let { data: existingPassage } = await supabase
+            .from("passages")
+            .select("id")
+            .eq("referencia_normalizada", ref)
+            .single();
+
+          let passageId: string;
+
+          if (!existingPassage) {
+            // Criar nova passage (genérica, sem book/chapter/verse structure)
+            const { data: newPassage, error: createError } = await supabase
+              .from("passages")
+              .insert({ referencia_normalizada: ref })
+              .select("id")
+              .single();
+
+            if (createError || !newPassage) {
+              console.error(`Erro ao criar passage: ${ref}`);
+              continue;
+            }
+
+            passageId = newPassage.id;
+          } else {
+            passageId = existingPassage.id;
+          }
+
+          // Vincular study_passages
+          await supabase.from("study_passages").insert({
+            study_id: id,
+            passage_id: passageId,
+            tipo_relacao: tipoRelacao,
+          });
+        }
+      }
+    }
+
+    // Registrar histórico se houve mudanças
+    if (changed.length > 0) {
+      await supabase.from("study_edits").insert({
+        study_id: id,
+        titulo_anterior: typedStudy.titulo as string,
+        resumo_anterior: typedStudy.resumo as string,
+        conteudo_anterior: typedStudy.conteudo as string,
+        campos_alterados: changed,
+      });
     }
 
     return NextResponse.json({

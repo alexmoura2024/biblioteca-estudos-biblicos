@@ -24,6 +24,12 @@ const STUDY_TYPES = [
   { value: "DOUTRINÁRIO", label: "Doutrinário" },
 ];
 
+const PASSAGE_TYPES = [
+  { value: "MAIN", label: "Principal" },
+  { value: "SECONDARY", label: "Secundária" },
+  { value: "CITED", label: "Citada" },
+];
+
 interface PassageData {
   passage_id: string;
   referencia_normalizada: string;
@@ -60,7 +66,7 @@ interface EditStudyClientProps {
 
 export default function EditStudyClient({
   study,
-  passages,
+  passages: initialPassages,
   topics: initialTopics,
   characters: initialCharacters,
 }: EditStudyClientProps) {
@@ -74,6 +80,10 @@ export default function EditStudyClient({
     conteudo: study.conteudo,
     tipo_estudo: study.tipo_estudo,
   });
+
+  const [passages, setPassages] = useState<PassageData[]>(initialPassages);
+  const [newPassageRef, setNewPassageRef] = useState("");
+  const [newPassageType, setNewPassageType] = useState<"MAIN" | "SECONDARY" | "CITED">("SECONDARY");
 
   const [selectedTopics, setSelectedTopics] = useState<Set<string>>(
     new Set(initialTopics.map((t) => t.topic_id))
@@ -117,6 +127,41 @@ export default function EditStudyClient({
     });
   };
 
+  const addPassage = () => {
+    if (!newPassageRef.trim()) return;
+
+    const exists = passages.some(
+      (p) => p.referencia_normalizada.toLowerCase() === newPassageRef.toLowerCase()
+    );
+    if (exists) {
+      setError("Referência já existe neste estudo");
+      return;
+    }
+
+    setPassages([
+      ...passages,
+      {
+        passage_id: `new_${Date.now()}`,
+        referencia_normalizada: newPassageRef,
+        tipo_relacao: newPassageType,
+      },
+    ]);
+    setNewPassageRef("");
+    setNewPassageType("SECONDARY");
+  };
+
+  const removePassage = (passageId: string) => {
+    setPassages(passages.filter((p) => p.passage_id !== passageId));
+  };
+
+  const updatePassageType = (passageId: string, newType: "MAIN" | "SECONDARY" | "CITED") => {
+    setPassages(
+      passages.map((p) =>
+        p.passage_id === passageId ? { ...p, tipo_relacao: newType } : p
+      )
+    );
+  };
+
   const handleSave = async () => {
     startTransition(async () => {
       try {
@@ -125,6 +170,10 @@ export default function EditStudyClient({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...formData,
+            passages: passages.map((p) => ({
+              referencia_normalizada: p.referencia_normalizada,
+              tipo_relacao: p.tipo_relacao,
+            })),
             topicIds: Array.from(selectedTopics),
             characterIds: Array.from(selectedCharacters),
           }),
@@ -178,6 +227,8 @@ export default function EditStudyClient({
       conteudo: study.conteudo,
       tipo_estudo: study.tipo_estudo,
     });
+    setPassages(initialPassages);
+    setNewPassageRef("");
     setSelectedTopics(new Set(initialTopics.map((t) => t.topic_id)));
     setSelectedCharacters(new Set(initialCharacters.map((c) => c.character_id)));
     setEditMode(false);
@@ -240,27 +291,71 @@ export default function EditStudyClient({
           />
         </div>
 
-        {/* Referências Bíblicas (readonly) */}
-        {passages.length > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
-              Referências Bíblicas
-            </label>
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-2">
-              {passages.map((p, i) => (
-                <div key={i} className="text-sm text-gray-700">
-                  <span className="font-medium">
-                    {p.tipo_relacao === "MAIN" ? "Principal:" : "Secundária:"}
-                  </span>{" "}
-                  {p.referencia_normalizada}
+        {/* Referências Bíblicas EDITÁVEIS */}
+        <div>
+          <label className="block text-sm font-medium text-gray-900 mb-3">
+            Referências Bíblicas ({passages.length})
+          </label>
+
+          {/* Lista de Referências */}
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-2 mb-4">
+            {passages.length === 0 ? (
+              <p className="text-sm text-gray-500">Nenhuma referência adicionada</p>
+            ) : (
+              passages.map((p) => (
+                <div key={p.passage_id} className="flex items-center gap-2 bg-white p-2 rounded border border-gray-200">
+                  <select
+                    value={p.tipo_relacao}
+                    onChange={(e) => updatePassageType(p.passage_id, e.target.value as "MAIN" | "SECONDARY" | "CITED")}
+                    className="text-xs px-2 py-1 border border-gray-300 rounded"
+                  >
+                    {PASSAGE_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-sm text-gray-700 flex-1">{p.referencia_normalizada}</span>
+                  <button
+                    onClick={() => removePassage(p.passage_id)}
+                    className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                  >
+                    ✕
+                  </button>
                 </div>
-              ))}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              As referências são somente leitura. Altere via revisão de conteúdo.
-            </p>
+              ))
+            )}
           </div>
-        )}
+
+          {/* Adicionar Referência */}
+          <div className="flex gap-2 mb-4">
+            <input
+              type="text"
+              value={newPassageRef}
+              onChange={(e) => setNewPassageRef(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && addPassage()}
+              placeholder="Ex: João 3:16 ou Romanos 6:9-11"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <select
+              value={newPassageType}
+              onChange={(e) => setNewPassageType(e.target.value as "MAIN" | "SECONDARY" | "CITED")}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm"
+            >
+              {PASSAGE_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={addPassage}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600"
+            >
+              + Adicionar
+            </button>
+          </div>
+        </div>
 
         {/* Temas */}
         <div>
@@ -426,6 +521,22 @@ export default function EditStudyClient({
           <div>
             <h3 className="font-semibold text-gray-900 mb-1">Resumo</h3>
             <p className="text-gray-700 line-clamp-2">{formData.resumo}</p>
+          </div>
+        )}
+
+        {passages.length > 0 && (
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">Referências ({passages.length})</h3>
+            <div className="space-y-1">
+              {passages.map((p) => (
+                <div key={p.passage_id} className="text-sm text-gray-700">
+                  <span className="font-medium">
+                    {PASSAGE_TYPES.find((t) => t.value === p.tipo_relacao)?.label}:
+                  </span>{" "}
+                  {p.referencia_normalizada}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
