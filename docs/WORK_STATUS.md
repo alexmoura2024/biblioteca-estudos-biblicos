@@ -1,6 +1,16 @@
 WORK\_STATUS — Biblioteca Virtual de Estudos Bíblicos
 
 ESTADO ATUAL
+
+**CHECKPOINT 16 EM PROGRESSO — FECHAMENTO TÉCNICO DO PILOTO EDITORIAL, FASE 1 TEXTUAL**
+Revalidado: Docker (`docker info` OK) e Supabase (`npx supabase status` OK, mesma instância depuis checkpoint 15).
+
+**Etapa 1 completada (tipo_estudo):** Nova migration `20260903160000_fase1_study_type.sql` adiciona campo `tipo_estudo` à tabela `studies` (EXPOSITIVO, THEMATIC, PANORAMA, DOUTRINÁRIO, padrão EXPOSITIVO). Atualizado em types.ts (novo type `TipoEstudo`), mappers Supabase, rows.ts, mock data (studies.ts) — sem mudança visual na UI, apenas extensão de schema (DEC-043). Qualidade gate: `npx tsc --noEmit` limpo, `npx eslint` limpo, `npx vitest run` **250 testes**, `npx supabase test db` **15/15 PASS**, `npm run build` sucesso. Commit: `a3d8168`.
+
+**Próximas etapas (este checkpoint):** Validação e documentação de Fase 1 Textual (20 estudos: SELECIONADOS − {12, 29, 32, 37}), consolidação de aliases e duplicatas, taxonomia V1, resumos editoriais, idempotência final, testes completos.
+
+---
+
 **IMPORTANTE — mudança de ambiente (checkpoint 12): Docker/Supabase local PASSARAM A FUNCIONAR NESTA MÁQUINA (Claude Code).** DEC-024 registrava Docker como indisponível neste ambiente especificamente — isso não é mais verdade a partir desta sessão (`docker info` e `npx supabase status` respondem normalmente). Não presuma o bloqueio antigo sem revalidar (`docker info`) — mas também não presuma que vai continuar disponível para sempre; revalide a cada sessão nova.
 
 **FASE 2 (BANCO REAL SUPABASE/POSTGRESQL) — CONCLUÍDA.** Ver checkpoint 10.
@@ -9,7 +19,7 @@ ESTADO ATUAL
 
 **FASE 3.1 (SANEAMENTO DETERMINÍSTICO PRÉ-REVISÃO) — CONCLUÍDA (checkpoint 14).** Abreviações tradicionais + seleção de MAIN + diagnóstico de `DUP-002` (DEC-038/039/040) reduziram `DRAFT` de 7 para 3 e corrigiram 4 referências MAIN mal escolhidas (ver `docs/fase3-piloto/FASE3.1_ANTES_DEPOIS.md`). Reprocessamento completo contra Supabase real (`db reset` + pgTAP 15/15 + ingestão dupla, idempotência confirmada) e relatório de revisão reorganizado em 4 grupos editoriais A/B/C/D (DEC-041). Quality gate completo: 245/245 testes, tsc/eslint limpos, build contra Supabase E contra Mock, zero estudos reais `PUBLISHED`.
 
-**DIVISÃO EDITORIAL MANUAL DE SEL-017 — CONCLUÍDA (checkpoint 15, DEC-042).** Decisão humana explícita: `SEL-017` continha 2 mensagens independentes (Isaías 25:8-9 e Lucas 24:18) num único arquivo — agora são **2 estudos reais distintos** (`study_files`, N:N, novo status `files.status_processamento = 'DIVIDIDO_MANUALMENTE'`), preservando 1 único arquivo-fonte original. **48 → 49 estudos reais** (45→46 `REVIEW`, 3 `DRAFT` inalterados, zero `PUBLISHED`). Migration aplicada de forma incremental (`npx supabase migration up`, sem `db reset` — preservou os 70 estudos já existentes). Idempotência confirmada: reexecutar `scripts/fase3-ingest-piloto.ts` NÃO recria os dois estudos (`SEL-017` aparece como `ignorado_divisao_manual`). `docs/fase3-piloto/RELATORIO_REVISAO.md` regenerado (A=27, B=11, C=0, D=11 — entregue ao usuário, fora do git por conter texto real do acervo). Quality gate: 250/250 testes, tsc/eslint limpos, build contra Supabase E contra Mock. **A revisão humana dos 49 estudos pode começar agora** — ver "PENDÊNCIAS IMEDIATAS".
+**DIVISÃO EDITORIAL MANUAL DE SEL-017 — CONCLUÍDA (checkpoint 15, DEC-042).** Decisão humana explícita: `SEL-017` continha 2 mensagens independentes (Isaías 25:8-9 e Lucas 24:18) num único arquivo — agora são **2 estudos reais distintos** (`study_files`, N:N, novo status `files.status_processamento = 'DIVIDIDO_MANUALMENTE'`), preservando 1 único arquivo-fonte original. **48 → 49 estudos reais** (45→46 `REVIEW`, 3 `DRAFT` inalterados, zero `PUBLISHED`). Migration aplicada de forma incremental (`npx supabase migration up`, sem `db reset` — preservou os 70 estudos já existentes). Idempotência confirmada: reexecutar `scripts/fase3-ingest-piloto.ts` NÃO recria os dois estudos (`SEL-017` aparece como `ignorado_divisao_manual`). `docs/fase3-piloto/RELATORIO_REVISAO.md` regenerado (A=27, B=11, C=0, D=11 — entregue ao usuário, fora do git por conter texto real do acervo). Quality gate: 250/250 testes, tsc/eslint limpos, build contra Supabase E contra Mock.
 
 ESTADO DO BANCO (referência rápida — detalhe completo nos checkpoints 8-15 abaixo)
 - **Migrations existentes** (`supabase/migrations/`, aplicam nesta ordem): `20260903011809_schema_core.sql`, `20260903011812_indexes.sql`, `20260903011816_search_function.sql`, `20260903011819_rls_policies.sql`, `20260903012745_counts_views.sql` (Fase 2); `20260903031727_fase3_provenance_files.sql`, `20260903031731_fase3_ingestion_jobs.sql`, `20260903031734_fase3_provenance_rls.sql`, `20260903083701_fase3_grant_service_role_provenance.sql` (Fase 3); `20260903120000_fase3_manual_split_study_files.sql` (checkpoint 15 — `study_files` + status `DIVIDIDO_MANUALMENTE`). **10 migrations no total; aplicam do zero sem erro (confirmado no checkpoint 14) e a última também aplica INCREMENTALMENTE via `npx supabase migration up` sem perder dados (confirmado no checkpoint 15).**
