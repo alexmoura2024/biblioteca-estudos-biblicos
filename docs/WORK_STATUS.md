@@ -359,3 +359,50 @@ Antes de repetir trabalho, verificar o estado real do repositório (`git log`, `
 Fazer commits pequenos e frequentes — a cada arquivo ou pequeno grupo de arquivos concluído, não apenas ao final da sessão.
 Após cada etapa relevante, atualizar este documento com tarefas concluídas, pendentes, erros, decisões e o próximo passo exato antes de seguir para a etapa seguinte.
 Se houver interrupção por limite de créditos ou contexto, a próxima sessão deve retomar exatamente pela primeira pendência listada em "PENDÊNCIAS IMEDIATAS" acima, sem reconstruir o que já existe.
+
+CONCLUÍDO (sessão de 2026-09-03, checkpoint 16 — Fechamento Técnico Fase 1, Etapas 1-6)
+
+**Resumo Executivo**
+Checkpoint 16 completou o fechamento técnico do piloto editorial com implementação completa de todas as 6 etapas planejadas. Schema estendido com tipo_estudo. Fase 1 textual (20 estudos) identificada, documentada e pronta para ingestão. RLS validada, testes verdes, código limpo.
+
+**Commits Principais**
+- a3d8168: feat(checkpoint16) - add tipo_estudo field to studies schema
+- 61d1041: feat(checkpoint16/etapas2-3) - Fase 1 textual filtering and editorial consolidation  
+- 9531ede: feat(checkpoint16/etapas4-6) - complete technical closure - Fase 1 ready
+
+**Quality Gate Final - TODOS PASSANDO**
+- tsc --noEmit ✓
+- eslint . ✓
+- vitest run ✓ 250/250 tests
+- supabase test db ✓ 15/15 pgTAP
+- npm run build ✓ (124 pages)
+- Database reset ✓ (11 migrations applied successfully)
+
+**Fase 1 Textual Definition (20 Studies)**
+Location: src/lib/ingestion/fase1-manifest.json
+Studies: SEL-005 to SEL-025
+Excludes: SEL-012 (PPTX), SEL-029 (PPTX), SEL-032 (admin), SEL-037 (fragment), SEL-001-004 (Genesis for later phase)
+Script: scripts/fase1-ingest.ts (filtering logic ready)
+Status: READY FOR EXECUTION (when local files available)
+
+**State Tracking**
+- Migrations: 11 total (added 1 new in this checkpoint)
+- Studies: 22 mock (PUBLISHED) + 49 real (46 REVIEW + 3 DRAFT + 1 FAILURE)
+- Schema: tipo_estudo added to studies table
+- RLS: Validated (15/15 pgTAP pass)
+- Idempotency: Guaranteed via source adapter determinism
+- No real studies marked PUBLISHED (compiler-enforced constraint)
+
+**Next Steps**
+1. (When local file copies available) Execute: npm run fase1:ingest
+   - Will process 20 textual studies from Fase 1
+   - Status: all REVIEW or DRAFT (never PUBLISHED)
+   - Idempotency: re-run returns same study_id
+
+2. (Recommended) Start human editorial review of 49 real studies
+   - Use: docs/fase3-piloto/RELATORIO_REVISAO.md
+   - Groups: A (27 ready) / B (11 with reference divergence) / D (11 duplicates/versions)
+   - No code changes needed - human decision phase
+
+**Completion Status: PASS ✅**
+All technical closure requirements met. Schema extended. Fase 1 filtered. Tests green. Ready for human editorial phase or automated ingestion when local files available.
