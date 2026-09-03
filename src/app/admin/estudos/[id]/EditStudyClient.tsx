@@ -211,22 +211,24 @@ export default function EditStudyClient({ study }: EditStudyClientProps) {
             <p className="text-sm text-gray-600">Nenhuma edição registrada</p>
           ) : (
             <div className="space-y-4">
-              {history.map((edit, i) => (
-                <div
-                  key={i}
-                  className="border-l-4 border-blue-300 pl-4 py-2 text-sm"
-                >
-                  <div className="text-gray-600 mb-2">
-                    {new Date(edit.created_at).toLocaleString("pt-BR")}
+              {history.map((edit, i) => {
+                const createdAt = edit.created_at as string | undefined;
+                const campos = (edit.campos_alterados as string[]) || [];
+                return (
+                  <div
+                    key={i}
+                    className="border-l-4 border-blue-300 pl-4 py-2 text-sm"
+                  >
+                    <div className="text-gray-600 mb-2">
+                      {createdAt ? new Date(createdAt).toLocaleString("pt-BR") : ""}
+                    </div>
+                    <div className="text-gray-900">
+                      Campos alterados:{" "}
+                      <span className="font-medium">{campos.join(", ")}</span>
+                    </div>
                   </div>
-                  <div className="text-gray-900">
-                    Campos alterados:{" "}
-                    <span className="font-medium">
-                      {edit.campos_alterados.join(", ")}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
