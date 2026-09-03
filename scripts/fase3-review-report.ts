@@ -16,9 +16,48 @@ try {
   // pode já estar carregado
 }
 
+import { loadManifest } from "../src/lib/ingestion/manifest";
+import { classifyReferences, scanReferences } from "../src/lib/ingestion/referenceScan";
 import { getSupabaseServiceClient } from "../src/lib/supabase/serviceClient";
 
+/**
+ * Recalcula as mesmas divergências que `pipeline.ts` calcula durante a
+ * ingestão (testamento da origem x testamento do conteúdo; referência
+ * preliminar do manifesto x referência principal do conteúdo) — mas
+ * aqui, DEPOIS do fato, a partir do `conteudo` já salvo, só para exibir
+ * no relatório (as divergências em si não são persistidas em nenhuma
+ * coluna; recalcular é mais simples do que adicionar uma). Mantém a
+ * MESMA lógica de `pipeline.ts` deliberadamente — se um dia divergir,
+ * é sinal de que vale a pena extrair um helper compartilhado.
+ */
+function computeDivergences(manifestRow: ReturnType<typeof loadManifest>[number] | undefined, conteudo: string): string[] {
+  if (!manifestRow) return [];
+  const classified = classifyReferences(scanReferences(conteudo));
+  const principal = classified[0];
+  if (!principal) return [];
+
+  const divergencias: string[] = [];
+  if (manifestRow.testament && principal.book.testamento !== manifestRow.testament) {
+    divergencias.push(
+      `Origem classificada como ${manifestRow.testament}, mas a referência principal do conteúdo (${principal.book.nome} ${principal.capitulo}) é do ${principal.book.testamento}.`,
+    );
+  }
+  if (manifestRow.preliminaryReference) {
+    const preliminaryParsed = classifyReferences(scanReferences(manifestRow.preliminaryReference))[0];
+    if (
+      preliminaryParsed &&
+      (preliminaryParsed.book.slug !== principal.book.slug ||
+        preliminaryParsed.capitulo !== principal.capitulo ||
+        preliminaryParsed.versiculoInicio !== principal.versiculoInicio)
+    ) {
+      divergencias.push(`Referência preliminar do manifesto ("${manifestRow.preliminaryReference}") diverge da referência principal do conteúdo (${principal.matchedText}).`);
+    }
+  }
+  return divergencias;
+}
+
 async function main() {
+  const manifest = loadManifest();
   const client = getSupabaseServiceClient();
 
   const { data: files, error: filesError } = await client
@@ -65,13 +104,20 @@ async function main() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const charactersList = (characterLinks ?? []).map((c: any) => c.characters?.nome).filter(Boolean);
     console.log(`- **Personagens sugeridos:** ${charactersList.join(", ") || "(nenhum)"}`);
+    const manifestRow = manifest.find((r) => r.driveFileId === file.drive_file_id);
+    const divergencias = computeDivergences(manifestRow, study.conteudo);
+    if (divergencias.length > 0) {
+      console.log("\n**⚠ Divergências (revisão editorial necessária):**");
+      for (const d of divergencias) console.log(`- ${d}`);
+    }
+
     console.log(`\n**Resumo auxiliar:** ${study.resumo}\n`);
     console.log("<details><summary>Texto extraído completo</summary>\n\n```\n" + study.conteudo + "\n```\n</details>\n");
     console.log("---\n");
   }
 
   console.log("## Possíveis duplicados (diagnóstico, Etapa 5)\n");
-  console.log("Ver `npm run fase3:validate-manifest` para o diagnóstico completo dos 12 candidatos em `DUPLICADOS_POSSIVEIS` — nenhum deles foi ingerido nesta execução (arquivos não sincronizados localmente, ver relatório da ingestão).\n");
+  console.log("Ver `npm run fase3:validate-manifest` para o diagnóstico completo dos 6 pares em `DUPLICADOS_POSSIVEIS` (agora todos ingeridos como estudos reais acima — comparar seus textos/referências extraídos manualmente é o próximo passo humano; nenhuma fusão/exclusão automática foi feita).\n");
 }
 
 main().catch((error) => {
