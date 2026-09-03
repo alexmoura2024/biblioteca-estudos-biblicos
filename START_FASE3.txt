@@ -1,0 +1,15 @@
+FASE 3 — COMO INICIAR NO CLAUDE CODE
+
+1) Extraia este ZIP na raiz do projeto:
+   C:\Users\alexs\Projetos\biblioteca-estudos-biblicos
+
+A extração deve criar:
+   docs\fase3-piloto\...
+
+2) No PowerShell:
+   cd "C:\Users\alexs\Projetos\biblioteca-estudos-biblicos"
+   git status
+   claude
+
+3) Dentro do Claude Code, envie:
+   Leia integralmente docs/fase3-piloto/CLAUDE_FASE3_EXECUCAO_PILOTO.md e execute-o. Antes de alterar código, leia também README.md, docs/ARCHITECTURE.md, docs/DATA_MODEL.md, docs/SEARCH_SPEC.md, docs/INGESTION_SPEC.md, docs/DECISIONS.md, docs/ROADMAP.md e docs/WORK_STATUS.md. Comece pela auditoria do repositório e do manifesto. Não publique nenhum estudo real automaticamente.

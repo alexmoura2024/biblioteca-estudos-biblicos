@@ -1,0 +1,48 @@
+AUDITORIA DE PREPARAÇÃO — FASE 3
+Biblioteca Virtual de Estudos Bíblicos
+
+1. Acervo-fonte
+- Estrutura principal auditada: 01 Antigo Testamento, 02 Novo Testamento, 03 Temáticos/Doutrinários, 04 Mensagens/Apostilas/Seminários, 05 Recursos, 90 Projetos/Pilotos/Versões e 99 Pendências.
+- Antigo Testamento: 39 pastas, em ordem canônica.
+- Novo Testamento: 27 pastas, em ordem canônica.
+- Total: 66 livros representados.
+
+2. Zona do piloto criada
+00_BIBLIOTECA_VIRTUAL/01_ACERVO/00_PILOTO_FASE3
+- 01_SELECIONADOS
+- 02_REVISAR
+- 03_DUPLICADOS_POSSIVEIS
+- 04_APROVADOS_INGESTAO
+
+3. Lote piloto curado
+Total: 50 candidatos.
+- 37 SELECIONADOS
+- 1 REVISAR
+- 12 DUPLICADOS_POSSIVEIS
+
+Diversidade: Gênesis, Salmos, Êxodo, Juízes, Isaías, João, Lucas, Atos, Romanos, Apocalipse e Temáticos; Google Docs, DOC, DOCX, RTF, PDF e PPTX; material recente e legado.
+
+4. Casos reais de duplicidade/versões preservados para teste
+- Êxodo: duas cópias com o mesmo título “Êxodo 12:1–11 — Páscoa.doc”.
+- Juízes: “A Torre Forte” em PDF/DOC e variantes de Gideão/Trigo.
+- Lucas: variantes de “E quem é o meu próximo”.
+- Atos: “Êutico.doc” e “Êutico - At20.7-11.doc”.
+- Romanos: duas versões “O Sétimo Milênio”.
+Nenhum foi apagado ou mesclado automaticamente.
+
+5. Revisão de conteúdo executada
+- PÃO E VINHO: João 6:51–57 + Gênesis 14:18–19; selecionado.
+- Jesus, a Fonte da Salvação: Juízes 15:18–19; selecionado.
+- A Eira de Araúna: conteúdo aponta Êxodo 15:17, embora o nome diga 15:7; selecionado com metadado corrigido.
+- A Comunhão: conteúdo aponta Atos 2:42–43, embora o nome diga 2:43–43; selecionado com metadado corrigido.
+- Untitled document: Apocalipse 4:1; selecionado com título editorial sugerido.
+- O evangelho eterno: conteúdo é Gálatas 1:11–12, mas está em Êxodo; permanece em REVIEW para correção editorial de classificação.
+
+6. Salvaguardas
+- Nenhum arquivo original foi movido, renomeado, apagado ou substituído.
+- O piloto usa drive_file_id e URL do original como rastreabilidade.
+- 04_APROVADOS_INGESTAO inicia vazio.
+- Nenhum conteúdo real deve ser publicado automaticamente.
+
+7. Gate seguinte
+A infraestrutura da Fase 3 pode processar os 50 registros do manifest, mas a publicação deve ocorrer somente após revisão humana. O único problema de organização confirmado no lote é “O evangelho eterno”, atualmente em Êxodo apesar do texto-base Gálatas 1:11–12.
