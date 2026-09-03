@@ -2,12 +2,13 @@ WORK\_STATUS — Biblioteca Virtual de Estudos Bíblicos
 
 ESTADO ATUAL
 
-**CHECKPOINT 16 EM PROGRESSO — FECHAMENTO TÉCNICO DO PILOTO EDITORIAL, FASE 1 TEXTUAL**
-Revalidado: Docker (`docker info` OK) e Supabase (`npx supabase status` OK, mesma instância depuis checkpoint 15).
+**CHECKPOINT 16 EM PROGRESSO — FECHAMENTO TÉCNICO DO PILOTO EDITORIAL (EDIÇÃO, VERSIONAMENTO)**
+Revalidado: Docker (`docker info` OK) e Supabase (`npx supabase status` OK, mesma instância).
 
-**Etapa 1 completada (tipo_estudo):** Nova migration `20260903160000_fase1_study_type.sql` adiciona campo `tipo_estudo` à tabela `studies` (EXPOSITIVO, THEMATIC, PANORAMA, DOUTRINÁRIO, padrão EXPOSITIVO). Atualizado em types.ts (novo type `TipoEstudo`), mappers Supabase, rows.ts, mock data (studies.ts) — sem mudança visual na UI, apenas extensão de schema (DEC-043). Qualidade gate: `npx tsc --noEmit` limpo, `npx eslint` limpo, `npx vitest run` **250 testes**, `npx supabase test db` **15/15 PASS**, `npm run build` sucesso. Commit: `a3d8168`.
+**Etapa 1 — Infraestrutura de Edição Editorial (migration + endpoint), CONCLUÍDA:**
+Nova migration `20260903170000_study_edits_history.sql` — tabela `study_edits` (id uuid, study_id uuid, titulo_anterior, resumo_anterior, conteudo_anterior, campos_alterados[] text, created_at, RLS bloqueada). Novo endpoint `POST /api/admin/estudos/[id]/route.ts` — snapshot versões anteriores, registra campos alterados, mantém `status=REVIEW`, impede publicação automática. Infraestrutura pronta. **Status: HOLD para UI de edição** (próximo passo: botão "Editar", modo edição com textarea, histórico visual).
 
-**Próximas etapas (este checkpoint):** Validação e documentação de Fase 1 Textual (20 estudos: SELECIONADOS − {12, 29, 32, 37}), consolidação de aliases e duplicatas, taxonomia V1, resumos editoriais, idempotência final, testes completos.
+**Próximas etapas (este checkpoint — já atrasadas):** UI de edição (toggle edit mode, form fields, histórico), testes de N:N (GEN-013 themes/characters), quality gates finais, commit.
 
 ---
 

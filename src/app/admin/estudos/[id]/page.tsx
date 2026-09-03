@@ -1,12 +1,13 @@
 /**
  * Pré-visualização Editorial — Detalhes do Estudo
  * Acesso: http://localhost:3000/admin/estudos/[id]
- * Mostra conteúdo integral de REVIEW/DRAFT
+ * Mostra conteúdo integral de REVIEW/DRAFT + modo edição
  */
 
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import EditStudyClient from "./EditStudyClient";
 
 interface Study {
   id: string;
@@ -224,36 +225,9 @@ export default async function AdminEstudoDetailPage({
               )}
             </div>
 
-            {/* Resumo */}
-            {study.resumo && (
-              <div className="mb-8 pb-8 border-b border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                  Resumo
-                </h3>
-                <p className="text-gray-700 leading-relaxed">
-                  {study.resumo}
-                </p>
-              </div>
-            )}
-
-            {/* Conteúdo Integral */}
-            <div>
-              <h3 className="text-base font-semibold text-gray-900 mb-4">
-                Estudo Completo
-              </h3>
-              {hasContent ? (
-                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                  <div className="prose prose-sm max-w-none text-gray-800 whitespace-pre-wrap leading-relaxed">
-                    {study.conteudo}
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <p className="text-amber-900 text-sm">
-                    ⚠️ Conteúdo integral ainda não disponível para este estudo.
-                  </p>
-                </div>
-              )}
+            {/* Modo Edição Editorial */}
+            <div className="mb-8 pb-8 border-b border-gray-200">
+              <EditStudyClient study={study} />
             </div>
 
             {/* Meta */}
