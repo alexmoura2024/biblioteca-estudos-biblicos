@@ -28,12 +28,15 @@ estudos por livro, capítulo, versículo, tema, personagem, série e
 palavra-chave, com uma futura camada de IA subordinada às fontes do
 acervo (nunca o contrário — ver DEC-005 em `docs/DECISIONS.md`).
 
-O projeto avança por marcos incrementais (`docs/ROADMAP.md`). O Marco 1
-(protótipo visual com dados mockados) e o Marco 1.1 (hardening
-arquitetural — busca desacoplada de `listPublished()`, parser de
-referências mais rigoroso, prova das relações N:N do domínio, fonte de
-verdade da documentação) estão concluídos — ver `docs/WORK_STATUS.md`
-para o estado exato e o próximo passo (Fase 2 — banco real).
+O projeto avança por marcos incrementais (`docs/ROADMAP.md`). Concluídos:
+Marco 1 (protótipo visual com dados mockados), Marco 1.1 (busca
+desacoplada de `listPublished()`, parser de referências mais rigoroso,
+prova das relações N:N do domínio, fonte de verdade da documentação) e
+Marco 1.2 (DTO `StudySummary` separado de `Study` completo, remoção de
+`listPublished()` da interface pública, validação canônica de limite de
+versículos por capítulo, política de segurança do Supabase registrada
+antes da conexão, README real). Ver `docs/WORK_STATUS.md` para o estado
+exato e o próximo passo (Fase 2 — banco real).
 
 ## 3. Regras de arquitetura (não violar sem registrar uma decisão)
 
@@ -57,9 +60,24 @@ para o estado exato e o próximo passo (Fase 2 — banco real).
   com strings de busca ambíguas. Da mesma forma, "últimos estudos" usa
   `listRecent(limit)`, não `listPublished()+sort+slice`.
 - **Referência bíblica estruturalmente impossível nunca é aceita**
-  (ex.: "João 999:999") — `parseReference` retorna `{ type: "invalid",
-  reason, ... }`; a UI mostra um aviso explícito, nunca "Referência
-  reconhecida: João 999:999" (DEC-014).
+  (ex.: "João 999:999", ou "João 3:37" — João 3 só tem 36 versículos) —
+  `parseReference` retorna `{ type: "invalid", reason, ... }`; a UI
+  mostra um aviso explícito, nunca "Referência reconhecida: João
+  999:999" (DEC-014, DEC-019). A tabela de limites de versículo
+  (`src/lib/data/bibleVerseLimits.ts`) é deliberadamente parcial e
+  versionada — nunca complete os ~1189 capítulos restantes de memória;
+  use uma fonte verificável (ver o comentário no arquivo).
+- **Listagens e resultados de busca usam `StudySummary`, nunca `Study`
+  completo** (DEC-017) — sem `conteudo` integral, `palavrasChave`,
+  `personagens` nem o array inteiro de `passagens`. Só
+  `getPublishedBySlug()` (a página de detalhe) devolve `Study` completo.
+- **Não existe `listPublished()`** (removido no Marco 1.2 — DEC-018).
+  Contagens usam `countPublishedStudies()` de cada repositório de
+  entidade (`TopicRepository`, `CharacterRepository`,
+  `SeriesRepository`); a lista de slugs para `generateStaticParams()`
+  usa `listPublishedSlugs()`. Se precisar de "todos os estudos
+  publicados" para algo novo, pare e pergunte se isso não devia ser uma
+  agregação/paginação dedicada em vez de carregar tudo.
 - **Um estudo pode ter múltiplas passagens, temas, personagens e
   séries** — não simplifique o modelo de dados para 1:1.
 - **Toda IA futura responde apenas com base em trechos recuperados do
@@ -74,6 +92,15 @@ para o estado exato e o próximo passo (Fase 2 — banco real).
   para o padrão a seguir se adicionar mais livros/aliases.
 - **Nenhum segredo no repositório.** Variáveis sensíveis vão em
   `.env.local` (nunca commitado); `.env.example` documenta o que existe.
+- **A Fase 2 (Supabase) segue a política de segurança já registrada em
+  DEC-020** antes de escrever qualquer migration: RLS obrigatória em
+  toda tabela pública, leitura anônima restrita a
+  `status='PUBLISHED' AND visibilidade='publico'` (inclusive nas
+  tabelas de relacionamento, via `EXISTS`/join — não só em `studies`),
+  nenhuma policy pública de `INSERT`/`UPDATE`/`DELETE`,
+  `SUPABASE_SERVICE_ROLE_KEY` só server-side, e as policies testadas
+  contra um projeto de staging antes de produção. Não conecte o
+  Supabase sem reler DEC-020 primeiro.
 - Qualquer mudança arquitetural relevante é registrada em
   `docs/DECISIONS.md` **antes ou junto** da implementação, não depois.
 
@@ -144,14 +171,15 @@ trabalho.
 
 ```
 docs/                        Especificação oficial do projeto (fonte da verdade — DEC-016; nunca o Drive)
-src/lib/types.ts             Modelo de domínio (espelha DATA_MODEL.md)
+src/lib/types.ts             Modelo de domínio (espelha DATA_MODEL.md) + StudySummary (DTO de listagem, DEC-017)
 src/lib/data/                Dados mockados (livros, temas, personagens, séries, estudos)
+src/lib/data/bibleVerseLimits.ts  Tabela parcial e documentada de limites de versículo por capítulo (DEC-019)
 src/lib/repositories/        Interfaces (incl. SearchRepository) + implementação mock (ponto de troca p/ Supabase)
 src/lib/search/normalize.ts       Normalização de texto (acentos, slugs, tokens)
 src/lib/search/referenceParser.ts Fase B: texto -> referência bíblica (ou "ambiguous"/"invalid"/"none")
 src/lib/search/queryParsing.ts    Ponte Fase A/B: texto livre -> SearchQuery estruturado
 src/lib/search/search.ts          Motor de busca puro (scoreStudy, matchesFilters, WEIGHTS) — usado por MockSearchRepository
-src/lib/supabase/client.ts   Stub não usado — só documenta o ponto de entrada da Fase 2
+src/lib/supabase/client.ts   Stub não usado — só documenta o ponto de entrada da Fase 2 (política de segurança: DEC-020)
 src/components/              Componentes de UI reutilizáveis
 src/app/                     Rotas (App Router)
 ```
