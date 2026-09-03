@@ -1,22 +1,11 @@
 import { getSupabaseClient } from "@/lib/supabase/client";
 import { assembleStudy, assembleStudySummary } from "@/lib/repositories/supabase/mappers";
-import type {
-  StudyCharacterJoinRow,
-  StudyPassageJoinRow,
-  StudyRow,
-  StudySeriesJoinRow,
-  StudyTopicJoinRow,
-} from "@/lib/repositories/supabase/rows";
+import { fetchCharacterJoins, fetchPassageJoins, fetchSeriesJoins, fetchTopicJoins } from "@/lib/repositories/supabase/relations";
+import type { StudyRow } from "@/lib/repositories/supabase/rows";
 import type { StudyRepository } from "@/lib/repositories/types";
 import type { StudySummary } from "@/lib/types";
 
 const STUDY_SUMMARY_COLUMNS = "id, titulo, slug, resumo, conteudo, status, visibilidade, autor, data_origem, palavras_chave, created_at, updated_at";
-
-const PASSAGE_JOIN_SELECT =
-  "study_id, tipo_relacao, prioridade, passages(id, book_id, capitulo, versiculo_inicio, versiculo_fim, referencia_normalizada, books(id, nome, abreviacao, slug, testamento, ordem_canonica, total_capitulos))";
-const TOPIC_JOIN_SELECT = "study_id, peso, topics(id, nome, slug, descricao)";
-const CHARACTER_JOIN_SELECT = "study_id, papel, characters(id, nome, slug, descricao)";
-const SERIES_JOIN_SELECT = "study_id, ordem, series(id, nome, slug, descricao)";
 
 /**
  * Implementação Supabase de `StudyRepository` (Fase 2, Etapa 8).
@@ -63,10 +52,10 @@ export class SupabaseStudyRepository implements StudyRepository {
 
     const study = studyRow as StudyRow;
     const [passages, topics, characters, series] = await Promise.all([
-      this.fetchPassageJoins([study.id]),
-      this.fetchTopicJoins([study.id]),
-      this.fetchCharacterJoins([study.id]),
-      this.fetchSeriesJoins([study.id]),
+      fetchPassageJoins([study.id]),
+      fetchTopicJoins([study.id]),
+      fetchCharacterJoins([study.id]),
+      fetchSeriesJoins([study.id]),
     ]);
 
     return assembleStudy(study, passages, topics, characters, series);
@@ -133,35 +122,11 @@ export class SupabaseStudyRepository implements StudyRepository {
 
   // ------------------------------------------------------------
   // Helpers privados — nenhum é parte do contrato StudyRepository.
+  // As consultas das quatro tabelas de junção vivem em
+  // src/lib/repositories/supabase/relations.ts (Fase 2, Etapa 11) —
+  // compartilhadas com SupabaseSearchRepository, que também precisa
+  // montar StudySummary a partir de um lote de ids.
   // ------------------------------------------------------------
-
-  private async fetchPassageJoins(studyIds: string[]): Promise<StudyPassageJoinRow[]> {
-    if (studyIds.length === 0) return [];
-    const { data, error } = await getSupabaseClient().from("study_passages").select(PASSAGE_JOIN_SELECT).in("study_id", studyIds);
-    if (error) throw new Error(`SupabaseStudyRepository (passages): ${error.message}`);
-    return (data ?? []) as unknown as StudyPassageJoinRow[];
-  }
-
-  private async fetchTopicJoins(studyIds: string[]): Promise<StudyTopicJoinRow[]> {
-    if (studyIds.length === 0) return [];
-    const { data, error } = await getSupabaseClient().from("study_topics").select(TOPIC_JOIN_SELECT).in("study_id", studyIds);
-    if (error) throw new Error(`SupabaseStudyRepository (topics): ${error.message}`);
-    return (data ?? []) as unknown as StudyTopicJoinRow[];
-  }
-
-  private async fetchCharacterJoins(studyIds: string[]): Promise<StudyCharacterJoinRow[]> {
-    if (studyIds.length === 0) return [];
-    const { data, error } = await getSupabaseClient().from("study_characters").select(CHARACTER_JOIN_SELECT).in("study_id", studyIds);
-    if (error) throw new Error(`SupabaseStudyRepository (characters): ${error.message}`);
-    return (data ?? []) as unknown as StudyCharacterJoinRow[];
-  }
-
-  private async fetchSeriesJoins(studyIds: string[]): Promise<StudySeriesJoinRow[]> {
-    if (studyIds.length === 0) return [];
-    const { data, error } = await getSupabaseClient().from("study_series").select(SERIES_JOIN_SELECT).in("study_id", studyIds);
-    if (error) throw new Error(`SupabaseStudyRepository (series): ${error.message}`);
-    return (data ?? []) as unknown as StudySeriesJoinRow[];
-  }
 
   /**
    * Busca os dados de `studyIds` e monta `StudySummary[]`, em quatro
@@ -181,9 +146,9 @@ export class SupabaseStudyRepository implements StudyRepository {
         .in("id", studyIds)
         .eq("status", "PUBLISHED")
         .eq("visibilidade", "publico"),
-      this.fetchPassageJoins(studyIds),
-      this.fetchTopicJoins(studyIds),
-      this.fetchSeriesJoins(studyIds),
+      fetchPassageJoins(studyIds),
+      fetchTopicJoins(studyIds),
+      fetchSeriesJoins(studyIds),
     ]);
     if (studiesResult.error) throw new Error(`SupabaseStudyRepository (studies): ${studiesResult.error.message}`);
 

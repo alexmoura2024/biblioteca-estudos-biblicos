@@ -37,14 +37,17 @@ Marco 1.2 (DTO `StudySummary` separado de `Study` completo, remoção de
 versículos por capítulo com cobertura completa dos 66 livros, política
 de segurança do Supabase registrada antes da conexão, README real).
 
-A Fase 2 (banco real Supabase/PostgreSQL) está com o lado TypeScript
-completo (schema, RLS, seed reproduzível, repositórios Supabase,
-testes) mas **não validada de ponta a ponta contra um Postgres real** —
-Docker não está disponível neste ambiente, então `supabase start`/
-`db reset`/`test db` nunca rodaram (DEC-024). Não declare a Fase 2
-concluída sem antes rodar essa validação; ver `docs/WORK_STATUS.md`
-("ESTADO DO BANCO" e "PENDÊNCIAS IMEDIATAS") para o estado exato e o
-próximo passo.
+A Fase 2 (banco real Supabase/PostgreSQL) está **concluída**: schema,
+RLS, seed reproduzível e os repositórios Supabase foram validados
+contra um Postgres real (migrations aplicando do zero, os 15 asserts
+pgTAP de RLS passando, e o site rodando de fato via `Supabase*Repository`
+com resultado equivalente ao Mock — ver `docs/WORK_STATUS.md`,
+checkpoint 10). Este ambiente específico (Claude Code) continua sem
+Docker (DEC-024) — a validação acima foi feita rodando os comandos numa
+máquina com Docker e conferindo o resultado; não presuma que esse
+bloqueio de ambiente sumiu só porque a fase foi concluída. Próximo
+passo: Fase 3 (piloto com um recorte do acervo real), ver
+`docs/WORK_STATUS.md` ("PENDÊNCIAS IMEDIATAS").
 
 ## 3. Regras de arquitetura (não violar sem registrar uma decisão)
 
@@ -216,7 +219,7 @@ src/lib/data/                Dados mockados (livros, temas, personagens, séries
 src/lib/data/bibleVerseLimits.ts  Tabela COMPLETA (66 livros) de limites de versículo por capítulo, fonte documentada (DEC-019)
 src/lib/repositories/        Interfaces (incl. SearchRepository) + implementação mock
 src/lib/repositories/index.ts     Seleção mock/Supabase por variável de ambiente (DEC-023) — ponto único de importação
-src/lib/repositories/supabase/    Implementação Supabase de cada repositório (rows.ts, mappers.ts, books/topics/characters/series/studies/search.ts)
+src/lib/repositories/supabase/    Implementação Supabase de cada repositório (rows.ts, mappers.ts, books/topics/characters/series/studies/search.ts, relations.ts — fetchPassageJoins/fetchTopicJoins/fetchCharacterJoins/fetchSeriesJoins compartilhadas entre studies.ts e search.ts, nunca duplicadas)
 src/lib/search/normalize.ts       Normalização de texto (acentos, slugs, tokens)
 src/lib/search/referenceParser.ts Fase B: texto -> referência bíblica (ou "ambiguous"/"invalid"/"none")
 src/lib/search/queryParsing.ts    Ponte Fase A/B: texto livre -> SearchQuery estruturado

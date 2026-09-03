@@ -30,9 +30,24 @@ const RPC_ROW = {
   total_count: 1,
 };
 
+/**
+ * A busca resolve referência principal/temas/séries numa segunda etapa,
+ * fora da RPC (Fase 2, Etapa 11 — ver comentário de SupabaseSearchRepository).
+ * Sempre que a RPC devolver ao menos 1 linha, o repositório também chama
+ * `.from("study_passages"/"study_topics"/"study_series")` — os testes que
+ * simulam RPC não-vazia precisam configurar essas três tabelas também,
+ * senão o mock (`testUtils.ts`) devolve o erro padrão de "tabela não
+ * configurada".
+ */
+const EMPTY_RELATION_TABLES = {
+  study_passages: { data: [], error: null },
+  study_topics: { data: [], error: null },
+  study_series: { data: [], error: null },
+};
+
 describe("SupabaseSearchRepository.search", () => {
   it("chama a RPC search_studies traduzindo SearchQuery para os parâmetros da função", async () => {
-    const client = createMockSupabaseClient({ rpc: { data: [RPC_ROW], error: null } });
+    const client = createMockSupabaseClient({ rpc: { data: [RPC_ROW], error: null }, tables: EMPTY_RELATION_TABLES });
     getSupabaseClientMock.mockReturnValue(client);
 
     await new SupabaseSearchRepository().search({
@@ -65,7 +80,7 @@ describe("SupabaseSearchRepository.search", () => {
   });
 
   it("mapeia as linhas da RPC para SearchOutcome (StudySummary + score) e extrai total de total_count", async () => {
-    getSupabaseClientMock.mockReturnValue(createMockSupabaseClient({ rpc: { data: [RPC_ROW], error: null } }));
+    getSupabaseClientMock.mockReturnValue(createMockSupabaseClient({ rpc: { data: [RPC_ROW], error: null }, tables: EMPTY_RELATION_TABLES }));
 
     const outcome = await new SupabaseSearchRepository().search({ texto: "novo nascimento" });
 
@@ -75,6 +90,48 @@ describe("SupabaseSearchRepository.search", () => {
     expect(outcome.items).toHaveLength(1);
     expect(outcome.items[0].score).toBe(1000);
     expect(outcome.items[0].study.slug).toBe("nicodemos-e-o-novo-nascimento");
+  });
+
+  it("resolve referenciaPrincipal/temas/series dos resultados numa segunda etapa (Etapa 11 — fechando a paridade com o Mock)", async () => {
+    const passageRow = {
+      study_id: "study-1",
+      tipo_relacao: "MAIN",
+      prioridade: 1,
+      passages: {
+        id: "passage-1",
+        book_id: "book-joao",
+        capitulo: 3,
+        versiculo_inicio: 1,
+        versiculo_fim: 21,
+        referencia_normalizada: "João 3:1-21",
+        books: JOAO,
+      },
+    };
+    const topicRow = { study_id: "study-1", peso: 2, topics: { id: "topic-fe", nome: "Fé", slug: "fe", descricao: "d" } };
+    const seriesRow = { study_id: "study-1", ordem: 1, series: { id: "serie-1", nome: "Fundamentos da Fé", slug: "fundamentos-da-fe", descricao: "d" } };
+
+    getSupabaseClientMock.mockReturnValue(
+      createMockSupabaseClient({
+        rpc: { data: [RPC_ROW], error: null },
+        tables: {
+          study_passages: { data: [passageRow], error: null },
+          study_topics: { data: [topicRow], error: null },
+          study_series: { data: [seriesRow], error: null },
+        },
+      }),
+    );
+
+    const outcome = await new SupabaseSearchRepository().search({ texto: "novo nascimento" });
+
+    expect(outcome.items[0].study.referenciaPrincipal).toEqual({
+      referenciaNormalizada: "João 3:1-21",
+      bookSlug: "joao",
+      capitulo: 3,
+    });
+    expect(outcome.items[0].study.temas).toEqual([{ topic: { id: "topic-fe", nome: "Fé", slug: "fe", descricao: "d" }, peso: 2 }]);
+    expect(outcome.items[0].study.series).toEqual([
+      { series: { id: "serie-1", nome: "Fundamentos da Fé", slug: "fundamentos-da-fe", descricao: "d" }, ordem: 1 },
+    ]);
   });
 
   it("total é 0 quando a RPC não devolve nenhuma linha", async () => {
