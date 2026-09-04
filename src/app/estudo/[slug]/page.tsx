@@ -83,7 +83,7 @@ export default async function StudyPage({ params }: StudyPageProps) {
 
       <div className="mt-8">
         {study.conteudo
-          .split(/\n{2,}/)
+          .split(/\n+/)
           .map((block) => block.trim())
           .filter(Boolean)
           .map((block, index) => {
