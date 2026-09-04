@@ -1,7 +1,7 @@
-﻿/**
- * PrÃ©-visualizaÃ§Ã£o Editorial â€” Listagem de Estudos
+/**
+ * Pré-visualização Editorial — Listagem de Estudos
  * Acesso: http://localhost:3000/admin/estudos
- * Mostra REVIEW + DRAFT para revisÃ£o editorial (nÃ£o pÃºblico)
+ * Mostra REVIEW + DRAFT para revisão editorial (não público)
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -16,24 +16,16 @@ interface Study {
 }
 
 async function getStudies() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  // O site público deve conseguir compilar sem Supabase configurado.
-  if (!supabaseUrl || !serviceRoleKey) {
-    return [];
-  }
-
-  // Área editorial: somente quando o ambiente administrativo estiver configurado.
+  // Usar service role para ler DRAFT/REVIEW
   const supabase = createClient(
-    supabaseUrl,
-    serviceRoleKey,
+    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+    process.env.SUPABASE_SERVICE_ROLE_KEY || "",
     { auth: { persistSession: false } }
   );
 
-  // Buscar estudos REAIS (nÃ£o mocks)
-  // Mocks sÃ£o do protÃ³tipo fase 2 (autor = "[Fase 2 - Prototipo]" ou similar)
-  // Reais tÃªm autor = "[Fase 1 - Lote 01]", "[IngestÃ£o...]" etc
+  // Buscar estudos REAIS (não mocks)
+  // Mocks são do protótipo fase 2 (autor = "[Fase 2 - Prototipo]" ou similar)
+  // Reais têm autor = "[Fase 1 - Lote 01]", "[Ingestão...]" etc
   const { data, error } = await supabase
     .from("studies")
     .select("id, titulo, slug, status, data_origem, autor")
@@ -58,20 +50,20 @@ export default async function AdminEstudosPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* CabeÃ§alho */}
+        {/* Cabeçalho */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            PrÃ©-visualizaÃ§Ã£o Editorial
+            Pré-visualização Editorial
           </h1>
           <p className="text-gray-600">
-            RevisÃ£o de estudos em REVIEW e DRAFT
+            Revisão de estudos em REVIEW e DRAFT
           </p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4 mb-8">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="text-sm text-blue-600 font-medium">Em RevisÃ£o</div>
+            <div className="text-sm text-blue-600 font-medium">Em Revisão</div>
             <div className="text-2xl font-bold text-blue-900">{reviewCount}</div>
           </div>
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
@@ -83,7 +75,7 @@ export default async function AdminEstudosPage() {
         {/* Listagem */}
         {studies.length === 0 ? (
           <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-            <p className="text-gray-600">Nenhum estudo em revisÃ£o no momento.</p>
+            <p className="text-gray-600">Nenhum estudo em revisão no momento.</p>
           </div>
         ) : (
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -91,7 +83,7 @@ export default async function AdminEstudosPage() {
               <thead className="bg-gray-100 border-b border-gray-200">
                 <tr>
                   <th className="text-left px-6 py-3 text-sm font-semibold text-gray-900">
-                    TÃ­tulo
+                    Título
                   </th>
                   <th className="text-left px-6 py-3 text-sm font-semibold text-gray-900">
                     Status
@@ -100,7 +92,7 @@ export default async function AdminEstudosPage() {
                     Data
                   </th>
                   <th className="text-center px-6 py-3 text-sm font-semibold text-gray-900">
-                    AÃ§Ã£o
+                    Ação
                   </th>
                 </tr>
               </thead>
@@ -149,11 +141,10 @@ export default async function AdminEstudosPage() {
         {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-500">
-            âš ï¸ Ãrea administrativa. REVIEW e DRAFT permanecem invisÃ­veis ao pÃºblico.
+            ⚠️ Área administrativa. REVIEW e DRAFT permanecem invisíveis ao público.
           </p>
         </div>
       </div>
     </div>
   );
 }
-
