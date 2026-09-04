@@ -1,7 +1,7 @@
 /**
- * PrÃ©-visualizaÃ§Ã£o Editorial â€” Detalhes do Estudo
+ * Pré-visualização Editorial — Detalhes do Estudo
  * Acesso: http://localhost:3000/admin/estudos/[id]
- * Mostra conteÃºdo integral de REVIEW/DRAFT + modo ediÃ§Ã£o
+ * Mostra conteúdo integral de REVIEW/DRAFT + modo edição
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -17,7 +17,7 @@ interface Study {
   status: "DRAFT" | "REVIEW" | "PUBLISHED" | "ARCHIVED";
   resumo: string;
   conteudo: string;
-  tipo_estudo: "EXPOSITIVO" | "THEMATIC" | "PANORAMA" | "DOUTRINÃRIO";
+  tipo_estudo: "EXPOSITIVO" | "THEMATIC" | "PANORAMA" | "DOUTRINÁRIO";
   data_origem: string;
   autor: string;
   palavras_chave: string[];
@@ -156,17 +156,17 @@ export default async function AdminEstudoDetailPage({
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-3xl mx-auto">
-        {/* CabeÃ§alho com voltar */}
+        {/* Cabeçalho com voltar */}
         <div className="mb-8">
           <Link
             href="/admin/estudos"
             className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium mb-4"
           >
-            â† Voltar aos estudos
+            ← Voltar aos estudos
           </Link>
 
           <div className="bg-white rounded-lg border border-gray-200 p-8">
-            {/* TÃ­tulo e Status */}
+            {/* Título e Status */}
             <div className="mb-6">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <h1 className="text-3xl font-bold text-gray-900 flex-1">
@@ -181,15 +181,15 @@ export default async function AdminEstudoDetailPage({
               <p className="text-gray-600 text-sm">
                 Criado em {new Date(study.data_origem).toLocaleDateString(
                   "pt-BR"
-                )} â€¢ Por {study.autor}
+                )} • Por {study.autor}
               </p>
             </div>
 
-            {/* ReferÃªncias Principais */}
+            {/* Referências Principais */}
             {passages.length > 0 && (
               <div className="mb-6 pb-6 border-b border-gray-200">
                 <h2 className="text-sm font-semibold text-gray-900 mb-3">
-                  ReferÃªncias BÃ­blicas
+                  Referências Bíblicas
                 </h2>
                 <div className="space-y-2">
                   {passages.map((p, i) => (
@@ -201,7 +201,7 @@ export default async function AdminEstudoDetailPage({
                         {p.tipo_relacao === "MAIN"
                           ? "Principal"
                           : p.tipo_relacao === "SECONDARY"
-                            ? "SecundÃ¡ria"
+                            ? "Secundária"
                             : "Citada"}
                       </span>
                       <span>{p.referencia_normalizada}</span>
@@ -221,7 +221,7 @@ export default async function AdminEstudoDetailPage({
                   <div className="space-y-1">
                     {topics.map((t, i) => (
                       <div key={i} className="text-sm text-gray-700">
-                        â€¢ {t.nome}
+                        • {t.nome}
                       </div>
                     ))}
                   </div>
@@ -235,7 +235,7 @@ export default async function AdminEstudoDetailPage({
                   <div className="space-y-1">
                     {characters.map((c, i) => (
                       <div key={i} className="text-sm text-gray-700">
-                        â€¢ {c.nome}
+                        • {c.nome}
                       </div>
                     ))}
                   </div>
@@ -243,7 +243,7 @@ export default async function AdminEstudoDetailPage({
               )}
             </div>
 
-            {/* Modo EdiÃ§Ã£o Editorial */}
+            {/* Modo Edição Editorial */}
             <div className="mb-8 pb-8 border-b border-gray-200">
               <EditStudyClient
                 study={study}
@@ -251,17 +251,12 @@ export default async function AdminEstudoDetailPage({
                 topics={topics}
                 characters={characters}
               />
-
-              <PublishStudyButton
-                studyId={study.id}
-                status={study.status}
-              />
             </div>
 
             {/* Meta */}
             <div className="mt-8 pt-8 border-t border-gray-200">
               <p className="text-xs text-gray-500">
-                ID: {study.id} â€¢ Slug: {study.slug}
+                ID: {study.id} • Slug: {study.slug}
               </p>
               {study.palavras_chave.length > 0 && (
                 <div className="mt-4">
@@ -287,8 +282,8 @@ export default async function AdminEstudoDetailPage({
         {/* Security Notice */}
         <div className="text-center">
           <p className="text-xs text-gray-500">
-            âš ï¸ Esta Ã© uma Ã¡rea administrativa. Este estudo ({study.status})
-            nÃ£o Ã© visÃ­vel publicamente.
+            ⚠️ Esta é uma área administrativa. Este estudo ({study.status})
+            não é visível publicamente.
           </p>
         </div>
       </div>
