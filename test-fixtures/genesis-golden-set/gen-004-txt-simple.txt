@@ -1,0 +1,19 @@
+Gênesis — Arquivo de Texto Simples
+=====================================
+
+Gênesis 1:1
+No princípio, criou Deus os céus e a terra.
+
+Gênesis 1:2
+E a terra era sem forma e vazia; e havia trevas sobre a face do abismo; e o Espírito de Deus se movia sobre a face das águas.
+
+Gênesis 1:3
+E disse Deus: Haja luz; e houve luz.
+
+Gênesis 1:4
+E viu Deus que era boa a luz; e fez Deus separação entre a luz e as trevas.
+
+Gênesis 1:5
+E chamou Deus à luz Dia; e às trevas chamou Noite. E foi a tarde e a manhã, o primeiro dia.
+
+Este arquivo contém conteúdo simples em formato texto plano, fácil de extrair.

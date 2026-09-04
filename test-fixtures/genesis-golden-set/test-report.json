@@ -1,0 +1,164 @@
+{
+  "timestamp": "2026-09-04T00:10:30.524Z",
+  "phase": "E",
+  "totalFiles": 9,
+  "processedFiles": 9,
+  "successCount": 8,
+  "holdCount": 1,
+  "errorCount": 0,
+  "processingTimeMs": 4346,
+  "criticalChecks": {
+    "total": 6,
+    "passed": 6,
+    "checks": [
+      {
+        "name": "GEN-041 (RTF mascarado como .doc)",
+        "passed": true
+      },
+      {
+        "name": "Arquivo pequeno rejeitado (<50 chars)",
+        "passed": true
+      },
+      {
+        "name": "Arquivo grande processado (>1MB)",
+        "passed": true
+      },
+      {
+        "name": "Tabela preservada em RTF",
+        "passed": true
+      },
+      {
+        "name": "Conteúdo 'Entra Bendito do Senhor' extraído",
+        "passed": true
+      },
+      {
+        "name": "Múltiplas referências detectadas",
+        "passed": true
+      }
+    ]
+  },
+  "results": [
+    {
+      "fileName": "gen-001-docx-modern.docx",
+      "declaredExtension": ".docx",
+      "detectedFormat": "DOCX",
+      "status": "SUCCESS",
+      "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+      "textCharacterCount": 4096,
+      "warnings": [
+        "ZIP header detected — DOCX format"
+      ],
+      "confidence": "CERTAIN",
+      "processingTimeMs": 4306
+    },
+    {
+      "fileName": "gen-002-rtf-pure.rtf",
+      "declaredExtension": ".rtf",
+      "detectedFormat": "RTF",
+      "status": "SUCCESS",
+      "extractionMethod": "REGEX_RTF",
+      "textCharacterCount": 409,
+      "warnings": [
+        "RTF header detected ({\\rtf)",
+        "Extração com regex — formatação pode estar parcialmente perdida"
+      ],
+      "confidence": "CERTAIN",
+      "processingTimeMs": 5
+    },
+    {
+      "fileName": "gen-003-rtf-masqueraded-as-doc.doc",
+      "declaredExtension": ".doc",
+      "detectedFormat": "RTF",
+      "status": "SUCCESS",
+      "extractionMethod": "REGEX_RTF",
+      "textCharacterCount": 409,
+      "warnings": [
+        "Arquivo .doc contém RTF — formato legado mascarado",
+        "Extração com regex — formatação pode estar parcialmente perdida"
+      ],
+      "confidence": "CERTAIN",
+      "processingTimeMs": 1
+    },
+    {
+      "fileName": "gen-004-txt-simple.txt",
+      "declaredExtension": ".txt",
+      "detectedFormat": "TXT",
+      "status": "SUCCESS",
+      "extractionMethod": "NATIVE_TXT",
+      "textCharacterCount": 592,
+      "warnings": [
+        "Interpretado como texto UTF-8"
+      ],
+      "confidence": "CERTAIN",
+      "processingTimeMs": 1
+    },
+    {
+      "fileName": "gen-005-doc-with-table.rtf",
+      "declaredExtension": ".rtf",
+      "detectedFormat": "RTF",
+      "status": "SUCCESS",
+      "extractionMethod": "REGEX_RTF",
+      "textCharacterCount": 384,
+      "warnings": [
+        "RTF header detected ({\\rtf)",
+        "Extração com regex — formatação pode estar parcialmente perdida"
+      ],
+      "confidence": "CERTAIN",
+      "processingTimeMs": 1
+    },
+    {
+      "fileName": "gen-006-small-file.txt",
+      "declaredExtension": ".txt",
+      "detectedFormat": "TXT",
+      "status": "HOLD_EMPTY",
+      "extractionMethod": "NATIVE_TXT",
+      "textCharacterCount": 11,
+      "warnings": [
+        "Interpretado como texto UTF-8",
+        "Arquivo muito curto (11 chars)"
+      ],
+      "confidence": "CERTAIN",
+      "processingTimeMs": 1
+    },
+    {
+      "fileName": "gen-007-large-file.txt",
+      "declaredExtension": ".txt",
+      "detectedFormat": "TXT",
+      "status": "SUCCESS",
+      "extractionMethod": "NATIVE_TXT",
+      "textCharacterCount": 1073297,
+      "warnings": [
+        "Interpretado como texto UTF-8"
+      ],
+      "confidence": "CERTAIN",
+      "processingTimeMs": 25
+    },
+    {
+      "fileName": "gen-008-blessed-content.rtf",
+      "declaredExtension": ".rtf",
+      "detectedFormat": "RTF",
+      "status": "SUCCESS",
+      "extractionMethod": "REGEX_RTF",
+      "textCharacterCount": 569,
+      "warnings": [
+        "RTF header detected ({\\rtf)",
+        "Extração com regex — formatação pode estar parcialmente perdida"
+      ],
+      "confidence": "CERTAIN",
+      "processingTimeMs": 1
+    },
+    {
+      "fileName": "gen-009-mixed-references.txt",
+      "declaredExtension": ".txt",
+      "detectedFormat": "TXT",
+      "status": "SUCCESS",
+      "extractionMethod": "NATIVE_TXT",
+      "textCharacterCount": 982,
+      "warnings": [
+        "Interpretado como texto UTF-8"
+      ],
+      "confidence": "CERTAIN",
+      "processingTimeMs": 1
+    }
+  ]
+}

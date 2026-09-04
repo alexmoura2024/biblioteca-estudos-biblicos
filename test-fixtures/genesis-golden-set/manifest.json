@@ -1,0 +1,69 @@
+{
+  "timestamp": "2026-09-04T00:09:55.210Z",
+  "phase": "D",
+  "description": "Golden Test Set para Genesis Extraction Engine V2",
+  "totalFiles": 9,
+  "files": [
+    {
+      "fileName": "gen-001-docx-modern.docx",
+      "relativePath": "gen-001-docx-modern.docx",
+      "sizeBytes": 4096,
+      "format": "DOCX"
+    },
+    {
+      "fileName": "gen-002-rtf-pure.rtf",
+      "relativePath": "gen-002-rtf-pure.rtf",
+      "sizeBytes": 638,
+      "format": "RTF"
+    },
+    {
+      "fileName": "gen-003-rtf-masqueraded-as-doc.doc",
+      "relativePath": "gen-003-rtf-masqueraded-as-doc.doc",
+      "sizeBytes": 638,
+      "format": "RTF"
+    },
+    {
+      "fileName": "gen-004-txt-simple.txt",
+      "relativePath": "gen-004-txt-simple.txt",
+      "sizeBytes": 612,
+      "format": "TXT"
+    },
+    {
+      "fileName": "gen-005-doc-with-table.rtf",
+      "relativePath": "gen-005-doc-with-table.rtf",
+      "sizeBytes": 695,
+      "format": "RTF"
+    },
+    {
+      "fileName": "gen-006-small-file.txt",
+      "relativePath": "gen-006-small-file.txt",
+      "sizeBytes": 12,
+      "format": "TXT"
+    },
+    {
+      "fileName": "gen-007-large-file.txt",
+      "relativePath": "gen-007-large-file.txt",
+      "sizeBytes": 1131202,
+      "format": "TXT"
+    },
+    {
+      "fileName": "gen-008-blessed-content.rtf",
+      "relativePath": "gen-008-blessed-content.rtf",
+      "sizeBytes": 660,
+      "format": "RTF"
+    },
+    {
+      "fileName": "gen-009-mixed-references.txt",
+      "relativePath": "gen-009-mixed-references.txt",
+      "sizeBytes": 1044,
+      "format": "TXT"
+    }
+  ],
+  "purpose": [
+    "Validar formato detection (DOCX/RTF/TXT/masqueraded formats)",
+    "Testar extraction com casos reais esperados",
+    "Verificar handling de edge cases (pequeno, grande, tabelas)",
+    "Confirmar fallback chain funciona corretamente",
+    "Preparar para Phase E (processar Gênesis real)"
+  ]
+}
