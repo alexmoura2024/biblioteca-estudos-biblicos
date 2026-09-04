@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 
@@ -89,15 +89,15 @@ export default function AdminPage() {
             <dt className="font-medium text-stone-700">
               Supabase de produção
             </dt>
-            <dd className="text-amber-700">Pendente de conexão</dd>
+            <dd className="text-emerald-700">Conectado ao Supabase</dd>
           </div>
         </dl>
       </div>
 
       <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-5">
         <p className="text-sm leading-6 text-amber-900">
-          A conexão com o banco real de produção será feita somente depois da
-          validação das políticas de segurança, RLS e fluxo editorial.
+          Banco de produção conectado. Estudos só ficam públicos quando estão
+          em PUBLISHED e com visibilidade publico, protegidos pelas políticas RLS.
         </p>
       </div>
     </div>
