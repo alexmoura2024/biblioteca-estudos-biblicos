@@ -1,0 +1,1037 @@
+{
+  "timestamp": "2026-09-04T00:40:50.586Z",
+  "phase": "G",
+  "corpus": "CANONICAL_GENESIS",
+  "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis",
+  "physical_files_total": 47,
+  "textual_files_processed": 40,
+  "presentations_ignored": 6,
+  "other_files": 1,
+  "success_count": 40,
+  "hold_count": 0,
+  "fail_count": 0,
+  "processing_time_ms": 35105,
+  "average_time_ms": 878,
+  "format_breakdown": {
+    "DOC_OLE": [
+      {
+        "fileName": "Gn 02 18-25 -  Princípios éticos para as irmãs.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 02 18-25 -  Princípios éticos para as irmãs.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 58702,
+        "sha256": "b6d49e6c155c4d82afa2e7b67f3265f3a16a164ca7640d97d2a13e491a896113",
+        "processingTimeMs": 1107,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 02 21-22 -  Concepção, Maturação e Nascimento da Igreja.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 02 21-22 -  Concepção, Maturação e Nascimento da Igreja.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 26470,
+        "sha256": "58496d8870e807d222c0645b4d9d948d9a88e7e462d63f57412f5ee64457a855",
+        "processingTimeMs": 886,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 09 01-04 - O pacto de Deus com Noé.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 09 01-04 - O pacto de Deus com Noé.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 27976,
+        "sha256": "556281add16d4193721ce67b1a48f1db66e30d359b646841b6f44e1ecc53d423",
+        "processingTimeMs": 881,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 10 08-10 - A torre de Babel.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 10 08-10 - A torre de Babel.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 32620,
+        "sha256": "070c6d36ea744f043ec73f890a256577a09c0b7ab9a460ef09b9728ef892bd40",
+        "processingTimeMs": 831,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 12 01 - Conflito Israel e  Palestina.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 12 01 - Conflito Israel e  Palestina.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 35654,
+        "sha256": "d32b721a9e57982885bc9a88a5a004be7d67e14ff21dc8ae39ea8447953d0881",
+        "processingTimeMs": 804,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 13 10  -  Ló.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 13 10  -  Ló.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 23920,
+        "sha256": "0bc4bd735fb46f33cd31bf80d927cab9d1f17dd1f43f4f2724841f650208e609",
+        "processingTimeMs": 828,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 14 12-16 - Os Guerreiros de Abraão.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 14 12-16 - Os Guerreiros de Abraão.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 26472,
+        "sha256": "371d70a37c0a1821725339fecae3fa0357da6fce6f7632d64820566f3a89a75f",
+        "processingTimeMs": 915,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 14 18 - 20 - O Dízimo.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 14 18 - 20 - O Dízimo.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 32608,
+        "sha256": "eb347ac424717b8301d1c3ca6c39bad342159e5fa6bea484aa9ded98fb5e639c",
+        "processingTimeMs": 852,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 19 17 - A Salvação de Ló.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 19 17 - A Salvação de Ló.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 22896,
+        "sha256": "83a6e955f601337f820baa35923e37f5c73c3b480301a379871e8092ddcda0d5",
+        "processingTimeMs": 853,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 19 17 - Escapa-te por tua vida.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 19 17 - Escapa-te por tua vida.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 20985,
+        "sha256": "44dbe4cbc433a0b8b2a79bba0ddad1204d75a372a6561c837b7bf938602f0b9a",
+        "processingTimeMs": 790,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 19 18-20 -  Fugindo para a vida.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 19 18-20 -  Fugindo para a vida.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 24046,
+        "sha256": "a61dcbb83e94532f21ac37109d6b02060ef9186886c020eb97c1e366d7291231",
+        "processingTimeMs": 799,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 24 01 - A constituição do lar.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 24 01 - A constituição do lar.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 31589,
+        "sha256": "2426d551ecb03b5e3376d470249a1809fb363c329b0936effbb24dc88f8e94d9",
+        "processingTimeMs": 835,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 24 12 - Labão.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 24 12 - Labão.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 68491,
+        "sha256": "b76116ce7b57e418b11235952f087824d3467c9a258b9a89539af20d04b02aec",
+        "processingTimeMs": 926,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 24.16 -  E a donzela era mui formosa.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 24.16 -  E a donzela era mui formosa.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 19952,
+        "sha256": "0174ea91cc01cbfdfc78613aa0adcca7bd9b8fa41e88d23437eaea307a38ea0d",
+        "processingTimeMs": 815,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 24.31 - Entra bendito do Senhor - Tópicos.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 24.31 - Entra bendito do Senhor - Tópicos.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 22005,
+        "sha256": "77c0a3f96e1fa7860753b53e7929257f14a2320caf603e072fc8147f25d56fdb",
+        "processingTimeMs": 860,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 24.31 - Entra bendito do Senhor(1).doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 24.31 - Entra bendito do Senhor(1).doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 28144,
+        "sha256": "b3605183dffc020311d28c1530c3017eb8ab1e5475ab13c9fe3779abd209425f",
+        "processingTimeMs": 996,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 24.31 - Entra bendito do Senhor(2).doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 24.31 - Entra bendito do Senhor(2).doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 34676,
+        "sha256": "20f1a8a1adde6c9a14ac948b8857266d36cace9248afbd8b0057b69088437597",
+        "processingTimeMs": 941,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 24.55-58 - O Espírito Santo.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 24.55-58 - O Espírito Santo.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 25082,
+        "sha256": "cb8ba7bb1a282d157fd9a1fdb2df3a2c7a63e2012fef5030e2e2a52fe4fd59d1",
+        "processingTimeMs": 835,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 27.26 - Beija-me meu filho.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 27.26 - Beija-me meu filho.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 27641,
+        "sha256": "ce4e25711a078c98fa3c6219652f1dad8f66f70f412c96eacc7684203d5b285c",
+        "processingTimeMs": 859,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 29.1-9 - Eis aqui Raquel.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 29.1-9 - Eis aqui Raquel.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 31720,
+        "sha256": "709a43266eeb6ec661177c727f3a8a0c2f1dd3bfb561d908b8eea27493673e9f",
+        "processingTimeMs": 778,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 29.15 - Declara-me qual o teu salário.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 29.15 - Declara-me qual o teu salário.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 27636,
+        "sha256": "0247c99b12cd8b331f3f5cf7ee1b9156af4275e717f5216ede6684e62e45abae",
+        "processingTimeMs": 658,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 30.37-38 -  Rebanhos de Jacó.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 30.37-38 -  Rebanhos de Jacó.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 87293,
+        "sha256": "df56369496dac8468691f3bf798abd75c1004d0c13a8d84de71f0de068ec2bc0",
+        "processingTimeMs": 846,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 32.1 - A luta de Jacó.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 32.1 - A luta de Jacó.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 25078,
+        "sha256": "ab2470395f8740ef724345f2d0c51045a67c46e4eaa2e9f97ff69a31a256a580",
+        "processingTimeMs": 793,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 32.22-28 - Israel.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 32.22-28 - Israel.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 46449,
+        "sha256": "4d2ca3ebc867dc7f870c1dfc689b0f8d180e1d10165c1d2cb7460e6d35ae70e6",
+        "processingTimeMs": 860,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 41.50-52 -  Manassés E Efraim.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 41.50-52 -  Manassés E Efraim.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 66355,
+        "sha256": "2114f9b13db0ef495155683a839f1ef4daf62f233cdd5c4452eac2346f6a3f7d",
+        "processingTimeMs": 965,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 41.50-52 -  Os dois filhos de José.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 41.50-52 -  Os dois filhos de José.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 24054,
+        "sha256": "c9d112800696151ab03551ca93d4ccae4429e96cc1d4511a6f01be3b32909179",
+        "processingTimeMs": 820,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 41.54-57 - A fome no Egito.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 41.54-57 - A fome no Egito.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 38808,
+        "sha256": "aa947636d4607c295675be219744164e58bbbe7b1f08bcea4fe4c2bc8f7bd7b8",
+        "processingTimeMs": 836,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 47.15-17 -  E acabando o dinheiro.doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 47.15-17 -  E acabando o dinheiro.doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 25082,
+        "sha256": "b5091031a053d2c8efb8887d8b7a7b15d9e83faa62641076129170e18f5dc361",
+        "processingTimeMs": 802,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gn 49.22-26 - A bênção de José .doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 49.22-26 - A bênção de José .doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "DOC_OLE",
+        "extractionMethod": "NATIVE_TXT_FALLBACK_TXT",
+        "status": "SUCCESS",
+        "textCharacterCount": 47924,
+        "sha256": "6a884248280adbaab5e4e1acc4ace7eb01864acd740a43e63e640f60bf209546",
+        "processingTimeMs": 888,
+        "fallbackUsed": true,
+        "warnings": [
+          "OLE Compound Document header — legacy DOC/Word format"
+        ],
+        "fileType": "TEXTUAL"
+      }
+    ],
+    "RTF": [
+      {
+        "fileName": "Gn 37 -  Obra Forma de Vida .doc",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gn 37 -  Obra Forma de Vida .doc",
+        "declaredExtension": ".doc",
+        "detectedFormat": "RTF",
+        "extractionMethod": "REGEX_RTF",
+        "status": "SUCCESS",
+        "textCharacterCount": 7378,
+        "sha256": "4f364bc1c217a6add44a832244fd2092ff70df0dee2a4ad6d40e7562651b718d",
+        "processingTimeMs": 939,
+        "fallbackUsed": false,
+        "warnings": [
+          "Arquivo .doc contém RTF — formato legado mascarado",
+          "Extração com regex — formatação pode estar parcialmente perdida"
+        ],
+        "fileType": "TEXTUAL"
+      }
+    ],
+    "DOCX": [
+      {
+        "fileName": "Gênesis 12 2 — Cronologia de Israel — histórico.docx",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gênesis 12 2 — Cronologia de Israel — histórico.docx",
+        "declaredExtension": ".docx",
+        "detectedFormat": "DOCX",
+        "extractionMethod": "MAMMOTH_DOCX",
+        "status": "SUCCESS",
+        "textCharacterCount": 13619,
+        "sha256": "7ba30b7c1e63f54b95a5f087503d7e72fe55875be6cc8d7cbc01b8615a4b3175",
+        "processingTimeMs": 1198,
+        "fallbackUsed": false,
+        "warnings": [
+          "ZIP header detected — DOCX format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gênesis 14 18–20 — Pão e Vinho.docx",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gênesis 14 18–20 — Pão e Vinho.docx",
+        "declaredExtension": ".docx",
+        "detectedFormat": "DOCX",
+        "extractionMethod": "MAMMOTH_DOCX",
+        "status": "SUCCESS",
+        "textCharacterCount": 7457,
+        "sha256": "596e2ca5af53e4a490547b6ce7e9622b77d61188ea12fad78ef6208c06ca25f6",
+        "processingTimeMs": 1064,
+        "fallbackUsed": false,
+        "warnings": [
+          "ZIP header detected — DOCX format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gênesis 2 24 — A Formação da Igreja.docx",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gênesis 2 24 — A Formação da Igreja.docx",
+        "declaredExtension": ".docx",
+        "detectedFormat": "DOCX",
+        "extractionMethod": "MAMMOTH_DOCX",
+        "status": "SUCCESS",
+        "textCharacterCount": 1792,
+        "sha256": "37c9e68e8cf101fea0f3f5899f5566df30102030e7bc52bd182e41378555a1d0",
+        "processingTimeMs": 849,
+        "fallbackUsed": false,
+        "warnings": [
+          "ZIP header detected — DOCX format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gênesis 2 7 — A Criação do Homem.docx",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gênesis 2 7 — A Criação do Homem.docx",
+        "declaredExtension": ".docx",
+        "detectedFormat": "DOCX",
+        "extractionMethod": "MAMMOTH_DOCX",
+        "status": "SUCCESS",
+        "textCharacterCount": 1604,
+        "sha256": "fb46e201375634156192bed023bb8b69cb92f5f0ebea16b45e682e3869174bb7",
+        "processingTimeMs": 794,
+        "fallbackUsed": false,
+        "warnings": [
+          "ZIP header detected — DOCX format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gênesis 21 14–19 — Agar.docx",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gênesis 21 14–19 — Agar.docx",
+        "declaredExtension": ".docx",
+        "detectedFormat": "DOCX",
+        "extractionMethod": "MAMMOTH_DOCX",
+        "status": "SUCCESS",
+        "textCharacterCount": 4378,
+        "sha256": "871fdbb59f9af816fa37b8268e48b337f29170c05400a1a0ff2bba5b9c606e98",
+        "processingTimeMs": 1028,
+        "fallbackUsed": false,
+        "warnings": [
+          "ZIP header detected — DOCX format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gênesis 32 10 — O Cajado.docx",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gênesis 32 10 — O Cajado.docx",
+        "declaredExtension": ".docx",
+        "detectedFormat": "DOCX",
+        "extractionMethod": "MAMMOTH_DOCX",
+        "status": "SUCCESS",
+        "textCharacterCount": 1655,
+        "sha256": "83dab7ef17efc66fea79bd0900adaae8eba358827ceebc094e5f010156838549",
+        "processingTimeMs": 851,
+        "fallbackUsed": false,
+        "warnings": [
+          "ZIP header detected — DOCX format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gênesis 32 22–31 — Madrugada.docx",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gênesis 32 22–31 — Madrugada.docx",
+        "declaredExtension": ".docx",
+        "detectedFormat": "DOCX",
+        "extractionMethod": "MAMMOTH_DOCX",
+        "status": "SUCCESS",
+        "textCharacterCount": 2816,
+        "sha256": "f051952f0a6b7728b02c1fbf4135e30fd2c8008dfc8e5a4c37ad431800dc9a73",
+        "processingTimeMs": 842,
+        "fallbackUsed": false,
+        "warnings": [
+          "ZIP header detected — DOCX format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gênesis 4 21–22 — Instrumentistas.docx",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gênesis 4 21–22 — Instrumentistas.docx",
+        "declaredExtension": ".docx",
+        "detectedFormat": "DOCX",
+        "extractionMethod": "MAMMOTH_DOCX",
+        "status": "SUCCESS",
+        "textCharacterCount": 3408,
+        "sha256": "dec10d96d90e04bed83e5e4d5e43da4e3a8beb7c3d23ad8f34cf66877404c96b",
+        "processingTimeMs": 831,
+        "fallbackUsed": false,
+        "warnings": [
+          "ZIP header detected — DOCX format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Gênesis 6 13–15 — O Fim de Toda Carne.docx",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Gênesis 6 13–15 — O Fim de Toda Carne.docx",
+        "declaredExtension": ".docx",
+        "detectedFormat": "DOCX",
+        "extractionMethod": "MAMMOTH_DOCX",
+        "status": "SUCCESS",
+        "textCharacterCount": 2201,
+        "sha256": "9c8ca4c693e412e4d822dcc7df79e169b845791ea7c5ad72ab174392bab18b81",
+        "processingTimeMs": 839,
+        "fallbackUsed": false,
+        "warnings": [
+          "ZIP header detected — DOCX format"
+        ],
+        "fileType": "TEXTUAL"
+      },
+      {
+        "fileName": "Isaque e Rebeca.docx",
+        "filePath": "G:\\Meu Drive\\Mensagens por livro\\01 - Antigo Testamento\\01 - Gênesis\\Isaque e Rebeca.docx",
+        "declaredExtension": ".docx",
+        "detectedFormat": "DOCX",
+        "extractionMethod": "MAMMOTH_DOCX",
+        "status": "SUCCESS",
+        "textCharacterCount": 3671,
+        "sha256": "b4794ed58762c3568f70a1f0e7db601f2550436ead1dba38111bfe8b9f0e58f6",
+        "processingTimeMs": 1000,
+        "fallbackUsed": false,
+        "warnings": [
+          "ZIP header detected — DOCX format"
+        ],
+        "fileType": "TEXTUAL"
+      }
+    ]
+  },
+  "critical_files": {
+    "gen041_found": true,
+    "gen041_detected_as_rtf": true,
+    "gen041_status": "SUCCESS",
+    "entra_bendito_count": 3
+  },
+  "integrity": {
+    "missing_files": 0,
+    "duplicate_files": 0,
+    "all_accounted": true
+  },
+  "results": [
+    {
+      "file": "Gn 02 18-25 -  Princípios éticos para as irmãs.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 58702,
+      "fallback": true,
+      "sha256": "b6d49e6c155c4d82afa2e7b67f3265f3a16a164ca7640d97d2a13e491a896113"
+    },
+    {
+      "file": "Gn 02 21-22 -  Concepção, Maturação e Nascimento da Igreja.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 26470,
+      "fallback": true,
+      "sha256": "58496d8870e807d222c0645b4d9d948d9a88e7e462d63f57412f5ee64457a855"
+    },
+    {
+      "file": "Gn 09 01-04 - O pacto de Deus com Noé.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 27976,
+      "fallback": true,
+      "sha256": "556281add16d4193721ce67b1a48f1db66e30d359b646841b6f44e1ecc53d423"
+    },
+    {
+      "file": "Gn 10 08-10 - A torre de Babel.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 32620,
+      "fallback": true,
+      "sha256": "070c6d36ea744f043ec73f890a256577a09c0b7ab9a460ef09b9728ef892bd40"
+    },
+    {
+      "file": "Gn 12 01 - Conflito Israel e  Palestina.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 35654,
+      "fallback": true,
+      "sha256": "d32b721a9e57982885bc9a88a5a004be7d67e14ff21dc8ae39ea8447953d0881"
+    },
+    {
+      "file": "Gn 13 10  -  Ló.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 23920,
+      "fallback": true,
+      "sha256": "0bc4bd735fb46f33cd31bf80d927cab9d1f17dd1f43f4f2724841f650208e609"
+    },
+    {
+      "file": "Gn 14 12-16 - Os Guerreiros de Abraão.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 26472,
+      "fallback": true,
+      "sha256": "371d70a37c0a1821725339fecae3fa0357da6fce6f7632d64820566f3a89a75f"
+    },
+    {
+      "file": "Gn 14 18 - 20 - O Dízimo.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 32608,
+      "fallback": true,
+      "sha256": "eb347ac424717b8301d1c3ca6c39bad342159e5fa6bea484aa9ded98fb5e639c"
+    },
+    {
+      "file": "Gn 19 17 - A Salvação de Ló.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 22896,
+      "fallback": true,
+      "sha256": "83a6e955f601337f820baa35923e37f5c73c3b480301a379871e8092ddcda0d5"
+    },
+    {
+      "file": "Gn 19 17 - Escapa-te por tua vida.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 20985,
+      "fallback": true,
+      "sha256": "44dbe4cbc433a0b8b2a79bba0ddad1204d75a372a6561c837b7bf938602f0b9a"
+    },
+    {
+      "file": "Gn 19 18-20 -  Fugindo para a vida.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 24046,
+      "fallback": true,
+      "sha256": "a61dcbb83e94532f21ac37109d6b02060ef9186886c020eb97c1e366d7291231"
+    },
+    {
+      "file": "Gn 24 01 - A constituição do lar.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 31589,
+      "fallback": true,
+      "sha256": "2426d551ecb03b5e3376d470249a1809fb363c329b0936effbb24dc88f8e94d9"
+    },
+    {
+      "file": "Gn 24 12 - Labão.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 68491,
+      "fallback": true,
+      "sha256": "b76116ce7b57e418b11235952f087824d3467c9a258b9a89539af20d04b02aec"
+    },
+    {
+      "file": "Gn 24.16 -  E a donzela era mui formosa.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 19952,
+      "fallback": true,
+      "sha256": "0174ea91cc01cbfdfc78613aa0adcca7bd9b8fa41e88d23437eaea307a38ea0d"
+    },
+    {
+      "file": "Gn 24.31 - Entra bendito do Senhor - Tópicos.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 22005,
+      "fallback": true,
+      "sha256": "77c0a3f96e1fa7860753b53e7929257f14a2320caf603e072fc8147f25d56fdb"
+    },
+    {
+      "file": "Gn 24.31 - Entra bendito do Senhor(1).doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 28144,
+      "fallback": true,
+      "sha256": "b3605183dffc020311d28c1530c3017eb8ab1e5475ab13c9fe3779abd209425f"
+    },
+    {
+      "file": "Gn 24.31 - Entra bendito do Senhor(2).doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 34676,
+      "fallback": true,
+      "sha256": "20f1a8a1adde6c9a14ac948b8857266d36cace9248afbd8b0057b69088437597"
+    },
+    {
+      "file": "Gn 24.55-58 - O Espírito Santo.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 25082,
+      "fallback": true,
+      "sha256": "cb8ba7bb1a282d157fd9a1fdb2df3a2c7a63e2012fef5030e2e2a52fe4fd59d1"
+    },
+    {
+      "file": "Gn 27.26 - Beija-me meu filho.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 27641,
+      "fallback": true,
+      "sha256": "ce4e25711a078c98fa3c6219652f1dad8f66f70f412c96eacc7684203d5b285c"
+    },
+    {
+      "file": "Gn 29.1-9 - Eis aqui Raquel.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 31720,
+      "fallback": true,
+      "sha256": "709a43266eeb6ec661177c727f3a8a0c2f1dd3bfb561d908b8eea27493673e9f"
+    },
+    {
+      "file": "Gn 29.15 - Declara-me qual o teu salário.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 27636,
+      "fallback": true,
+      "sha256": "0247c99b12cd8b331f3f5cf7ee1b9156af4275e717f5216ede6684e62e45abae"
+    },
+    {
+      "file": "Gn 30.37-38 -  Rebanhos de Jacó.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 87293,
+      "fallback": true,
+      "sha256": "df56369496dac8468691f3bf798abd75c1004d0c13a8d84de71f0de068ec2bc0"
+    },
+    {
+      "file": "Gn 32.1 - A luta de Jacó.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 25078,
+      "fallback": true,
+      "sha256": "ab2470395f8740ef724345f2d0c51045a67c46e4eaa2e9f97ff69a31a256a580"
+    },
+    {
+      "file": "Gn 32.22-28 - Israel.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 46449,
+      "fallback": true,
+      "sha256": "4d2ca3ebc867dc7f870c1dfc689b0f8d180e1d10165c1d2cb7460e6d35ae70e6"
+    },
+    {
+      "file": "Gn 37 -  Obra Forma de Vida .doc",
+      "format": "RTF",
+      "method": "REGEX_RTF",
+      "status": "SUCCESS",
+      "chars": 7378,
+      "fallback": false,
+      "sha256": "4f364bc1c217a6add44a832244fd2092ff70df0dee2a4ad6d40e7562651b718d"
+    },
+    {
+      "file": "Gn 41.50-52 -  Manassés E Efraim.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 66355,
+      "fallback": true,
+      "sha256": "2114f9b13db0ef495155683a839f1ef4daf62f233cdd5c4452eac2346f6a3f7d"
+    },
+    {
+      "file": "Gn 41.50-52 -  Os dois filhos de José.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 24054,
+      "fallback": true,
+      "sha256": "c9d112800696151ab03551ca93d4ccae4429e96cc1d4511a6f01be3b32909179"
+    },
+    {
+      "file": "Gn 41.54-57 - A fome no Egito.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 38808,
+      "fallback": true,
+      "sha256": "aa947636d4607c295675be219744164e58bbbe7b1f08bcea4fe4c2bc8f7bd7b8"
+    },
+    {
+      "file": "Gn 47.15-17 -  E acabando o dinheiro.doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 25082,
+      "fallback": true,
+      "sha256": "b5091031a053d2c8efb8887d8b7a7b15d9e83faa62641076129170e18f5dc361"
+    },
+    {
+      "file": "Gn 49.22-26 - A bênção de José .doc",
+      "format": "DOC_OLE",
+      "method": "NATIVE_TXT_FALLBACK_TXT",
+      "status": "SUCCESS",
+      "chars": 47924,
+      "fallback": true,
+      "sha256": "6a884248280adbaab5e4e1acc4ace7eb01864acd740a43e63e640f60bf209546"
+    },
+    {
+      "file": "Gênesis 12 2 — Cronologia de Israel — histórico.docx",
+      "format": "DOCX",
+      "method": "MAMMOTH_DOCX",
+      "status": "SUCCESS",
+      "chars": 13619,
+      "fallback": false,
+      "sha256": "7ba30b7c1e63f54b95a5f087503d7e72fe55875be6cc8d7cbc01b8615a4b3175"
+    },
+    {
+      "file": "Gênesis 14 18–20 — Pão e Vinho.docx",
+      "format": "DOCX",
+      "method": "MAMMOTH_DOCX",
+      "status": "SUCCESS",
+      "chars": 7457,
+      "fallback": false,
+      "sha256": "596e2ca5af53e4a490547b6ce7e9622b77d61188ea12fad78ef6208c06ca25f6"
+    },
+    {
+      "file": "Gênesis 2 24 — A Formação da Igreja.docx",
+      "format": "DOCX",
+      "method": "MAMMOTH_DOCX",
+      "status": "SUCCESS",
+      "chars": 1792,
+      "fallback": false,
+      "sha256": "37c9e68e8cf101fea0f3f5899f5566df30102030e7bc52bd182e41378555a1d0"
+    },
+    {
+      "file": "Gênesis 2 7 — A Criação do Homem.docx",
+      "format": "DOCX",
+      "method": "MAMMOTH_DOCX",
+      "status": "SUCCESS",
+      "chars": 1604,
+      "fallback": false,
+      "sha256": "fb46e201375634156192bed023bb8b69cb92f5f0ebea16b45e682e3869174bb7"
+    },
+    {
+      "file": "Gênesis 21 14–19 — Agar.docx",
+      "format": "DOCX",
+      "method": "MAMMOTH_DOCX",
+      "status": "SUCCESS",
+      "chars": 4378,
+      "fallback": false,
+      "sha256": "871fdbb59f9af816fa37b8268e48b337f29170c05400a1a0ff2bba5b9c606e98"
+    },
+    {
+      "file": "Gênesis 32 10 — O Cajado.docx",
+      "format": "DOCX",
+      "method": "MAMMOTH_DOCX",
+      "status": "SUCCESS",
+      "chars": 1655,
+      "fallback": false,
+      "sha256": "83dab7ef17efc66fea79bd0900adaae8eba358827ceebc094e5f010156838549"
+    },
+    {
+      "file": "Gênesis 32 22–31 — Madrugada.docx",
+      "format": "DOCX",
+      "method": "MAMMOTH_DOCX",
+      "status": "SUCCESS",
+      "chars": 2816,
+      "fallback": false,
+      "sha256": "f051952f0a6b7728b02c1fbf4135e30fd2c8008dfc8e5a4c37ad431800dc9a73"
+    },
+    {
+      "file": "Gênesis 4 21–22 — Instrumentistas.docx",
+      "format": "DOCX",
+      "method": "MAMMOTH_DOCX",
+      "status": "SUCCESS",
+      "chars": 3408,
+      "fallback": false,
+      "sha256": "dec10d96d90e04bed83e5e4d5e43da4e3a8beb7c3d23ad8f34cf66877404c96b"
+    },
+    {
+      "file": "Gênesis 6 13–15 — O Fim de Toda Carne.docx",
+      "format": "DOCX",
+      "method": "MAMMOTH_DOCX",
+      "status": "SUCCESS",
+      "chars": 2201,
+      "fallback": false,
+      "sha256": "9c8ca4c693e412e4d822dcc7df79e169b845791ea7c5ad72ab174392bab18b81"
+    },
+    {
+      "file": "Isaque e Rebeca.docx",
+      "format": "DOCX",
+      "method": "MAMMOTH_DOCX",
+      "status": "SUCCESS",
+      "chars": 3671,
+      "fallback": false,
+      "sha256": "b4794ed58762c3568f70a1f0e7db601f2550436ead1dba38111bfe8b9f0e58f6"
+    }
+  ]
+}
