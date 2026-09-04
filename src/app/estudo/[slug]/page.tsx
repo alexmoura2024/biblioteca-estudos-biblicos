@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Badge } from "@/components/Badge";
 import { studyRepository } from "@/lib/repositories";
@@ -82,41 +83,78 @@ export default async function StudyPage({ params }: StudyPageProps) {
       </p>
 
       <div className="mt-8">
-        {study.conteudo
-          .split(/\n+/)
-          .map((block) => block.trim())
-          .filter(Boolean)
-          .map((block, index) => {
-            const sectionTitle = [
-              "Introdução",
-              "Desenvolvimento",
-              "Conclusão",
-            ].find(
-              (title) =>
-                title.toLocaleLowerCase("pt-BR") ===
-                block.toLocaleLowerCase("pt-BR")
-            );
-
-            if (sectionTitle) {
-              return (
-                <h2
-                  key={`${sectionTitle}-${index}`}
-                  className="mt-8 font-serif text-xl font-bold text-stone-900 first:mt-0"
-                >
-                  {sectionTitle}
-                </h2>
-              );
-            }
-
-            return (
-              <p
-                key={index}
-                className="mt-4 whitespace-pre-line leading-7 text-stone-800 [text-align:justify] first:mt-0"
-              >
-                {block}
+        <ReactMarkdown
+          components={{
+            h1: ({ children }) => (
+              <h2 className="mt-10 font-serif text-2xl font-bold text-stone-900 first:mt-0">
+                {children}
+              </h2>
+            ),
+            h2: ({ children }) => (
+              <h2 className="mt-10 font-serif text-2xl font-bold text-stone-900 first:mt-0">
+                {children}
+              </h2>
+            ),
+            h3: ({ children }) => (
+              <h3 className="mt-8 font-serif text-xl font-bold text-stone-900">
+                {children}
+              </h3>
+            ),
+            h4: ({ children }) => (
+              <h4 className="mt-6 text-lg font-semibold text-stone-900">
+                {children}
+              </h4>
+            ),
+            p: ({ children }) => (
+              <p className="mt-4 leading-7 text-stone-800 [text-align:justify] first:mt-0">
+                {children}
               </p>
-            );
-          })}
+            ),
+            strong: ({ children }) => (
+              <strong className="font-bold text-stone-950">
+                {children}
+              </strong>
+            ),
+            em: ({ children }) => (
+              <em className="italic">
+                {children}
+              </em>
+            ),
+            blockquote: ({ children }) => (
+              <blockquote className="my-6 border-l-4 border-amber-600 bg-amber-50 px-5 py-3 italic text-stone-700">
+                {children}
+              </blockquote>
+            ),
+            ul: ({ children }) => (
+              <ul className="my-4 list-disc space-y-2 pl-7 text-stone-800">
+                {children}
+              </ul>
+            ),
+            ol: ({ children }) => (
+              <ol className="my-4 list-decimal space-y-2 pl-7 text-stone-800">
+                {children}
+              </ol>
+            ),
+            li: ({ children }) => (
+              <li className="leading-7">
+                {children}
+              </li>
+            ),
+            hr: () => (
+              <hr className="my-8 border-stone-300" />
+            ),
+            a: ({ href, children }) => (
+              <a
+                href={href}
+                className="font-medium text-amber-700 underline hover:text-amber-900"
+              >
+                {children}
+              </a>
+            ),
+          }}
+        >
+          {study.conteudo}
+        </ReactMarkdown>
       </div>
 
       {study.palavrasChave.length > 0 && (
