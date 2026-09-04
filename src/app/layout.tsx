@@ -5,6 +5,9 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { siteConfig } from "@/lib/site";
 
+export const revalidate = 60;
+
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

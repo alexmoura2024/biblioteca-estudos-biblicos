@@ -30,7 +30,7 @@ export class SupabaseStudyRepository implements StudyRepository {
       .select("id")
       .eq("status", "PUBLISHED")
       .eq("visibilidade", "publico")
-      .order("data_origem", { ascending: false })
+      .order("updated_at", { ascending: false })
       .limit(limit);
     if (error) throw new Error(`SupabaseStudyRepository.listRecent: ${error.message}`);
 
