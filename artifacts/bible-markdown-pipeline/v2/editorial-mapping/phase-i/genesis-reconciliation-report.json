@@ -1,515 +1,691 @@
 {
   "phase": "I",
-  "timestamp": "2026-09-04T01:03:06.304Z",
-  "source_files_total": 40,
-  "editorial_units_total": 38,
-  "reconciliations": [
-    {
-      "editorial_unit_id": "GEN-EDU-001",
-      "proposed_title": "Obra como Forma de Vida",
-      "source_ids": [
-        "GEN-SRC-025"
-      ],
-      "classification": "DEFERRED_EDITORIAL",
-      "confidence": 0.95,
-      "match_method": "GEN041_EXTRACTION_VERIFIED",
-      "warnings": [
-        "RTF extraction verified (Phase G PASS)",
-        "Editorial status requires official review",
-        "Keep independent, do not consolidate with other units"
-      ]
+  "stage": 2,
+  "checkpoint": "8310f29_stage2",
+  "timestamp": "2026-09-04T01:23:19.130Z",
+  "mode": "READ_ONLY",
+  "database_integrity": {
+    "db_before_count": 29,
+    "db_before_ids": [
+      "03295230-2e47-4f33-a03d-492e81634e82",
+      "03468b82-465f-4c49-9db4-51ef6ed33a8b",
+      "2b8b9dd1-7c54-4c5b-9ef7-d0a58227c481",
+      "317323ec-3b88-4ff5-8308-0624eeb45fa8",
+      "4933dfca-458a-4b9d-9a5d-8ebac530282e",
+      "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+      "53e9ff24-44c6-4a94-a675-214f2d7be7ac",
+      "53faa3f9-4c10-4d2a-a2a2-fed90273afb1",
+      "6100da60-c116-4fae-b536-2c08d1e1045e",
+      "625a38ab-b0ac-42d1-861d-cbab373c6f95",
+      "66ab4bd0-892a-40f6-9215-e44184bc048b",
+      "68cc705f-ea05-473f-bb1e-527defa80895",
+      "71128b87-9279-4e27-9f33-1389f661dbcc",
+      "7563e306-c02c-4c1b-af26-467f798af48f",
+      "9f56a4f9-98aa-4ff3-87bd-33fa0897f081",
+      "a8856881-a8cf-4c28-88dd-ba4883cac38a",
+      "ae31e647-8e8b-4d08-8816-f4d0c081618e",
+      "b24d19bc-9c94-4e13-a35d-8edca33bf4f9",
+      "be224c3b-f703-4829-bc76-f28aafff00c4",
+      "c0ee0caf-4fe2-4ac8-940e-d27eff506dad",
+      "d08bb25b-e64f-4c4c-8aa3-79c3bcffc30b",
+      "d56e2587-4db6-49c8-9c52-aa4a9d946441",
+      "d70fb738-a233-4c53-8c0a-7506098c9f59",
+      "da10e160-1190-4a87-be5e-22c0c7a300a7",
+      "dfa8cdfa-170b-4357-8b60-5d2c14983aa4",
+      "e21a2153-17df-448a-8578-d8dd2378fb35",
+      "f2934c6b-b9b4-4245-8984-805cd2730f29",
+      "f6c0ec9c-ad1d-4daf-a1fd-5a9eb172c31f",
+      "fa86c5fc-70a3-4a7b-b213-4f49c419e1c3"
+    ],
+    "db_before_statuses": {
+      "REVIEW": 29
     },
-    {
-      "editorial_unit_id": "GEN-EDU-002",
-      "proposed_title": "Entra, Bendito do Senhor",
-      "source_ids": [
-        "GEN-SRC-015",
-        "GEN-SRC-016",
-        "GEN-SRC-017"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "match_method": "MULTI_SOURCE_ANALYSIS_REQUIRED",
-      "warnings": [
-        "3 sources with similar titles",
-        "Relationship unclear: version, duplicate, or complementary?",
-        "Requires editorial review to determine single or multiple studies",
-        "Do not consolidate without explicit editorial decision"
-      ]
+    "db_after_count": 29,
+    "db_after_ids": [
+      "03295230-2e47-4f33-a03d-492e81634e82",
+      "03468b82-465f-4c49-9db4-51ef6ed33a8b",
+      "2b8b9dd1-7c54-4c5b-9ef7-d0a58227c481",
+      "317323ec-3b88-4ff5-8308-0624eeb45fa8",
+      "4933dfca-458a-4b9d-9a5d-8ebac530282e",
+      "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+      "53e9ff24-44c6-4a94-a675-214f2d7be7ac",
+      "53faa3f9-4c10-4d2a-a2a2-fed90273afb1",
+      "6100da60-c116-4fae-b536-2c08d1e1045e",
+      "625a38ab-b0ac-42d1-861d-cbab373c6f95",
+      "66ab4bd0-892a-40f6-9215-e44184bc048b",
+      "68cc705f-ea05-473f-bb1e-527defa80895",
+      "71128b87-9279-4e27-9f33-1389f661dbcc",
+      "7563e306-c02c-4c1b-af26-467f798af48f",
+      "9f56a4f9-98aa-4ff3-87bd-33fa0897f081",
+      "a8856881-a8cf-4c28-88dd-ba4883cac38a",
+      "ae31e647-8e8b-4d08-8816-f4d0c081618e",
+      "b24d19bc-9c94-4e13-a35d-8edca33bf4f9",
+      "be224c3b-f703-4829-bc76-f28aafff00c4",
+      "c0ee0caf-4fe2-4ac8-940e-d27eff506dad",
+      "d08bb25b-e64f-4c4c-8aa3-79c3bcffc30b",
+      "d56e2587-4db6-49c8-9c52-aa4a9d946441",
+      "d70fb738-a233-4c53-8c0a-7506098c9f59",
+      "da10e160-1190-4a87-be5e-22c0c7a300a7",
+      "dfa8cdfa-170b-4357-8b60-5d2c14983aa4",
+      "e21a2153-17df-448a-8578-d8dd2378fb35",
+      "f2934c6b-b9b4-4245-8984-805cd2730f29",
+      "f6c0ec9c-ad1d-4daf-a1fd-5a9eb172c31f",
+      "fa86c5fc-70a3-4a7b-b213-4f49c419e1c3"
+    ],
+    "db_after_statuses": {
+      "REVIEW": 29
     },
-    {
-      "editorial_unit_id": "GEN-EDU-003",
-      "proposed_title": "25 -  Princípios éticos para as irmãs",
-      "source_ids": [
-        "GEN-SRC-001"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-004",
-      "proposed_title": "22 -  Concepção, Maturação e Nascimento da Igreja",
-      "source_ids": [
-        "GEN-SRC-002"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-005",
-      "proposed_title": "04 - O pacto de Deus com Noé",
-      "source_ids": [
-        "GEN-SRC-003"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-006",
-      "proposed_title": "10 - A torre de Babel",
-      "source_ids": [
-        "GEN-SRC-004"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-007",
-      "proposed_title": "Conflito Israel e  Palestina",
-      "source_ids": [
-        "GEN-SRC-005"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-008",
-      "proposed_title": "Ló",
-      "source_ids": [
-        "GEN-SRC-006"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-009",
-      "proposed_title": "16 - Os Guerreiros de Abraão",
-      "source_ids": [
-        "GEN-SRC-007"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-010",
-      "proposed_title": "20 - O Dízimo",
-      "source_ids": [
-        "GEN-SRC-008"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-011",
-      "proposed_title": "A Salvação de Ló",
-      "source_ids": [
-        "GEN-SRC-009"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-012",
-      "proposed_title": "Escapa-te por tua vida",
-      "source_ids": [
-        "GEN-SRC-010"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-013",
-      "proposed_title": "20 -  Fugindo para a vida",
-      "source_ids": [
-        "GEN-SRC-011"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-014",
-      "proposed_title": "A constituição do lar",
-      "source_ids": [
-        "GEN-SRC-012"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-015",
-      "proposed_title": "Labão",
-      "source_ids": [
-        "GEN-SRC-013"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-016",
-      "proposed_title": "E a donzela era mui formosa",
-      "source_ids": [
-        "GEN-SRC-014"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-017",
-      "proposed_title": "58 - O Espírito Santo",
-      "source_ids": [
-        "GEN-SRC-018"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-018",
-      "proposed_title": "Beija-me meu filho",
-      "source_ids": [
-        "GEN-SRC-019"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-019",
-      "proposed_title": "9 - Eis aqui Raquel",
-      "source_ids": [
-        "GEN-SRC-020"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-020",
-      "proposed_title": "Declara-me qual o teu salário",
-      "source_ids": [
-        "GEN-SRC-021"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-021",
-      "proposed_title": "38 -  Rebanhos de Jacó",
-      "source_ids": [
-        "GEN-SRC-022"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-022",
-      "proposed_title": "A luta de Jacó",
-      "source_ids": [
-        "GEN-SRC-023"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-023",
-      "proposed_title": "28 - Israel",
-      "source_ids": [
-        "GEN-SRC-024"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-024",
-      "proposed_title": "52 -  Manassés E Efraim",
-      "source_ids": [
-        "GEN-SRC-026"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-025",
-      "proposed_title": "52 -  Os dois filhos de José",
-      "source_ids": [
-        "GEN-SRC-027"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-026",
-      "proposed_title": "57 - A fome no Egito",
-      "source_ids": [
-        "GEN-SRC-028"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-027",
-      "proposed_title": "17 -  E acabando o dinheiro",
-      "source_ids": [
-        "GEN-SRC-029"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-028",
-      "proposed_title": "26 - A bênção de José ",
-      "source_ids": [
-        "GEN-SRC-030"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-029",
-      "proposed_title": "o",
-      "source_ids": [
-        "GEN-SRC-031"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-030",
-      "proposed_title": "o",
-      "source_ids": [
-        "GEN-SRC-032"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-031",
-      "proposed_title": "a",
-      "source_ids": [
-        "GEN-SRC-033"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-032",
-      "proposed_title": "m",
-      "source_ids": [
-        "GEN-SRC-034"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-033",
-      "proposed_title": "r",
-      "source_ids": [
-        "GEN-SRC-035"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-034",
-      "proposed_title": "o",
-      "source_ids": [
-        "GEN-SRC-036"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-035",
-      "proposed_title": "a",
-      "source_ids": [
-        "GEN-SRC-037"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-036",
-      "proposed_title": "s",
-      "source_ids": [
-        "GEN-SRC-038"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-037",
-      "proposed_title": "e",
-      "source_ids": [
-        "GEN-SRC-039"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
-    },
-    {
-      "editorial_unit_id": "GEN-EDU-038",
-      "proposed_title": "a",
-      "source_ids": [
-        "GEN-SRC-040"
-      ],
-      "classification": "UNRESOLVED",
-      "confidence": 0.5,
-      "warnings": [
-        "Requires matching with database studies or documentation"
-      ]
+    "integrity_verified": true,
+    "modifications": {
+      "inserts": 0,
+      "updates": 0,
+      "deletes": 0,
+      "total": 0
     }
-  ],
-  "classification_summary": {
-    "DB_EXISTING": 0,
-    "LOTE01_PENDING_RESTORE": 0,
-    "SPECIAL_REVIEW": 0,
-    "DEFERRED_EDITORIAL": 1,
-    "UNRESOLVED": 37
   },
-  "hypothesis_validation": {
-    "expected_db_existing": 29,
-    "expected_lote01_pending_restore": 4,
-    "expected_special_review": 4,
-    "expected_deferred_editorial": 1,
-    "expected_unresolved": 0,
-    "actual_db_existing": 0,
-    "actual_lote01_pending_restore": 0,
-    "actual_special_review": 0,
-    "actual_deferred_editorial": 1,
-    "actual_unresolved": 37,
-    "classification_sum": 38,
-    "hypothesis_confirmed": false
+  "reconciliation": {
+    "source_files_total": 40,
+    "editorial_units_total": 38,
+    "db_studies_total": 29,
+    "reconciliations": [
+      {
+        "editorial_unit_id": "GEN-EDU-001",
+        "proposed_title": "Obra como Forma de Vida",
+        "source_ids": [
+          "GEN-SRC-025"
+        ],
+        "classification": "DEFERRED_EDITORIAL",
+        "match_confidence": "UNMATCHED",
+        "match_method": "GEN041_TECHNICAL_EXTRACTION_VERIFIED",
+        "warnings": [
+          "GEN-041: RTF masqueraded as .doc, technical extraction PASS",
+          "Editorial status requires official review",
+          "Not yet ingested into database"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-002",
+        "proposed_title": "Entra, Bendito do Senhor",
+        "source_ids": [
+          "GEN-SRC-015",
+          "GEN-SRC-016",
+          "GEN-SRC-017"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "6100da60-c116-4fae-b536-2c08d1e1045e",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.6,
+        "match_method": "TITLE_MATCH (score: 0.60)",
+        "warnings": [
+          "Potential match: \"Entra, Bendito do Senhor\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-003",
+        "proposed_title": "25 -  Princípios éticos para as irmãs",
+        "source_ids": [
+          "GEN-SRC-001"
+        ],
+        "classification": "SPECIAL_REVIEW",
+        "match_confidence": "UNMATCHED",
+        "match_method": "SPECIAL_REVIEW_DOCUMENT",
+        "warnings": [
+          "Special review document — requires editorial approval",
+          "Not ingested automatically"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-004",
+        "proposed_title": "22 -  Concepção, Maturação e Nascimento da Igreja",
+        "source_ids": [
+          "GEN-SRC-002"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "03468b82-465f-4c49-9db4-51ef6ed33a8b",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.6499999999999999,
+        "match_method": "TITLE_MATCH (score: 0.65)",
+        "warnings": [
+          "Potential match: \"Concepção, Maturação e Nascimento da Igreja\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-005",
+        "proposed_title": "04 - O pacto de Deus com Noé",
+        "source_ids": [
+          "GEN-SRC-003"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "68cc705f-ea05-473f-bb1e-527defa80895",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.6499999999999999,
+        "match_method": "TITLE_MATCH (score: 0.65)",
+        "warnings": [
+          "Potential match: \"O Pacto de Deus com Noé\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-006",
+        "proposed_title": "10 - A torre de Babel",
+        "source_ids": [
+          "GEN-SRC-004"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "71128b87-9279-4e27-9f33-1389f661dbcc",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.6499999999999999,
+        "match_method": "TITLE_MATCH (score: 0.65)",
+        "warnings": [
+          "Potential match: \"A Torre de Babel\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-007",
+        "proposed_title": "Conflito Israel e  Palestina",
+        "source_ids": [
+          "GEN-SRC-005"
+        ],
+        "classification": "SPECIAL_REVIEW",
+        "match_confidence": "UNMATCHED",
+        "match_method": "SPECIAL_REVIEW_DOCUMENT",
+        "warnings": [
+          "Special review document — requires editorial approval",
+          "Not ingested automatically"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-008",
+        "proposed_title": "Ló",
+        "source_ids": [
+          "GEN-SRC-006"
+        ],
+        "classification": "DB_EXISTING",
+        "db_study_id": "ae31e647-8e8b-4d08-8816-f4d0c081618e",
+        "match_confidence": "HIGH",
+        "match_score": 0.8,
+        "match_method": "TITLE_MATCH (score: 0.80)",
+        "warnings": [
+          "Potential match: \"Ló\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-009",
+        "proposed_title": "16 - Os Guerreiros de Abraão",
+        "source_ids": [
+          "GEN-SRC-007"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "a8856881-a8cf-4c28-88dd-ba4883cac38a",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.6499999999999999,
+        "match_method": "TITLE_MATCH (score: 0.65)",
+        "warnings": [
+          "Potential match: \"Os Guerreiros de Abraão\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-010",
+        "proposed_title": "20 - O Dízimo",
+        "source_ids": [
+          "GEN-SRC-008"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-011",
+        "proposed_title": "A Salvação de Ló",
+        "source_ids": [
+          "GEN-SRC-009"
+        ],
+        "classification": "DB_EXISTING",
+        "db_study_id": "f2934c6b-b9b4-4245-8984-805cd2730f29",
+        "match_confidence": "HIGH",
+        "match_score": 0.8,
+        "match_method": "TITLE_MATCH (score: 0.80)",
+        "warnings": [
+          "Potential match: \"A Salvação de Ló\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-012",
+        "proposed_title": "Escapa-te por tua vida",
+        "source_ids": [
+          "GEN-SRC-010"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "e21a2153-17df-448a-8578-d8dd2378fb35",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.77,
+        "match_method": "TITLE_MATCH (score: 0.77)",
+        "warnings": [
+          "Potential match: \"Escapa-te por tua Vida\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-013",
+        "proposed_title": "20 -  Fugindo para a vida",
+        "source_ids": [
+          "GEN-SRC-011"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "dfa8cdfa-170b-4357-8b60-5d2c14983aa4",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.6499999999999999,
+        "match_method": "TITLE_MATCH (score: 0.65)",
+        "warnings": [
+          "Potential match: \"Fugindo para a Vida\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-014",
+        "proposed_title": "A constituição do lar",
+        "source_ids": [
+          "GEN-SRC-012"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "2b8b9dd1-7c54-4c5b-9ef7-d0a58227c481",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.6499999999999999,
+        "match_method": "TITLE_MATCH (score: 0.65)",
+        "warnings": [
+          "Potential match: \"O Jovem e a Constituição do Lar\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-015",
+        "proposed_title": "Labão",
+        "source_ids": [
+          "GEN-SRC-013"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-016",
+        "proposed_title": "E a donzela era mui formosa",
+        "source_ids": [
+          "GEN-SRC-014"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "7563e306-c02c-4c1b-af26-467f798af48f",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.77,
+        "match_method": "TITLE_MATCH (score: 0.77)",
+        "warnings": [
+          "Potential match: \"E a Donzela Era Mui Formosa\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-017",
+        "proposed_title": "58 - O Espírito Santo",
+        "source_ids": [
+          "GEN-SRC-018"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "f6c0ec9c-ad1d-4daf-a1fd-5a9eb172c31f",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.6499999999999999,
+        "match_method": "TITLE_MATCH (score: 0.65)",
+        "warnings": [
+          "Potential match: \"O Espírito Santo\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-018",
+        "proposed_title": "Beija-me meu filho",
+        "source_ids": [
+          "GEN-SRC-019"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-019",
+        "proposed_title": "9 - Eis aqui Raquel",
+        "source_ids": [
+          "GEN-SRC-020"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "4933dfca-458a-4b9d-9a5d-8ebac530282e",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.6499999999999999,
+        "match_method": "TITLE_MATCH (score: 0.65)",
+        "warnings": [
+          "Potential match: \"Eis Aqui Raquel\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-020",
+        "proposed_title": "Declara-me qual o teu salário",
+        "source_ids": [
+          "GEN-SRC-021"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "9f56a4f9-98aa-4ff3-87bd-33fa0897f081",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.77,
+        "match_method": "TITLE_MATCH (score: 0.77)",
+        "warnings": [
+          "Potential match: \"Declara-me Qual o Teu Salário\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-021",
+        "proposed_title": "38 -  Rebanhos de Jacó",
+        "source_ids": [
+          "GEN-SRC-022"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-022",
+        "proposed_title": "A luta de Jacó",
+        "source_ids": [
+          "GEN-SRC-023"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "317323ec-3b88-4ff5-8308-0624eeb45fa8",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.77,
+        "match_method": "TITLE_MATCH (score: 0.77)",
+        "warnings": [
+          "Potential match: \"A Luta de Jacó\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-023",
+        "proposed_title": "28 - Israel",
+        "source_ids": [
+          "GEN-SRC-024"
+        ],
+        "classification": "SPECIAL_REVIEW",
+        "match_confidence": "UNMATCHED",
+        "match_method": "SPECIAL_REVIEW_DOCUMENT",
+        "warnings": [
+          "Special review document — requires editorial approval",
+          "Not ingested automatically"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-024",
+        "proposed_title": "52 -  Manassés E Efraim",
+        "source_ids": [
+          "GEN-SRC-026"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-025",
+        "proposed_title": "52 -  Os dois filhos de José",
+        "source_ids": [
+          "GEN-SRC-027"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-026",
+        "proposed_title": "57 - A fome no Egito",
+        "source_ids": [
+          "GEN-SRC-028"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "b24d19bc-9c94-4e13-a35d-8edca33bf4f9",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.6499999999999999,
+        "match_method": "TITLE_MATCH (score: 0.65)",
+        "warnings": [
+          "Potential match: \"A Fome no Egito\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-027",
+        "proposed_title": "17 -  E acabando o dinheiro",
+        "source_ids": [
+          "GEN-SRC-029"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "625a38ab-b0ac-42d1-861d-cbab373c6f95",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.6499999999999999,
+        "match_method": "TITLE_MATCH (score: 0.65)",
+        "warnings": [
+          "Potential match: \"E Acabando o Dinheiro\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-028",
+        "proposed_title": "26 - A bênção de José ",
+        "source_ids": [
+          "GEN-SRC-030"
+        ],
+        "classification": "REVIEW_REQUIRED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "MEDIUM",
+        "match_score": 0.6499999999999999,
+        "match_method": "TITLE_MATCH (score: 0.65)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-029",
+        "proposed_title": "o",
+        "source_ids": [
+          "GEN-SRC-031"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-030",
+        "proposed_title": "o",
+        "source_ids": [
+          "GEN-SRC-032"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-031",
+        "proposed_title": "a",
+        "source_ids": [
+          "GEN-SRC-033"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-032",
+        "proposed_title": "m",
+        "source_ids": [
+          "GEN-SRC-034"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-033",
+        "proposed_title": "r",
+        "source_ids": [
+          "GEN-SRC-035"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-034",
+        "proposed_title": "o",
+        "source_ids": [
+          "GEN-SRC-036"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-035",
+        "proposed_title": "a",
+        "source_ids": [
+          "GEN-SRC-037"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-036",
+        "proposed_title": "s",
+        "source_ids": [
+          "GEN-SRC-038"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-037",
+        "proposed_title": "e",
+        "source_ids": [
+          "GEN-SRC-039"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      },
+      {
+        "editorial_unit_id": "GEN-EDU-038",
+        "proposed_title": "a",
+        "source_ids": [
+          "GEN-SRC-040"
+        ],
+        "classification": "UNRESOLVED",
+        "db_study_id": "4f7af5c5-51e1-4199-a2db-71c364bfb156",
+        "match_confidence": "UNMATCHED",
+        "match_score": 0.2,
+        "match_method": "TITLE_MATCH (score: 0.20)",
+        "warnings": [
+          "Potential match: \"A Bênção de José\" (REVIEW)"
+        ]
+      }
+    ]
+  },
+  "classification_summary": {
+    "DEFERRED_EDITORIAL": 1,
+    "REVIEW_REQUIRED": 16,
+    "SPECIAL_REVIEW": 3,
+    "DB_EXISTING": 2,
+    "UNRESOLVED": 16
+  },
+  "confidence_summary": {
+    "UNMATCHED": 20,
+    "MEDIUM": 16,
+    "HIGH": 2
   },
   "critical_findings": [
-    "GEN-041: Deferred for editorial review (technical extraction PASS)",
-    "Entra Bendito: 3 sources unresolved (requires comparative analysis)",
-    "37 units need database reconciliation"
+    "GEN-041: Deferred (technical extraction PASS, editorial review pending)",
+    "Entra Bendito: 1 source(s), relationship UNRESOLVED",
+    "Lote01: 0 pending restore candidates",
+    "Special Review: 3 special documents",
+    "DB_EXISTING: 2 matched to existing studies",
+    "REVIEW_REQUIRED: 16 require editorial review",
+    "UNRESOLVED: 16 require further analysis"
   ],
   "next_steps": [
-    "Load 29 real Genesis studies from database",
-    "Match editorial units to database records",
-    "Verify Lote01 historical records",
-    "Confirm special review documents",
-    "Analyze Entra Bendito relationship",
-    "Generate final reconciliation matrix"
-  ],
-  "database_safety": {
-    "db_before": 29,
-    "db_after": 29,
-    "inserts": 0,
-    "updates": 0,
-    "deletes": 0,
-    "modifications": "NONE"
-  }
+    "Editorial review of REVIEW_REQUIRED matches",
+    "Entra Bendito comparative content analysis",
+    "Lote01 historical verification",
+    "Special Review document validation",
+    "Generate final reconciliation matrix",
+    "Database ingestion approval"
+  ]
 }
