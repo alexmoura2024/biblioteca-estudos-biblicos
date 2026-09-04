@@ -16,10 +16,17 @@ interface Study {
 }
 
 async function getStudies() {
-  // Usar service role para ler DRAFT/REVIEW
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  // Permite o deploy público antes da configuração do Supabase de produção.
+  if (!supabaseUrl || !serviceRoleKey) {
+    return [];
+  }
+
   const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-    process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+    supabaseUrl,
+    serviceRoleKey,
     { auth: { persistSession: false } }
   );
 
