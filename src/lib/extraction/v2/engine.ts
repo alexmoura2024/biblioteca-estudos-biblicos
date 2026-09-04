@@ -52,9 +52,9 @@ async function computeSha256(filePath: string): Promise<string> {
 export async function extractFile(filePath: string): Promise<ExtractionReport> {
   const startTime = Date.now();
   const fileName = filePath.split("\\").pop() || filePath;
-  const stat = fs.statSync(filePath);
 
   try {
+    const stat = fs.statSync(filePath);
     const sha256 = await computeSha256(filePath);
     const sourceId = sha256.substring(0, 16);
     const buffer = fs.readFileSync(filePath);
@@ -134,13 +134,22 @@ export async function extractFile(filePath: string): Promise<ExtractionReport> {
       processingTimeMs: Date.now() - startTime,
     };
   } catch (err) {
-    const sha256 = await computeSha256(filePath);
+    let sha256 = "ERROR";
+    let fileSizeBytes = 0;
+
+    try {
+      sha256 = await computeSha256(filePath);
+      fileSizeBytes = fs.statSync(filePath).size;
+    } catch {
+      // ignore - use defaults
+    }
+
     return {
       sourceId: "ERROR_" + fileName.substring(0, 12),
       fileName,
       filePath,
       sha256,
-      fileSizeBytes: stat.size,
+      fileSizeBytes,
       declaredExtension: "unknown",
       detectedFormat: "UNKNOWN",
       status: "HOLD_EXTRACTION_ERROR",
