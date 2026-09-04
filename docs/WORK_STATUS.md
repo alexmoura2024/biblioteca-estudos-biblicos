@@ -2,6 +2,54 @@ WORK\_STATUS — Biblioteca Virtual de Estudos Bíblicos
 
 ESTADO ATUAL
 
+**CHECKPOINT 22 CONCLUÍDO — PHASE I STAGE 2: GENESIS DATABASE RECONCILIATION (READ-ONLY)**
+Reconciliação completa das 38 unidades editoriais de Gênesis contra 29 estudos reais no Supabase. Modo READ-ONLY absoluto: zero modificações, zero migrations, database integrity verificado (antes=após=29). Commit: `91f6fd9`.
+
+**Phase I Stage 2 — Reconciliação de Banco de Dados, CONCLUÍDA:**
+Carregado 29 estudos Genesis reais do Supabase; carregadas 38 unidades editoriais de Phase H. Reconciliação computou match scores por título (weight 0.6) e tipo de estudo (weight 0.4), classificando confiança EXACT/HIGH/MEDIUM/LOW/UNMATCHED. Casos especiais detectados: GEN-041 (DEFERRED_EDITORIAL, extração técnica PASS, aguarda revisão editorial), Entra Bendito (UNRESOLVED, 1 unidade com 3 fontes, relação incerta: versão/duplicata/complementar), 3 SPECIAL_REVIEW (documentos de revisão especial), 0 LOTE01 (nenhuma das 4 históricos encontrada).
+
+**Reconciliação Resultados:**
+- DB_EXISTING: 2 (match EXACT/HIGH)
+- LOTE01_PENDING_RESTORE: 0
+- SPECIAL_REVIEW: 3 (Cronologia Israel, Conflito Israel/Palestina, Princípios Éticos)
+- DEFERRED_EDITORIAL: 1 (GEN-041)
+- REVIEW_REQUIRED: 16 (match MEDIUM, requerem editorial)
+- UNRESOLVED: 16 (match LOW/UNMATCHED, requerem análise)
+- TOTAL: 38 ✓
+
+**Quality Gates (6/6 PASS):**
+✅ Database integrity: 29 before = 29 after, zero modifications
+✅ Source files: 40 canonical Genesis processados
+✅ Editorial units: 38 units mapped
+✅ All units classified/processed
+✅ DB studies: 29 Genesis loaded
+✅ Policy preserved: zero PUBLISHED (todos REVIEW)
+
+**Database Safety:**
+✅ READ-ONLY mode: zero INSERT, UPDATE, DELETE, UPSERT, migrations
+✅ DB_BEFORE: {REVIEW: 29}
+✅ DB_AFTER: {REVIEW: 29}
+✅ No publication (status REVIEW mantido)
+
+**Scripts:**
+- `scripts/phase-i-stage2-genesis-db-reconciliation.ts` (novo): orquestrador Stage 2, env vars via `.env.local` (segurança), snapshots, reconciliação, relatórios
+- `scripts/check-schema.ts` (novo): descoberta de schema do banco (verificou colunas reais vs. schema esperado)
+
+**Artefatos (4 JSON):**
+- `genesis-reconciliation-report.json` — relatório completo com sumários, findings críticos, próximos passos
+- `genesis-reconciliation-results.json` — 38 linhas de reconciliação (unit_id, proposed_title, source_ids, classification, db_study_id, confidence, warnings)
+- `genesis-reconciliation-db-snapshot.json` — before/after snapshots (counts, IDs, statuses)
+- Versão anterior `genesis-reconciliation-report.json` preservada
+
+**Próximas Etapas (Não Autorizado):**
+- Phase I Stage 3 (matching refinado com schema de referências se necessário)
+- Entra Bendito: comparative analysis (SHA, content size, paragraphs)
+- Lote01: historical record verification
+- Final reconciliation matrix (38 rows × 12 columns)
+- Database ingestion approval
+
+---
+
 **CHECKPOINT 16 CONCLUÍDO — FECHAMENTO TÉCNICO DO PILOTO EDITORIAL (EDIÇÃO, VERSIONAMENTO)**
 Revalidado: Docker (`docker info` OK) e Supabase (`npx supabase status` OK, mesma instância).
 
