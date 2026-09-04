@@ -32,3 +32,69 @@ body {
   outline: 2px solid #b45309;
   outline-offset: 2px;
 }
+
+/* Estilos para impressão (PDF/A4) */
+@media print {
+  /* Ocultar elementos não-essenciais na impressão */
+  nav,
+  header > button,
+  .breadcrumbs,
+  [role="navigation"],
+  .no-print {
+    display: none !important;
+  }
+
+  /* Corpo legível em papel */
+  body {
+    background: white;
+    color: black;
+    font-size: 12pt;
+    line-height: 1.6;
+  }
+
+  article {
+    max-width: 100%;
+    margin: 0;
+    padding: 0.5in;
+  }
+
+  /* Títulos com espaço apropriado */
+  h1,
+  h2,
+  h3 {
+    page-break-after: avoid;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    color: black;
+  }
+
+  /* Manter parágrafos juntos */
+  p {
+    page-break-inside: avoid;
+    margin-bottom: 0.5em;
+  }
+
+  /* Referências bíblicas em destaque */
+  .reference,
+  .biblical-reference {
+    font-weight: bold;
+    color: #333;
+  }
+
+  /* Links sem underline na impressão */
+  a {
+    color: black;
+    text-decoration: none;
+  }
+
+  /* Evitar quebra de conteúdo importante */
+  section {
+    page-break-inside: avoid;
+  }
+
+  /* Tamanho A4 padrão */
+  @page {
+    size: A4;
+    margin: 0.75in;
+  }
+}
