@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 export async function POST(
   _request: Request,
@@ -106,6 +107,9 @@ export async function POST(
   if (historyError) {
     console.error("Estudo publicado, mas houve erro ao registrar histórico:", historyError);
   }
+
+  // Atualizar automaticamente todas as páginas públicas após a publicação.
+  revalidatePath("/", "layout");
 
   return NextResponse.json({
     success: true,
