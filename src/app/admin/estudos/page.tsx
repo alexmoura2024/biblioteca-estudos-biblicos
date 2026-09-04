@@ -127,11 +127,13 @@ export default async function AdminEstudosPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {study.data_origem && !["1969-12-31", "1970-01-01"].includes(study.data_origem)
-                        ? new Date(study.data_origem).toLocaleDateString(
-                            "pt-BR"
-                          )
-                        : "Sem data"}
+                      {study.updated_at
+  ? new Intl.DateTimeFormat("pt-BR", {
+      dateStyle: "short",
+      timeStyle: "short",
+      timeZone: "America/Sao_Paulo",
+    }).format(new Date(study.updated_at))
+  : "Sem atualização"}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <Link
