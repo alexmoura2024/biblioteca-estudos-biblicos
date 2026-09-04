@@ -7,12 +7,15 @@
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 interface Study {
   id: string;
   titulo: string;
   slug: string;
   status: "DRAFT" | "REVIEW" | "PUBLISHED" | "ARCHIVED";
   data_origem: string;
+  updated_at: string;
 }
 
 async function getStudies() {
@@ -35,10 +38,10 @@ async function getStudies() {
   // Reais têm autor = "[Fase 1 - Lote 01]", "[Ingestão...]" etc
   const { data, error } = await supabase
     .from("studies")
-    .select("id, titulo, slug, status, data_origem, autor")
+    .select("id, titulo, slug, status, data_origem, updated_at, autor")
     .in("status", ["DRAFT", "REVIEW"])
     .not("autor", "ilike", "%Prototipo%") // Excluir mocks
-    .order("data_origem", { ascending: false });
+    .order("updated_at", { ascending: false });
 
   if (error) {
     console.error("Erro ao buscar estudos:", error);
@@ -96,7 +99,7 @@ export default async function AdminEstudosPage() {
                     Status
                   </th>
                   <th className="text-left px-6 py-3 text-sm font-semibold text-gray-900">
-                    Data
+                    Atualizado
                   </th>
                   <th className="text-center px-6 py-3 text-sm font-semibold text-gray-900">
                     Ação
