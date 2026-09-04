@@ -218,7 +218,7 @@ export function detectFormat(filePath: string, buffer: Buffer): FormatDetectionR
   }
 
   return {
-    declaredExtension: `.${ext}`,
     ...realDetection,
+    declaredExtension: realDetection.declaredExtension || `.${ext}`,
   };
 }

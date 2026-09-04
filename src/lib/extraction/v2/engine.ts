@@ -88,7 +88,7 @@ export async function extractFile(filePath: string): Promise<ExtractionReport> {
 
       case "UNKNOWN":
         result = {
-          status: "HOLD_UNSUPPORTED",
+          status: "HOLD_EXTRACTION_ERROR",
           content: "",
           extractionMethod: "UNKNOWN_FORMAT",
           confidence: "FALLBACK",
