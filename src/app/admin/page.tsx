@@ -1,33 +1,103 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
+import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export const metadata: Metadata = {
-  title: "Administração",
+  title: "Painel Editorial",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
-/**
- * Placeholder da área administrativa/editorial.
- *
- * Autenticação pública, revisão editorial (DRAFT → REVIEW → PUBLISHED) e
- * ingestão do acervo real são trabalho das Fases 2–3+ do roadmap — ver
- * docs/ROADMAP.md e docs/INGESTION_SPEC.md. Esta página só existe para
- * satisfazer a rota /admin prevista no Marco 1; não há formulários,
- * login ou qualquer ação real aqui.
- */
 export default function AdminPage() {
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
-      <Breadcrumbs items={[{ label: "Início", href: "/" }, { label: "Administração" }]} />
-      <h1 className="mt-2 font-serif text-2xl font-bold text-stone-900">Área administrativa</h1>
-      <div className="mt-4 rounded-lg border border-dashed border-stone-300 bg-stone-50 p-6 text-stone-600">
-        <p>
-          Esta área é reservada para a revisão editorial do acervo (fluxo DRAFT → REVIEW →
-          PUBLISHED) e para a futura integração com o pipeline de ingestão do Google Drive.
-        </p>
-        <p className="mt-3">
-          Ela ainda não existe nesta fase do projeto (Marco 1 — protótipo visual com dados
-          mockados). Autenticação, formulários de edição e publicação chegam nas próximas fases,
-          conforme <span className="font-medium">docs/ROADMAP.md</span>.
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+      <Breadcrumbs
+        items={[
+          { label: "Início", href: "/" },
+          { label: "Administração" },
+        ]}
+      />
+
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="font-serif text-3xl font-bold text-stone-900">
+            Painel Editorial
+          </h1>
+          <p className="mt-2 text-stone-600">
+            Gestão e revisão do acervo da Biblioteca de Estudos Bíblicos.
+          </p>
+        </div>
+
+        <span className="inline-flex w-fit items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-800">
+          Acesso protegido
+        </span>
+      </div>
+
+      <div className="mt-8 grid gap-5 md:grid-cols-2">
+        <Link
+          href="/admin/estudos"
+          className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm transition hover:border-stone-400 hover:shadow-md"
+        >
+          <h2 className="text-xl font-semibold text-stone-900">
+            Estudos em revisão
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-stone-600">
+            Acessar estudos em DRAFT e REVIEW, consultar conteúdo e realizar
+            revisão editorial.
+          </p>
+          <p className="mt-4 text-sm font-medium text-stone-900">
+            Abrir área editorial →
+          </p>
+        </Link>
+
+        <Link
+          href="/"
+          className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm transition hover:border-stone-400 hover:shadow-md"
+        >
+          <h2 className="text-xl font-semibold text-stone-900">
+            Biblioteca pública
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-stone-600">
+            Visualizar a experiência pública de navegação, pesquisa, Bíblia,
+            temas, personagens e séries.
+          </p>
+          <p className="mt-4 text-sm font-medium text-stone-900">
+            Abrir site público →
+          </p>
+        </Link>
+      </div>
+
+      <div className="mt-8 rounded-xl border border-stone-200 bg-stone-50 p-6">
+        <h2 className="text-lg font-semibold text-stone-900">
+          Estado do ambiente
+        </h2>
+
+        <dl className="mt-4 space-y-3 text-sm">
+          <div className="flex items-start justify-between gap-4 border-b border-stone-200 pb-3">
+            <dt className="font-medium text-stone-700">Segurança administrativa</dt>
+            <dd className="text-emerald-700">Ativa</dd>
+          </div>
+
+          <div className="flex items-start justify-between gap-4 border-b border-stone-200 pb-3">
+            <dt className="font-medium text-stone-700">Deploy público</dt>
+            <dd className="text-emerald-700">Ativo no Vercel</dd>
+          </div>
+
+          <div className="flex items-start justify-between gap-4">
+            <dt className="font-medium text-stone-700">
+              Supabase de produção
+            </dt>
+            <dd className="text-amber-700">Pendente de conexão</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-5">
+        <p className="text-sm leading-6 text-amber-900">
+          A conexão com o banco real de produção será feita somente depois da
+          validação das políticas de segurança, RLS e fluxo editorial.
         </p>
       </div>
     </div>
