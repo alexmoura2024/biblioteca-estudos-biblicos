@@ -82,11 +82,41 @@ export default async function StudyPage({ params }: StudyPageProps) {
       </p>
 
       <div className="mt-8">
-        {study.conteudo.split("\n\n").map((paragraph, index) => (
-          <p key={index} className="mt-4 leading-relaxed text-stone-800 first:mt-0">
-            {paragraph}
-          </p>
-        ))}
+        {study.conteudo
+          .split(/\n{2,}/)
+          .map((block) => block.trim())
+          .filter(Boolean)
+          .map((block, index) => {
+            const sectionTitle = [
+              "Introdução",
+              "Desenvolvimento",
+              "Conclusão",
+            ].find(
+              (title) =>
+                title.toLocaleLowerCase("pt-BR") ===
+                block.toLocaleLowerCase("pt-BR")
+            );
+
+            if (sectionTitle) {
+              return (
+                <h2
+                  key={`${sectionTitle}-${index}`}
+                  className="mt-8 font-serif text-xl font-bold text-stone-900 first:mt-0"
+                >
+                  {sectionTitle}
+                </h2>
+              );
+            }
+
+            return (
+              <p
+                key={index}
+                className="mt-4 whitespace-pre-line leading-7 text-stone-800 [text-align:justify] first:mt-0"
+              >
+                {block}
+              </p>
+            );
+          })}
       </div>
 
       {study.palavrasChave.length > 0 && (
