@@ -1,13 +1,14 @@
 /**
- * Pré-visualização Editorial — Detalhes do Estudo
+ * PrÃ©-visualizaÃ§Ã£o Editorial â€” Detalhes do Estudo
  * Acesso: http://localhost:3000/admin/estudos/[id]
- * Mostra conteúdo integral de REVIEW/DRAFT + modo edição
+ * Mostra conteÃºdo integral de REVIEW/DRAFT + modo ediÃ§Ã£o
  */
 
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import EditStudyClient from "./EditStudyClient";
+import PublishStudyButton from "./PublishStudyButton";
 
 interface Study {
   id: string;
@@ -16,7 +17,7 @@ interface Study {
   status: "DRAFT" | "REVIEW" | "PUBLISHED" | "ARCHIVED";
   resumo: string;
   conteudo: string;
-  tipo_estudo: "EXPOSITIVO" | "THEMATIC" | "PANORAMA" | "DOUTRINÁRIO";
+  tipo_estudo: "EXPOSITIVO" | "THEMATIC" | "PANORAMA" | "DOUTRINÃRIO";
   data_origem: string;
   autor: string;
   palavras_chave: string[];
@@ -155,17 +156,17 @@ export default async function AdminEstudoDetailPage({
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-3xl mx-auto">
-        {/* Cabeçalho com voltar */}
+        {/* CabeÃ§alho com voltar */}
         <div className="mb-8">
           <Link
             href="/admin/estudos"
             className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium mb-4"
           >
-            ← Voltar aos estudos
+            â† Voltar aos estudos
           </Link>
 
           <div className="bg-white rounded-lg border border-gray-200 p-8">
-            {/* Título e Status */}
+            {/* TÃ­tulo e Status */}
             <div className="mb-6">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <h1 className="text-3xl font-bold text-gray-900 flex-1">
@@ -180,15 +181,15 @@ export default async function AdminEstudoDetailPage({
               <p className="text-gray-600 text-sm">
                 Criado em {new Date(study.data_origem).toLocaleDateString(
                   "pt-BR"
-                )} • Por {study.autor}
+                )} â€¢ Por {study.autor}
               </p>
             </div>
 
-            {/* Referências Principais */}
+            {/* ReferÃªncias Principais */}
             {passages.length > 0 && (
               <div className="mb-6 pb-6 border-b border-gray-200">
                 <h2 className="text-sm font-semibold text-gray-900 mb-3">
-                  Referências Bíblicas
+                  ReferÃªncias BÃ­blicas
                 </h2>
                 <div className="space-y-2">
                   {passages.map((p, i) => (
@@ -200,7 +201,7 @@ export default async function AdminEstudoDetailPage({
                         {p.tipo_relacao === "MAIN"
                           ? "Principal"
                           : p.tipo_relacao === "SECONDARY"
-                            ? "Secundária"
+                            ? "SecundÃ¡ria"
                             : "Citada"}
                       </span>
                       <span>{p.referencia_normalizada}</span>
@@ -220,7 +221,7 @@ export default async function AdminEstudoDetailPage({
                   <div className="space-y-1">
                     {topics.map((t, i) => (
                       <div key={i} className="text-sm text-gray-700">
-                        • {t.nome}
+                        â€¢ {t.nome}
                       </div>
                     ))}
                   </div>
@@ -234,7 +235,7 @@ export default async function AdminEstudoDetailPage({
                   <div className="space-y-1">
                     {characters.map((c, i) => (
                       <div key={i} className="text-sm text-gray-700">
-                        • {c.nome}
+                        â€¢ {c.nome}
                       </div>
                     ))}
                   </div>
@@ -242,7 +243,7 @@ export default async function AdminEstudoDetailPage({
               )}
             </div>
 
-            {/* Modo Edição Editorial */}
+            {/* Modo EdiÃ§Ã£o Editorial */}
             <div className="mb-8 pb-8 border-b border-gray-200">
               <EditStudyClient
                 study={study}
@@ -250,12 +251,17 @@ export default async function AdminEstudoDetailPage({
                 topics={topics}
                 characters={characters}
               />
+
+              <PublishStudyButton
+                studyId={study.id}
+                status={study.status}
+              />
             </div>
 
             {/* Meta */}
             <div className="mt-8 pt-8 border-t border-gray-200">
               <p className="text-xs text-gray-500">
-                ID: {study.id} • Slug: {study.slug}
+                ID: {study.id} â€¢ Slug: {study.slug}
               </p>
               {study.palavras_chave.length > 0 && (
                 <div className="mt-4">
@@ -281,8 +287,8 @@ export default async function AdminEstudoDetailPage({
         {/* Security Notice */}
         <div className="text-center">
           <p className="text-xs text-gray-500">
-            ⚠️ Esta é uma área administrativa. Este estudo ({study.status})
-            não é visível publicamente.
+            âš ï¸ Esta Ã© uma Ã¡rea administrativa. Este estudo ({study.status})
+            nÃ£o Ã© visÃ­vel publicamente.
           </p>
         </div>
       </div>
