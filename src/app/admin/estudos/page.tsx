@@ -39,7 +39,7 @@ async function getStudies() {
   const { data, error } = await supabase
     .from("studies")
     .select("id, titulo, slug, status, data_origem, updated_at, autor")
-    .in("status", ["DRAFT", "REVIEW"])
+    .in("status", ["DRAFT", "REVIEW", "PUBLISHED"])
     .not("autor", "ilike", "%Prototipo%") // Excluir mocks
     .order("updated_at", { ascending: false });
 
@@ -140,7 +140,7 @@ export default async function AdminEstudosPage() {
                         href={`/admin/estudos/${study.id}`}
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                       >
-                        Visualizar
+                        {study.status === "PUBLISHED" ? "Revisar / Editar" : "Visualizar / Editar"}
                       </Link>
                     </td>
                   </tr>
