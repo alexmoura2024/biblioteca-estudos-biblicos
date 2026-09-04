@@ -251,6 +251,11 @@ export default async function AdminEstudoDetailPage({
                 topics={topics}
                 characters={characters}
               />
+
+              <PublishStudyButton
+                studyId={study.id}
+                status={study.status}
+              />
             </div>
 
             {/* Meta */}
