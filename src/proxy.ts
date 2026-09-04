@@ -1,7 +1,7 @@
 ﻿import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-const REALM = "Biblioteca Admin";
+const REALM = "Biblioteca Editorial";
 
 function constantTimeEqual(left: string, right: string): boolean {
   const maxLength = Math.max(left.length, right.length);
@@ -43,7 +43,9 @@ function protectedResponse(status: 401 | 503, isApi: boolean) {
     "Referrer-Policy": "no-referrer",
   });
 
-  if (status === 401) {
+  // O desafio Basic só é enviado para páginas administrativas,
+  // nunca para APIs.
+  if (status === 401 && !isApi) {
     headers.set(
       "WWW-Authenticate",
       `Basic realm="${REALM}", charset="UTF-8"`
@@ -75,13 +77,20 @@ function protectedResponse(status: 401 | 503, isApi: boolean) {
 }
 
 export function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const isApi = pathname.startsWith("/api/admin");
+
+  // Evita que o Basic Auth seja desafiado exatamente em /admin,
+  // o que pode contaminar a navegação do domínio inteiro no navegador.
+  if (pathname === "/admin") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin/estudos";
+    return NextResponse.redirect(url);
+  }
+
   const username = process.env.ADMIN_USERNAME;
   const password = process.env.ADMIN_PASSWORD;
-  const isApi = request.nextUrl.pathname.startsWith("/api/admin");
 
-  // FAIL CLOSED:
-  // se as credenciais não estiverem configuradas,
-  // nenhuma rota administrativa será acessível.
   if (!username || !password) {
     return protectedResponse(503, isApi);
   }
@@ -100,10 +109,7 @@ export function proxy(request: NextRequest) {
 
   const response = NextResponse.next();
 
-  response.headers.set(
-    "Cache-Control",
-    "private, no-store, max-age=0"
-  );
+  response.headers.set("Cache-Control", "private, no-store, max-age=0");
   response.headers.set(
     "X-Robots-Tag",
     "noindex, nofollow, noarchive"
