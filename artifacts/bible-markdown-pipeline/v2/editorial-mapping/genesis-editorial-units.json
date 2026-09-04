@@ -1,0 +1,431 @@
+{
+  "GEN-EDU-001": {
+    "editorial_unit_id": "GEN-EDU-001",
+    "proposed_title": "Obra como Forma de Vida",
+    "primary_reference": "Gênesis 37",
+    "source_ids": [
+      "GEN-SRC-025"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.95,
+    "warnings": [
+      "GEN-041: RTF masqueraded as .doc (technically valid, see Phase G)",
+      "Editorial status should be confirmed against official documentation"
+    ]
+  },
+  "GEN-EDU-002": {
+    "editorial_unit_id": "GEN-EDU-002",
+    "proposed_title": "Entra, Bendito do Senhor",
+    "primary_reference": "Gênesis 24:31",
+    "source_ids": [
+      "GEN-SRC-015",
+      "GEN-SRC-016",
+      "GEN-SRC-017"
+    ],
+    "relationship_type": "UNRESOLVED",
+    "status": "UNRESOLVED",
+    "confidence": 0.5,
+    "warnings": [
+      "Found 3 sources with similar titles",
+      "Relationship unclear: version, duplicate, or complementary?",
+      "Requires editorial review to determine if single or multiple studies"
+    ]
+  },
+  "GEN-EDU-003": {
+    "editorial_unit_id": "GEN-EDU-003",
+    "proposed_title": "25 -  Princípios éticos para as irmãs",
+    "source_ids": [
+      "GEN-SRC-001"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-004": {
+    "editorial_unit_id": "GEN-EDU-004",
+    "proposed_title": "22 -  Concepção, Maturação e Nascimento da Igreja",
+    "source_ids": [
+      "GEN-SRC-002"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-005": {
+    "editorial_unit_id": "GEN-EDU-005",
+    "proposed_title": "04 - O pacto de Deus com Noé",
+    "source_ids": [
+      "GEN-SRC-003"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-006": {
+    "editorial_unit_id": "GEN-EDU-006",
+    "proposed_title": "10 - A torre de Babel",
+    "source_ids": [
+      "GEN-SRC-004"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-007": {
+    "editorial_unit_id": "GEN-EDU-007",
+    "proposed_title": "Conflito Israel e  Palestina",
+    "source_ids": [
+      "GEN-SRC-005"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-008": {
+    "editorial_unit_id": "GEN-EDU-008",
+    "proposed_title": "Ló",
+    "source_ids": [
+      "GEN-SRC-006"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-009": {
+    "editorial_unit_id": "GEN-EDU-009",
+    "proposed_title": "16 - Os Guerreiros de Abraão",
+    "source_ids": [
+      "GEN-SRC-007"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-010": {
+    "editorial_unit_id": "GEN-EDU-010",
+    "proposed_title": "20 - O Dízimo",
+    "source_ids": [
+      "GEN-SRC-008"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-011": {
+    "editorial_unit_id": "GEN-EDU-011",
+    "proposed_title": "A Salvação de Ló",
+    "source_ids": [
+      "GEN-SRC-009"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-012": {
+    "editorial_unit_id": "GEN-EDU-012",
+    "proposed_title": "Escapa-te por tua vida",
+    "source_ids": [
+      "GEN-SRC-010"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-013": {
+    "editorial_unit_id": "GEN-EDU-013",
+    "proposed_title": "20 -  Fugindo para a vida",
+    "source_ids": [
+      "GEN-SRC-011"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-014": {
+    "editorial_unit_id": "GEN-EDU-014",
+    "proposed_title": "A constituição do lar",
+    "source_ids": [
+      "GEN-SRC-012"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-015": {
+    "editorial_unit_id": "GEN-EDU-015",
+    "proposed_title": "Labão",
+    "source_ids": [
+      "GEN-SRC-013"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-016": {
+    "editorial_unit_id": "GEN-EDU-016",
+    "proposed_title": "E a donzela era mui formosa",
+    "source_ids": [
+      "GEN-SRC-014"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-017": {
+    "editorial_unit_id": "GEN-EDU-017",
+    "proposed_title": "58 - O Espírito Santo",
+    "source_ids": [
+      "GEN-SRC-018"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-018": {
+    "editorial_unit_id": "GEN-EDU-018",
+    "proposed_title": "Beija-me meu filho",
+    "source_ids": [
+      "GEN-SRC-019"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-019": {
+    "editorial_unit_id": "GEN-EDU-019",
+    "proposed_title": "9 - Eis aqui Raquel",
+    "source_ids": [
+      "GEN-SRC-020"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-020": {
+    "editorial_unit_id": "GEN-EDU-020",
+    "proposed_title": "Declara-me qual o teu salário",
+    "source_ids": [
+      "GEN-SRC-021"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-021": {
+    "editorial_unit_id": "GEN-EDU-021",
+    "proposed_title": "38 -  Rebanhos de Jacó",
+    "source_ids": [
+      "GEN-SRC-022"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-022": {
+    "editorial_unit_id": "GEN-EDU-022",
+    "proposed_title": "A luta de Jacó",
+    "source_ids": [
+      "GEN-SRC-023"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-023": {
+    "editorial_unit_id": "GEN-EDU-023",
+    "proposed_title": "28 - Israel",
+    "source_ids": [
+      "GEN-SRC-024"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-024": {
+    "editorial_unit_id": "GEN-EDU-024",
+    "proposed_title": "52 -  Manassés E Efraim",
+    "source_ids": [
+      "GEN-SRC-026"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-025": {
+    "editorial_unit_id": "GEN-EDU-025",
+    "proposed_title": "52 -  Os dois filhos de José",
+    "source_ids": [
+      "GEN-SRC-027"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-026": {
+    "editorial_unit_id": "GEN-EDU-026",
+    "proposed_title": "57 - A fome no Egito",
+    "source_ids": [
+      "GEN-SRC-028"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-027": {
+    "editorial_unit_id": "GEN-EDU-027",
+    "proposed_title": "17 -  E acabando o dinheiro",
+    "source_ids": [
+      "GEN-SRC-029"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-028": {
+    "editorial_unit_id": "GEN-EDU-028",
+    "proposed_title": "26 - A bênção de José ",
+    "source_ids": [
+      "GEN-SRC-030"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-029": {
+    "editorial_unit_id": "GEN-EDU-029",
+    "proposed_title": "o",
+    "source_ids": [
+      "GEN-SRC-031"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-030": {
+    "editorial_unit_id": "GEN-EDU-030",
+    "proposed_title": "o",
+    "source_ids": [
+      "GEN-SRC-032"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-031": {
+    "editorial_unit_id": "GEN-EDU-031",
+    "proposed_title": "a",
+    "source_ids": [
+      "GEN-SRC-033"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-032": {
+    "editorial_unit_id": "GEN-EDU-032",
+    "proposed_title": "m",
+    "source_ids": [
+      "GEN-SRC-034"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-033": {
+    "editorial_unit_id": "GEN-EDU-033",
+    "proposed_title": "r",
+    "source_ids": [
+      "GEN-SRC-035"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-034": {
+    "editorial_unit_id": "GEN-EDU-034",
+    "proposed_title": "o",
+    "source_ids": [
+      "GEN-SRC-036"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-035": {
+    "editorial_unit_id": "GEN-EDU-035",
+    "proposed_title": "a",
+    "source_ids": [
+      "GEN-SRC-037"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-036": {
+    "editorial_unit_id": "GEN-EDU-036",
+    "proposed_title": "s",
+    "source_ids": [
+      "GEN-SRC-038"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-037": {
+    "editorial_unit_id": "GEN-EDU-037",
+    "proposed_title": "e",
+    "source_ids": [
+      "GEN-SRC-039"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  },
+  "GEN-EDU-038": {
+    "editorial_unit_id": "GEN-EDU-038",
+    "proposed_title": "a",
+    "source_ids": [
+      "GEN-SRC-040"
+    ],
+    "relationship_type": "SINGLE_SOURCE",
+    "status": "CANDIDATE",
+    "confidence": 0.7,
+    "warnings": []
+  }
+}

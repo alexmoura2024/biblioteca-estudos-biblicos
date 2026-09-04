@@ -1,0 +1,402 @@
+{
+  "GEN-SRC-001": {
+    "source_id": "GEN-SRC-001",
+    "file_name": "Gn 02 18-25 -  Princípios éticos para as irmãs.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 02 18-25 -  Princípios éticos para as irmãs.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 58702,
+    "sha256": "b6d49e6c155c4d82afa2e7b67f3265f3a16a164ca7640d97d2a13e491a896113",
+    "extraction_status": "SUCCESS",
+    "title_detected": "25 -  Princípios éticos para as irmãs"
+  },
+  "GEN-SRC-002": {
+    "source_id": "GEN-SRC-002",
+    "file_name": "Gn 02 21-22 -  Concepção, Maturação e Nascimento da Igreja.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 02 21-22 -  Concepção, Maturação e Nascimento da Igreja.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 26470,
+    "sha256": "58496d8870e807d222c0645b4d9d948d9a88e7e462d63f57412f5ee64457a855",
+    "extraction_status": "SUCCESS",
+    "title_detected": "22 -  Concepção, Maturação e Nascimento da Igreja"
+  },
+  "GEN-SRC-003": {
+    "source_id": "GEN-SRC-003",
+    "file_name": "Gn 09 01-04 - O pacto de Deus com Noé.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 09 01-04 - O pacto de Deus com Noé.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 27976,
+    "sha256": "556281add16d4193721ce67b1a48f1db66e30d359b646841b6f44e1ecc53d423",
+    "extraction_status": "SUCCESS",
+    "title_detected": "04 - O pacto de Deus com Noé"
+  },
+  "GEN-SRC-004": {
+    "source_id": "GEN-SRC-004",
+    "file_name": "Gn 10 08-10 - A torre de Babel.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 10 08-10 - A torre de Babel.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 32620,
+    "sha256": "070c6d36ea744f043ec73f890a256577a09c0b7ab9a460ef09b9728ef892bd40",
+    "extraction_status": "SUCCESS",
+    "title_detected": "10 - A torre de Babel"
+  },
+  "GEN-SRC-005": {
+    "source_id": "GEN-SRC-005",
+    "file_name": "Gn 12 01 - Conflito Israel e  Palestina.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 12 01 - Conflito Israel e  Palestina.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 35654,
+    "sha256": "d32b721a9e57982885bc9a88a5a004be7d67e14ff21dc8ae39ea8447953d0881",
+    "extraction_status": "SUCCESS",
+    "title_detected": "Conflito Israel e  Palestina"
+  },
+  "GEN-SRC-006": {
+    "source_id": "GEN-SRC-006",
+    "file_name": "Gn 13 10  -  Ló.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 13 10  -  Ló.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 23920,
+    "sha256": "0bc4bd735fb46f33cd31bf80d927cab9d1f17dd1f43f4f2724841f650208e609",
+    "extraction_status": "SUCCESS",
+    "title_detected": "Ló"
+  },
+  "GEN-SRC-007": {
+    "source_id": "GEN-SRC-007",
+    "file_name": "Gn 14 12-16 - Os Guerreiros de Abraão.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 14 12-16 - Os Guerreiros de Abraão.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 26472,
+    "sha256": "371d70a37c0a1821725339fecae3fa0357da6fce6f7632d64820566f3a89a75f",
+    "extraction_status": "SUCCESS",
+    "title_detected": "16 - Os Guerreiros de Abraão"
+  },
+  "GEN-SRC-008": {
+    "source_id": "GEN-SRC-008",
+    "file_name": "Gn 14 18 - 20 - O Dízimo.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 14 18 - 20 - O Dízimo.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 32608,
+    "sha256": "eb347ac424717b8301d1c3ca6c39bad342159e5fa6bea484aa9ded98fb5e639c",
+    "extraction_status": "SUCCESS",
+    "title_detected": "20 - O Dízimo"
+  },
+  "GEN-SRC-009": {
+    "source_id": "GEN-SRC-009",
+    "file_name": "Gn 19 17 - A Salvação de Ló.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 19 17 - A Salvação de Ló.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 22896,
+    "sha256": "83a6e955f601337f820baa35923e37f5c73c3b480301a379871e8092ddcda0d5",
+    "extraction_status": "SUCCESS",
+    "title_detected": "A Salvação de Ló"
+  },
+  "GEN-SRC-010": {
+    "source_id": "GEN-SRC-010",
+    "file_name": "Gn 19 17 - Escapa-te por tua vida.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 19 17 - Escapa-te por tua vida.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 20985,
+    "sha256": "44dbe4cbc433a0b8b2a79bba0ddad1204d75a372a6561c837b7bf938602f0b9a",
+    "extraction_status": "SUCCESS",
+    "title_detected": "Escapa-te por tua vida"
+  },
+  "GEN-SRC-011": {
+    "source_id": "GEN-SRC-011",
+    "file_name": "Gn 19 18-20 -  Fugindo para a vida.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 19 18-20 -  Fugindo para a vida.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 24046,
+    "sha256": "a61dcbb83e94532f21ac37109d6b02060ef9186886c020eb97c1e366d7291231",
+    "extraction_status": "SUCCESS",
+    "title_detected": "20 -  Fugindo para a vida"
+  },
+  "GEN-SRC-012": {
+    "source_id": "GEN-SRC-012",
+    "file_name": "Gn 24 01 - A constituição do lar.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 24 01 - A constituição do lar.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 31589,
+    "sha256": "2426d551ecb03b5e3376d470249a1809fb363c329b0936effbb24dc88f8e94d9",
+    "extraction_status": "SUCCESS",
+    "title_detected": "A constituição do lar"
+  },
+  "GEN-SRC-013": {
+    "source_id": "GEN-SRC-013",
+    "file_name": "Gn 24 12 - Labão.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 24 12 - Labão.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 68491,
+    "sha256": "b76116ce7b57e418b11235952f087824d3467c9a258b9a89539af20d04b02aec",
+    "extraction_status": "SUCCESS",
+    "title_detected": "Labão"
+  },
+  "GEN-SRC-014": {
+    "source_id": "GEN-SRC-014",
+    "file_name": "Gn 24.16 -  E a donzela era mui formosa.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 24.16 -  E a donzela era mui formosa.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 19952,
+    "sha256": "0174ea91cc01cbfdfc78613aa0adcca7bd9b8fa41e88d23437eaea307a38ea0d",
+    "extraction_status": "SUCCESS",
+    "title_detected": "E a donzela era mui formosa"
+  },
+  "GEN-SRC-015": {
+    "source_id": "GEN-SRC-015",
+    "file_name": "Gn 24.31 - Entra bendito do Senhor - Tópicos.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 24.31 - Entra bendito do Senhor - Tópicos.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 22005,
+    "sha256": "77c0a3f96e1fa7860753b53e7929257f14a2320caf603e072fc8147f25d56fdb",
+    "extraction_status": "SUCCESS",
+    "title_detected": "Entra bendito do Senhor - Tópicos"
+  },
+  "GEN-SRC-016": {
+    "source_id": "GEN-SRC-016",
+    "file_name": "Gn 24.31 - Entra bendito do Senhor(1).doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 24.31 - Entra bendito do Senhor(1).doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 28144,
+    "sha256": "b3605183dffc020311d28c1530c3017eb8ab1e5475ab13c9fe3779abd209425f",
+    "extraction_status": "SUCCESS",
+    "title_detected": "Entra bendito do Senhor(1)"
+  },
+  "GEN-SRC-017": {
+    "source_id": "GEN-SRC-017",
+    "file_name": "Gn 24.31 - Entra bendito do Senhor(2).doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 24.31 - Entra bendito do Senhor(2).doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 34676,
+    "sha256": "20f1a8a1adde6c9a14ac948b8857266d36cace9248afbd8b0057b69088437597",
+    "extraction_status": "SUCCESS",
+    "title_detected": "Entra bendito do Senhor(2)"
+  },
+  "GEN-SRC-018": {
+    "source_id": "GEN-SRC-018",
+    "file_name": "Gn 24.55-58 - O Espírito Santo.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 24.55-58 - O Espírito Santo.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 25082,
+    "sha256": "cb8ba7bb1a282d157fd9a1fdb2df3a2c7a63e2012fef5030e2e2a52fe4fd59d1",
+    "extraction_status": "SUCCESS",
+    "title_detected": "58 - O Espírito Santo"
+  },
+  "GEN-SRC-019": {
+    "source_id": "GEN-SRC-019",
+    "file_name": "Gn 27.26 - Beija-me meu filho.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 27.26 - Beija-me meu filho.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 27641,
+    "sha256": "ce4e25711a078c98fa3c6219652f1dad8f66f70f412c96eacc7684203d5b285c",
+    "extraction_status": "SUCCESS",
+    "title_detected": "Beija-me meu filho"
+  },
+  "GEN-SRC-020": {
+    "source_id": "GEN-SRC-020",
+    "file_name": "Gn 29.1-9 - Eis aqui Raquel.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 29.1-9 - Eis aqui Raquel.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 31720,
+    "sha256": "709a43266eeb6ec661177c727f3a8a0c2f1dd3bfb561d908b8eea27493673e9f",
+    "extraction_status": "SUCCESS",
+    "title_detected": "9 - Eis aqui Raquel"
+  },
+  "GEN-SRC-021": {
+    "source_id": "GEN-SRC-021",
+    "file_name": "Gn 29.15 - Declara-me qual o teu salário.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 29.15 - Declara-me qual o teu salário.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 27636,
+    "sha256": "0247c99b12cd8b331f3f5cf7ee1b9156af4275e717f5216ede6684e62e45abae",
+    "extraction_status": "SUCCESS",
+    "title_detected": "Declara-me qual o teu salário"
+  },
+  "GEN-SRC-022": {
+    "source_id": "GEN-SRC-022",
+    "file_name": "Gn 30.37-38 -  Rebanhos de Jacó.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 30.37-38 -  Rebanhos de Jacó.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 87293,
+    "sha256": "df56369496dac8468691f3bf798abd75c1004d0c13a8d84de71f0de068ec2bc0",
+    "extraction_status": "SUCCESS",
+    "title_detected": "38 -  Rebanhos de Jacó"
+  },
+  "GEN-SRC-023": {
+    "source_id": "GEN-SRC-023",
+    "file_name": "Gn 32.1 - A luta de Jacó.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 32.1 - A luta de Jacó.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 25078,
+    "sha256": "ab2470395f8740ef724345f2d0c51045a67c46e4eaa2e9f97ff69a31a256a580",
+    "extraction_status": "SUCCESS",
+    "title_detected": "A luta de Jacó"
+  },
+  "GEN-SRC-024": {
+    "source_id": "GEN-SRC-024",
+    "file_name": "Gn 32.22-28 - Israel.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 32.22-28 - Israel.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 46449,
+    "sha256": "4d2ca3ebc867dc7f870c1dfc689b0f8d180e1d10165c1d2cb7460e6d35ae70e6",
+    "extraction_status": "SUCCESS",
+    "title_detected": "28 - Israel"
+  },
+  "GEN-SRC-025": {
+    "source_id": "GEN-SRC-025",
+    "file_name": "Gn 37 -  Obra Forma de Vida .doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 37 -  Obra Forma de Vida .doc",
+    "detected_format": "RTF",
+    "char_count": 7378,
+    "sha256": "4f364bc1c217a6add44a832244fd2092ff70df0dee2a4ad6d40e7562651b718d",
+    "extraction_status": "SUCCESS",
+    "title_detected": "Obra Forma de Vida "
+  },
+  "GEN-SRC-026": {
+    "source_id": "GEN-SRC-026",
+    "file_name": "Gn 41.50-52 -  Manassés E Efraim.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 41.50-52 -  Manassés E Efraim.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 66355,
+    "sha256": "2114f9b13db0ef495155683a839f1ef4daf62f233cdd5c4452eac2346f6a3f7d",
+    "extraction_status": "SUCCESS",
+    "title_detected": "52 -  Manassés E Efraim"
+  },
+  "GEN-SRC-027": {
+    "source_id": "GEN-SRC-027",
+    "file_name": "Gn 41.50-52 -  Os dois filhos de José.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 41.50-52 -  Os dois filhos de José.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 24054,
+    "sha256": "c9d112800696151ab03551ca93d4ccae4429e96cc1d4511a6f01be3b32909179",
+    "extraction_status": "SUCCESS",
+    "title_detected": "52 -  Os dois filhos de José"
+  },
+  "GEN-SRC-028": {
+    "source_id": "GEN-SRC-028",
+    "file_name": "Gn 41.54-57 - A fome no Egito.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 41.54-57 - A fome no Egito.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 38808,
+    "sha256": "aa947636d4607c295675be219744164e58bbbe7b1f08bcea4fe4c2bc8f7bd7b8",
+    "extraction_status": "SUCCESS",
+    "title_detected": "57 - A fome no Egito"
+  },
+  "GEN-SRC-029": {
+    "source_id": "GEN-SRC-029",
+    "file_name": "Gn 47.15-17 -  E acabando o dinheiro.doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 47.15-17 -  E acabando o dinheiro.doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 25082,
+    "sha256": "b5091031a053d2c8efb8887d8b7a7b15d9e83faa62641076129170e18f5dc361",
+    "extraction_status": "SUCCESS",
+    "title_detected": "17 -  E acabando o dinheiro"
+  },
+  "GEN-SRC-030": {
+    "source_id": "GEN-SRC-030",
+    "file_name": "Gn 49.22-26 - A bênção de José .doc",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gn 49.22-26 - A bênção de José .doc",
+    "detected_format": "DOC_OLE",
+    "char_count": 47924,
+    "sha256": "6a884248280adbaab5e4e1acc4ace7eb01864acd740a43e63e640f60bf209546",
+    "extraction_status": "SUCCESS",
+    "title_detected": "26 - A bênção de José "
+  },
+  "GEN-SRC-031": {
+    "source_id": "GEN-SRC-031",
+    "file_name": "Gênesis 12 2 — Cronologia de Israel — histórico.docx",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gênesis 12 2 — Cronologia de Israel — histórico.docx",
+    "detected_format": "DOCX",
+    "char_count": 13619,
+    "sha256": "7ba30b7c1e63f54b95a5f087503d7e72fe55875be6cc8d7cbc01b8615a4b3175",
+    "extraction_status": "SUCCESS",
+    "title_detected": "o"
+  },
+  "GEN-SRC-032": {
+    "source_id": "GEN-SRC-032",
+    "file_name": "Gênesis 14 18–20 — Pão e Vinho.docx",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gênesis 14 18–20 — Pão e Vinho.docx",
+    "detected_format": "DOCX",
+    "char_count": 7457,
+    "sha256": "596e2ca5af53e4a490547b6ce7e9622b77d61188ea12fad78ef6208c06ca25f6",
+    "extraction_status": "SUCCESS",
+    "title_detected": "o"
+  },
+  "GEN-SRC-033": {
+    "source_id": "GEN-SRC-033",
+    "file_name": "Gênesis 2 24 — A Formação da Igreja.docx",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gênesis 2 24 — A Formação da Igreja.docx",
+    "detected_format": "DOCX",
+    "char_count": 1792,
+    "sha256": "37c9e68e8cf101fea0f3f5899f5566df30102030e7bc52bd182e41378555a1d0",
+    "extraction_status": "SUCCESS",
+    "title_detected": "a"
+  },
+  "GEN-SRC-034": {
+    "source_id": "GEN-SRC-034",
+    "file_name": "Gênesis 2 7 — A Criação do Homem.docx",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gênesis 2 7 — A Criação do Homem.docx",
+    "detected_format": "DOCX",
+    "char_count": 1604,
+    "sha256": "fb46e201375634156192bed023bb8b69cb92f5f0ebea16b45e682e3869174bb7",
+    "extraction_status": "SUCCESS",
+    "title_detected": "m"
+  },
+  "GEN-SRC-035": {
+    "source_id": "GEN-SRC-035",
+    "file_name": "Gênesis 21 14–19 — Agar.docx",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gênesis 21 14–19 — Agar.docx",
+    "detected_format": "DOCX",
+    "char_count": 4378,
+    "sha256": "871fdbb59f9af816fa37b8268e48b337f29170c05400a1a0ff2bba5b9c606e98",
+    "extraction_status": "SUCCESS",
+    "title_detected": "r"
+  },
+  "GEN-SRC-036": {
+    "source_id": "GEN-SRC-036",
+    "file_name": "Gênesis 32 10 — O Cajado.docx",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gênesis 32 10 — O Cajado.docx",
+    "detected_format": "DOCX",
+    "char_count": 1655,
+    "sha256": "83dab7ef17efc66fea79bd0900adaae8eba358827ceebc094e5f010156838549",
+    "extraction_status": "SUCCESS",
+    "title_detected": "o"
+  },
+  "GEN-SRC-037": {
+    "source_id": "GEN-SRC-037",
+    "file_name": "Gênesis 32 22–31 — Madrugada.docx",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gênesis 32 22–31 — Madrugada.docx",
+    "detected_format": "DOCX",
+    "char_count": 2816,
+    "sha256": "f051952f0a6b7728b02c1fbf4135e30fd2c8008dfc8e5a4c37ad431800dc9a73",
+    "extraction_status": "SUCCESS",
+    "title_detected": "a"
+  },
+  "GEN-SRC-038": {
+    "source_id": "GEN-SRC-038",
+    "file_name": "Gênesis 4 21–22 — Instrumentistas.docx",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gênesis 4 21–22 — Instrumentistas.docx",
+    "detected_format": "DOCX",
+    "char_count": 3408,
+    "sha256": "dec10d96d90e04bed83e5e4d5e43da4e3a8beb7c3d23ad8f34cf66877404c96b",
+    "extraction_status": "SUCCESS",
+    "title_detected": "s"
+  },
+  "GEN-SRC-039": {
+    "source_id": "GEN-SRC-039",
+    "file_name": "Gênesis 6 13–15 — O Fim de Toda Carne.docx",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Gênesis 6 13–15 — O Fim de Toda Carne.docx",
+    "detected_format": "DOCX",
+    "char_count": 2201,
+    "sha256": "9c8ca4c693e412e4d822dcc7df79e169b845791ea7c5ad72ab174392bab18b81",
+    "extraction_status": "SUCCESS",
+    "title_detected": "e"
+  },
+  "GEN-SRC-040": {
+    "source_id": "GEN-SRC-040",
+    "file_name": "Isaque e Rebeca.docx",
+    "canonical_path": "G:/Meu Drive/Mensagens por livro/01 - Antigo Testamento/01 - Gênesis/Isaque e Rebeca.docx",
+    "detected_format": "DOCX",
+    "char_count": 3671,
+    "sha256": "b4794ed58762c3568f70a1f0e7db601f2550436ead1dba38111bfe8b9f0e58f6",
+    "extraction_status": "SUCCESS",
+    "title_detected": "a"
+  }
+}
