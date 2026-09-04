@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 interface PassageData {
   passage_id: string;
@@ -24,7 +25,7 @@ export async function POST(
     // 1. Buscar estudo atual com relações
     const { data: study } = await supabase
       .from("studies")
-      .select("titulo, resumo, conteudo, tipo_estudo")
+      .select("titulo, resumo, conteudo, tipo_estudo, slug, status")
       .eq("id", id)
       .single();
 
@@ -241,9 +242,22 @@ export async function POST(
       });
     }
 
+    // Se o estudo já está publicado, invalida imediatamente
+    // a página pública para que a próxima visita carregue o conteúdo novo.
+    if (
+      typedStudy.status === "PUBLISHED" &&
+      typeof typedStudy.slug === "string" &&
+      typedStudy.slug
+    ) {
+      revalidatePath(`/estudo/${typedStudy.slug}`);
+    }
+
     return NextResponse.json({
       success: true,
-      message: "Alterações salvas com sucesso",
+      message:
+        typedStudy.status === "PUBLISHED"
+          ? "Alterações salvas e página pública atualizada"
+          : "Alterações salvas com sucesso",
       changed,
     });
   } catch (e) {
