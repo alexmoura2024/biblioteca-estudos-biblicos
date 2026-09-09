@@ -1,11 +1,112 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { parseReference } from "@/lib/search/referenceParser";
 
 interface PassageData {
   passage_id: string;
   referencia_normalizada: string;
   tipo_relacao: "MAIN" | "SECONDARY" | "CITED";
+}
+
+type PassageInput = {
+  referencia_normalizada: string;
+  tipo_relacao: "MAIN" | "SECONDARY" | "CITED";
+};
+
+const PASSAGE_TYPES = new Set(["MAIN", "SECONDARY", "CITED"]);
+
+function normalizeReferenceInput(value: string) {
+  return value
+    .trim()
+    .replace(/[\u2012\u2013\u2014\u2212]/g, "-")
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+async function resolvePassage(
+  supabase: any,
+  rawReference: string
+): Promise<{ id: string; referencia: string }> {
+  const normalizedInput = normalizeReferenceInput(rawReference);
+  const parsed = parseReference(normalizedInput);
+
+  if (parsed.type === "none") {
+    throw new Error(`Referência não reconhecida: ${rawReference}`);
+  }
+
+  if (parsed.type === "ambiguous") {
+    throw new Error(
+      `Referência ambígua: ${rawReference}. Use o nome completo do livro.`
+    );
+  }
+
+  if (parsed.type === "invalid") {
+    throw new Error(`Referência bíblica inválida: ${rawReference}`);
+  }
+
+  if (parsed.type === "book") {
+    throw new Error(
+      `Referência incompleta: ${rawReference}. Informe pelo menos livro e capítulo.`
+    );
+  }
+
+  const { data: dbBook, error: bookError } = await supabase
+    .from("books")
+    .select("id,nome,slug")
+    .eq("slug", parsed.book.slug)
+    .single();
+
+  if (bookError || !dbBook) {
+    throw new Error(`Livro bíblico não encontrado: ${parsed.book.nome}`);
+  }
+
+  const referencia =
+    parsed.type === "chapter"
+      ? `${dbBook.nome} ${parsed.capitulo}`
+      : `${dbBook.nome} ${parsed.capitulo}:${parsed.versiculoInicio}${
+          parsed.versiculoFim !== undefined ? `-${parsed.versiculoFim}` : ""
+        }`;
+
+  const { data: existing, error: lookupError } = await supabase
+    .from("passages")
+    .select("id")
+    .eq("referencia_normalizada", referencia)
+    .limit(1);
+
+  if (lookupError) {
+    throw new Error(
+      `Erro ao consultar a referência ${referencia}: ${lookupError.message}`
+    );
+  }
+
+  if (existing && existing.length > 0) {
+    return { id: existing[0].id, referencia };
+  }
+
+  const { data: created, error: createError } = await supabase
+    .from("passages")
+    .insert({
+      book_id: dbBook.id,
+      capitulo: parsed.capitulo,
+      versiculo_inicio:
+        parsed.type === "verse" ? parsed.versiculoInicio : null,
+      versiculo_fim:
+        parsed.type === "verse" ? parsed.versiculoFim ?? null : null,
+      referencia_normalizada: referencia,
+    })
+    .select("id")
+    .single();
+
+  if (createError || !created) {
+    throw new Error(
+      `Erro ao criar a referência ${referencia}: ${
+        createError?.message || "erro desconhecido"
+      }`
+    );
+  }
+
+  return { id: created.id, referencia };
 }
 
 export async function POST(
@@ -22,7 +123,6 @@ export async function POST(
       { auth: { persistSession: false } }
     );
 
-    // 1. Buscar estudo atual com relações
     const { data: study } = await supabase
       .from("studies")
       .select("titulo, resumo, conteudo, tipo_estudo, slug, status")
@@ -39,20 +139,17 @@ export async function POST(
     type StudyRecord = Record<string, unknown>;
     const typedStudy = study as StudyRecord;
 
-    // Buscar passages/topics/characters atuais
     const { data: currentPassages } = await supabase
       .from("study_passages")
-      .select(
-        "passage_id, tipo_relacao, passages(referencia_normalizada)"
-      )
+      .select("passage_id, tipo_relacao, passages(referencia_normalizada)")
       .eq("study_id", id);
 
     const passages = (currentPassages || []).map(
       (p: Record<string, unknown>) => ({
         passage_id: (p.passage_id as string) || "",
         referencia_normalizada:
-          ((p.passages as Record<string, unknown>)?.referencia_normalizada as string) ||
-          "",
+          ((p.passages as Record<string, unknown>)
+            ?.referencia_normalizada as string) || "",
         tipo_relacao: (p.tipo_relacao as string) || "CITED",
       })
     ) as PassageData[];
@@ -61,61 +158,151 @@ export async function POST(
       .from("study_topics")
       .select("topic_id")
       .eq("study_id", id);
+
     const currentTopicIds = new Set(
-      (currentTopics || []).map((t: Record<string, unknown>) => t.topic_id as string)
+      (currentTopics || []).map(
+        (t: Record<string, unknown>) => t.topic_id as string
+      )
     );
 
     const { data: currentCharacters } = await supabase
       .from("study_characters")
       .select("character_id")
       .eq("study_id", id);
+
     const currentCharacterIds = new Set(
       (currentCharacters || []).map(
         (c: Record<string, unknown>) => c.character_id as string
       )
     );
 
-    // 2. Registrar histórico (snapshot anterior)
     const changed: string[] = [];
+
     if (body.titulo !== typedStudy.titulo) changed.push("titulo");
     if (body.resumo !== typedStudy.resumo) changed.push("resumo");
     if (body.conteudo !== typedStudy.conteudo) changed.push("conteudo");
-    if (body.tipo_estudo !== typedStudy.tipo_estudo) changed.push("tipo_estudo");
+    if (body.tipo_estudo !== typedStudy.tipo_estudo)
+      changed.push("tipo_estudo");
 
-    const newTopicIds = new Set(body.topicIds || []);
-    const newCharacterIds = new Set(body.characterIds || []);
+    const newTopicIds = new Set<string>(body.topicIds || []);
+    const newCharacterIds = new Set<string>(body.characterIds || []);
 
-    if (newTopicIds.size !== currentTopicIds.size ||
-        ![...newTopicIds].every((id) => currentTopicIds.has(id as string))) {
+    if (
+      newTopicIds.size !== currentTopicIds.size ||
+      ![...newTopicIds].every((topicId) => currentTopicIds.has(topicId))
+    ) {
       changed.push("temas");
     }
 
     if (
       newCharacterIds.size !== currentCharacterIds.size ||
-      ![...newCharacterIds].every((id) => currentCharacterIds.has(id as string))
+      ![...newCharacterIds].every((characterId) =>
+        currentCharacterIds.has(characterId)
+      )
     ) {
       changed.push("personagens");
     }
 
-    if (changed.length > 0) {
-      await supabase.from("study_edits").insert({
-        study_id: id,
-        titulo_anterior: typedStudy.titulo as string,
-        resumo_anterior: typedStudy.resumo as string,
-        conteudo_anterior: typedStudy.conteudo as string,
-        campos_alterados: changed,
+    const rawPassages = (body.passages || []) as Array<{
+      referencia_normalizada?: string;
+      tipo_relacao?: string;
+    }>;
+
+    const requestedPassages: PassageInput[] = rawPassages.map((passage) => {
+      const reference = passage.referencia_normalizada?.trim() || "";
+      const relation = passage.tipo_relacao || "";
+
+      if (!reference) {
+        throw new Error("Há uma referência bíblica vazia.");
+      }
+
+      if (!PASSAGE_TYPES.has(relation)) {
+        throw new Error(`Tipo de relação inválido para ${reference}.`);
+      }
+
+      return {
+        referencia_normalizada: reference,
+        tipo_relacao: relation as PassageInput["tipo_relacao"],
+      };
+    });
+
+    const mainCount = requestedPassages.filter(
+      (passage) => passage.tipo_relacao === "MAIN"
+    ).length;
+
+    if (mainCount > 1) {
+      return NextResponse.json(
+        { error: "O estudo pode ter no máximo uma referência principal." },
+        { status: 400 }
+      );
+    }
+
+    // Primeiro resolve/valida TODAS as passagens. Só depois altera as relações.
+    const resolvedPassages: Array<{
+      passage_id: string;
+      referencia_normalizada: string;
+      tipo_relacao: PassageInput["tipo_relacao"];
+    }> = [];
+
+    for (const passage of requestedPassages) {
+      const resolved = await resolvePassage(
+        supabase,
+        passage.referencia_normalizada
+      );
+
+      resolvedPassages.push({
+        passage_id: resolved.id,
+        referencia_normalizada: resolved.referencia,
+        tipo_relacao: passage.tipo_relacao,
       });
     }
 
-    // 3. Atualizar estudo (mantém status REVIEW)
+    const uniquePassageIds = new Set(
+      resolvedPassages.map((passage) => passage.passage_id)
+    );
+
+    if (uniquePassageIds.size !== resolvedPassages.length) {
+      return NextResponse.json(
+        {
+          error:
+            "A mesma referência bíblica foi informada mais de uma vez. Remova a duplicação.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const oldPassagesSet = new Set(
+      passages.map(
+        (p) =>
+          `${normalizeReferenceInput(p.referencia_normalizada)}|${p.tipo_relacao}`
+      )
+    );
+
+    const newPassagesSet = new Set(
+      resolvedPassages.map(
+        (p) =>
+          `${normalizeReferenceInput(p.referencia_normalizada)}|${p.tipo_relacao}`
+      )
+    );
+
+    const passagesChanged =
+      oldPassagesSet.size !== newPassagesSet.size ||
+      ![...newPassagesSet].every((passage) => oldPassagesSet.has(passage));
+
+    if (passagesChanged) {
+      changed.push("passages");
+    }
+
     const { error: updateError } = await supabase
       .from("studies")
       .update({
         titulo: (body.titulo as string) || (typedStudy.titulo as string),
         resumo: (body.resumo as string) || (typedStudy.resumo as string),
-        conteudo: (body.conteudo as string) || (typedStudy.conteudo as string),
+        conteudo:
+          (body.conteudo as string) || (typedStudy.conteudo as string),
         tipo_estudo:
-          (body.tipo_estudo as string) || (typedStudy.tipo_estudo as string),
+          (body.tipo_estudo as string) ||
+          (typedStudy.tipo_estudo as string),
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);
@@ -127,123 +314,117 @@ export async function POST(
       );
     }
 
-    // 4. Atualizar temas (delete old, insert new)
     if (changed.includes("temas")) {
-      await supabase
+      const { error: deleteTopicsError } = await supabase
         .from("study_topics")
         .delete()
         .eq("study_id", id);
 
+      if (deleteTopicsError) {
+        throw new Error(`Erro ao atualizar temas: ${deleteTopicsError.message}`);
+      }
+
       if (newTopicIds.size > 0) {
-        const topicsToInsert = Array.from(newTopicIds).map((topicId) => ({
-          study_id: id,
-          topic_id: topicId,
-          peso: 1,
-        }));
-        await supabase.from("study_topics").insert(topicsToInsert);
-      }
-    }
+        const { error: insertTopicsError } = await supabase
+          .from("study_topics")
+          .insert(
+            Array.from(newTopicIds).map((topicId) => ({
+              study_id: id,
+              topic_id: topicId,
+              peso: 1,
+            }))
+          );
 
-    // 5. Atualizar personagens (delete old, insert new)
-    if (changed.includes("personagens")) {
-      await supabase
-        .from("study_characters")
-        .delete()
-        .eq("study_id", id);
-
-      if (newCharacterIds.size > 0) {
-        const charactersToInsert = Array.from(newCharacterIds).map((charId) => ({
-          study_id: id,
-          character_id: charId,
-          papel: "mencionado",
-        }));
-        await supabase
-          .from("study_characters")
-          .insert(charactersToInsert);
-      }
-    }
-
-    // 6. Atualizar referências (passages)
-    const newPassages = (body.passages || []) as Array<{ referencia_normalizada: string; tipo_relacao: string }>;
-    const oldPassagesSet = new Set(
-      passages.map(
-        (p) => `${p.referencia_normalizada}|${p.tipo_relacao}`
-      )
-    );
-    const newPassagesSet = new Set(
-      newPassages.map(
-        (p) =>
-          `${p.referencia_normalizada}|${p.tipo_relacao}`
-      )
-    );
-
-    if (oldPassagesSet.size !== newPassagesSet.size ||
-        ![...newPassagesSet].every((p) => oldPassagesSet.has(p))) {
-      changed.push("passages");
-
-      // Deletar todas as referências antigas
-      await supabase
-        .from("study_passages")
-        .delete()
-        .eq("study_id", id);
-
-      // Inserir novas referências
-      if (newPassages.length > 0) {
-        // Buscar ou criar passages por referência_normalizada
-        for (const passage of newPassages) {
-          const ref = passage.referencia_normalizada;
-          const tipoRelacao = passage.tipo_relacao;
-
-          // Procurar passage existente
-          let { data: existingPassage } = await supabase
-            .from("passages")
-            .select("id")
-            .eq("referencia_normalizada", ref)
-            .single();
-
-          let passageId: string;
-
-          if (!existingPassage) {
-            // Criar nova passage (genérica, sem book/chapter/verse structure)
-            const { data: newPassage, error: createError } = await supabase
-              .from("passages")
-              .insert({ referencia_normalizada: ref })
-              .select("id")
-              .single();
-
-            if (createError || !newPassage) {
-              console.error(`Erro ao criar passage: ${ref}`);
-              continue;
-            }
-
-            passageId = newPassage.id;
-          } else {
-            passageId = existingPassage.id;
-          }
-
-          // Vincular study_passages
-          await supabase.from("study_passages").insert({
-            study_id: id,
-            passage_id: passageId,
-            tipo_relacao: tipoRelacao,
-          });
+        if (insertTopicsError) {
+          throw new Error(
+            `Erro ao atualizar temas: ${insertTopicsError.message}`
+          );
         }
       }
     }
 
-    // Registrar histórico se houve mudanças
-    if (changed.length > 0) {
-      await supabase.from("study_edits").insert({
-        study_id: id,
-        titulo_anterior: typedStudy.titulo as string,
-        resumo_anterior: typedStudy.resumo as string,
-        conteudo_anterior: typedStudy.conteudo as string,
-        campos_alterados: changed,
-      });
+    if (changed.includes("personagens")) {
+      const { error: deleteCharactersError } = await supabase
+        .from("study_characters")
+        .delete()
+        .eq("study_id", id);
+
+      if (deleteCharactersError) {
+        throw new Error(
+          `Erro ao atualizar personagens: ${deleteCharactersError.message}`
+        );
+      }
+
+      if (newCharacterIds.size > 0) {
+        const { error: insertCharactersError } = await supabase
+          .from("study_characters")
+          .insert(
+            Array.from(newCharacterIds).map((characterId) => ({
+              study_id: id,
+              character_id: characterId,
+              papel: "mencionado",
+            }))
+          );
+
+        if (insertCharactersError) {
+          throw new Error(
+            `Erro ao atualizar personagens: ${insertCharactersError.message}`
+          );
+        }
+      }
     }
 
-    // Se o estudo já está publicado, invalida imediatamente
-    // a página pública para que a próxima visita carregue o conteúdo novo.
+    if (passagesChanged) {
+      const { error: deletePassagesError } = await supabase
+        .from("study_passages")
+        .delete()
+        .eq("study_id", id);
+
+      if (deletePassagesError) {
+        throw new Error(
+          `Erro ao atualizar referências: ${deletePassagesError.message}`
+        );
+      }
+
+      if (resolvedPassages.length > 0) {
+        const { error: insertPassagesError } = await supabase
+          .from("study_passages")
+          .insert(
+            resolvedPassages.map((passage, index) => ({
+              study_id: id,
+              passage_id: passage.passage_id,
+              tipo_relacao: passage.tipo_relacao,
+              prioridade: index + 1,
+            }))
+          );
+
+        if (insertPassagesError) {
+          throw new Error(
+            `Erro ao atualizar referências: ${insertPassagesError.message}`
+          );
+        }
+      }
+    }
+
+    if (changed.length > 0) {
+      const { error: historyError } = await supabase
+        .from("study_edits")
+        .insert({
+          study_id: id,
+          titulo_anterior: typedStudy.titulo as string,
+          resumo_anterior: typedStudy.resumo as string,
+          conteudo_anterior: typedStudy.conteudo as string,
+          campos_alterados: changed,
+        });
+
+      if (historyError) {
+        console.error("Erro ao registrar histórico:", historyError);
+      }
+    }
+
+    revalidatePath(`/admin/estudos/${id}`);
+    revalidatePath("/admin/estudos");
+
     if (
       typedStudy.status === "PUBLISHED" &&
       typeof typedStudy.slug === "string" &&
@@ -262,7 +443,11 @@ export async function POST(
     });
   } catch (e) {
     return NextResponse.json(
-      { error: `Erro interno: ${e instanceof Error ? e.message : "desconhecido"}` },
+      {
+        error: `Erro interno: ${
+          e instanceof Error ? e.message : "desconhecido"
+        }`,
+      },
       { status: 500 }
     );
   }

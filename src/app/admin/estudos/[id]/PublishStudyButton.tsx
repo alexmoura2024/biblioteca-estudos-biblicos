@@ -9,25 +9,30 @@ export default function PublishStudyButton({
   studyId: string;
   status: string;
 }) {
-  const [isPublishing, setIsPublishing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  if (status !== "REVIEW") {
+  const isDraft = status === "DRAFT";
+  const isReview = status === "REVIEW";
+
+  if (!isDraft && !isReview) {
     return null;
   }
 
-  async function publishStudy() {
-    const confirmed = window.confirm(
-      "Publicar este estudo agora?\n\nEle passará a PUBLISHED e público. Esta ação tornará o estudo elegível para aparecer no site público."
-    );
+  async function advanceWorkflow() {
+    const endpoint = isDraft ? "review" : "publish";
+    const confirmation = isDraft
+      ? "Enviar este estudo para revisão?\n\nO status passará de DRAFT para REVIEW. Ele continuará invisível ao público."
+      : "Publicar este estudo agora?\n\nEle passará a PUBLISHED e público. Esta ação tornará o estudo elegível para aparecer no site público.";
 
+    const confirmed = window.confirm(confirmation);
     if (!confirmed) return;
 
-    setIsPublishing(true);
+    setIsSubmitting(true);
     setError("");
 
     try {
-      const res = await fetch(`/api/admin/estudos/${studyId}/publish`, {
+      const res = await fetch(`/api/admin/estudos/${studyId}/${endpoint}`, {
         method: "POST",
       });
 
@@ -37,37 +42,72 @@ export default function PublishStudyButton({
       };
 
       if (!res.ok) {
-        setError(data.error || "Não foi possível publicar.");
+        setError(
+          data.error ||
+            (isDraft
+              ? "Não foi possível enviar para revisão."
+              : "Não foi possível publicar.")
+        );
         return;
       }
 
-      window.location.href = "/admin/estudos";
+      window.location.href = isDraft
+        ? `/admin/estudos/${studyId}`
+        : "/admin/estudos?status=PUBLISHED";
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "Erro inesperado ao publicar."
+        e instanceof Error
+          ? e.message
+          : "Erro inesperado ao avançar o fluxo editorial."
       );
     } finally {
-      setIsPublishing(false);
+      setIsSubmitting(false);
     }
   }
 
   return (
-    <div className="mt-6 rounded-lg border border-green-200 bg-green-50 p-5">
-      <h3 className="font-semibold text-green-900 mb-2">
-        Publicação
+    <div
+      className={`mt-6 rounded-lg border p-5 ${
+        isDraft
+          ? "border-blue-200 bg-blue-50"
+          : "border-green-200 bg-green-50"
+      }`}
+    >
+      <h3
+        className={`font-semibold mb-2 ${
+          isDraft ? "text-blue-900" : "text-green-900"
+        }`}
+      >
+        {isDraft ? "Enviar para revisão" : "Publicação"}
       </h3>
 
-      <p className="text-sm text-green-800 mb-4">
-        Após revisar e salvar todas as alterações, publique este estudo.
+      <p
+        className={`text-sm mb-4 ${
+          isDraft ? "text-blue-800" : "text-green-800"
+        }`}
+      >
+        {isDraft
+          ? "Após completar e salvar o rascunho, envie o estudo para REVIEW. Ele continuará privado."
+          : "Após revisar e salvar todas as alterações, publique este estudo."}
       </p>
 
       <button
         type="button"
-        onClick={publishStudy}
-        disabled={isPublishing}
-        className="w-full rounded-lg bg-green-600 px-4 py-3 font-semibold text-white hover:bg-green-700 disabled:bg-gray-400"
+        onClick={advanceWorkflow}
+        disabled={isSubmitting}
+        className={`w-full rounded-lg px-4 py-3 font-semibold text-white disabled:bg-gray-400 ${
+          isDraft
+            ? "bg-blue-600 hover:bg-blue-700"
+            : "bg-green-600 hover:bg-green-700"
+        }`}
       >
-        {isPublishing ? "Publicando..." : "Publicar estudo"}
+        {isSubmitting
+          ? isDraft
+            ? "Enviando..."
+            : "Publicando..."
+          : isDraft
+            ? "Enviar para revisão"
+            : "Publicar estudo"}
       </button>
 
       {error && (

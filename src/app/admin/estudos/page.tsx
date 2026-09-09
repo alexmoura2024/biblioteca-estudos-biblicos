@@ -30,7 +30,6 @@ async function getStudies() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  // Permite o deploy público antes da configuração do Supabase de produção.
   if (!supabaseUrl || !serviceRoleKey) {
     return [];
   }
@@ -41,14 +40,11 @@ async function getStudies() {
     { auth: { persistSession: false } }
   );
 
-  // Buscar estudos REAIS (não mocks)
-  // Mocks são do protótipo fase 2 (autor = "[Fase 2 - Prototipo]" ou similar)
-  // Reais têm autor = "[Fase 1 - Lote 01]", "[Ingestão...]" etc
   const { data, error } = await supabase
     .from("studies")
     .select("id, titulo, slug, status, data_origem, updated_at, autor")
     .in("status", ["DRAFT", "REVIEW", "PUBLISHED"])
-    .not("autor", "ilike", "%Prototipo%") // Excluir mocks
+    .not("autor", "ilike", "%Prototipo%")
     .order("updated_at", { ascending: false });
 
   if (error) {
@@ -115,13 +111,22 @@ export default async function AdminEstudosPage({ searchParams }: PageProps) {
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-5xl mx-auto">
         {/* Cabeçalho */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Pré-visualização Editorial
-          </h1>
-          <p className="text-gray-600">
-            Gerencie e filtre os estudos por status editorial.
-          </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Pré-visualização Editorial
+            </h1>
+            <p className="text-gray-600">
+              Gerencie e filtre os estudos por status editorial.
+            </p>
+          </div>
+
+          <Link
+            href="/admin/estudos/novo"
+            className="inline-flex items-center justify-center rounded-lg bg-orange-600 px-5 py-3 text-sm font-semibold text-white hover:bg-orange-700"
+          >
+            + Novo estudo
+          </Link>
         </div>
 
         {/* Stats */}

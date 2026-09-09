@@ -2,21 +2,6 @@
 
 import { useState, useTransition } from "react";
 
-const CANONICAL_TOPICS = [
-  "Salvação",
-  "Jesus Cristo",
-  "Fé",
-  "Graça",
-  "Oração e Comunhão",
-  "Palavra e Revelação",
-  "Espírito Santo",
-  "Igreja e Ministério",
-  "Louvor e Adoração",
-  "Santidade e Obediência",
-  "Justiça e Juízo",
-  "Eternidade e Escatologia",
-];
-
 const STUDY_TYPES = [
   { value: "EXPOSITIVO", label: "Expositivo" },
   { value: "THEMATIC", label: "Temático" },
@@ -42,6 +27,11 @@ interface TopicAssociation {
   peso: number;
 }
 
+interface AvailableTopic {
+  topic_id: string;
+  nome: string;
+}
+
 interface CharacterAssociation {
   character_id: string;
   nome: string;
@@ -61,6 +51,7 @@ interface EditStudyClientProps {
   };
   passages: PassageData[];
   topics: TopicAssociation[];
+  availableTopics: AvailableTopic[];
   characters: CharacterAssociation[];
 }
 
@@ -68,6 +59,7 @@ export default function EditStudyClient({
   study,
   passages: initialPassages,
   topics: initialTopics,
+  availableTopics,
   characters: initialCharacters,
 }: EditStudyClientProps) {
   const [editMode, setEditMode] = useState(false);
@@ -83,11 +75,14 @@ export default function EditStudyClient({
 
   const [passages, setPassages] = useState<PassageData[]>(initialPassages);
   const [newPassageRef, setNewPassageRef] = useState("");
-  const [newPassageType, setNewPassageType] = useState<"MAIN" | "SECONDARY" | "CITED">("SECONDARY");
+  const [newPassageType, setNewPassageType] =
+    useState<"MAIN" | "SECONDARY" | "CITED">("SECONDARY");
 
+  // IMPORTANT: somente UUIDs reais vindos do banco entram neste Set.
   const [selectedTopics, setSelectedTopics] = useState<Set<string>>(
     new Set(initialTopics.map((t) => t.topic_id))
   );
+
   const [selectedCharacters, setSelectedCharacters] = useState<Set<string>>(
     new Set(initialCharacters.map((c) => c.character_id))
   );
@@ -103,13 +98,13 @@ export default function EditStudyClient({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const toggleTopic = (topicName: string) => {
+  const toggleTopic = (topicId: string) => {
     setSelectedTopics((prev) => {
       const next = new Set(prev);
-      if (next.has(topicName)) {
-        next.delete(topicName);
+      if (next.has(topicId)) {
+        next.delete(topicId);
       } else {
-        next.add(topicName);
+        next.add(topicId);
       }
       return next;
     });
@@ -128,13 +123,26 @@ export default function EditStudyClient({
   };
 
   const addPassage = () => {
-    if (!newPassageRef.trim()) return;
+    const reference = newPassageRef.trim();
+    if (!reference) return;
 
     const exists = passages.some(
-      (p) => p.referencia_normalizada.toLowerCase() === newPassageRef.toLowerCase()
+      (p) =>
+        p.referencia_normalizada.toLowerCase() === reference.toLowerCase()
     );
+
     if (exists) {
       setError("Referência já existe neste estudo");
+      return;
+    }
+
+    if (
+      newPassageType === "MAIN" &&
+      passages.some((p) => p.tipo_relacao === "MAIN")
+    ) {
+      setError(
+        "Já existe uma referência principal. Altere a atual para Secundária/Citada antes de adicionar outra Principal."
+      );
       return;
     }
 
@@ -142,24 +150,39 @@ export default function EditStudyClient({
       ...passages,
       {
         passage_id: `new_${Date.now()}`,
-        referencia_normalizada: newPassageRef,
+        referencia_normalizada: reference,
         tipo_relacao: newPassageType,
       },
     ]);
     setNewPassageRef("");
     setNewPassageType("SECONDARY");
+    setError("");
   };
 
   const removePassage = (passageId: string) => {
     setPassages(passages.filter((p) => p.passage_id !== passageId));
   };
 
-  const updatePassageType = (passageId: string, newType: "MAIN" | "SECONDARY" | "CITED") => {
+  const updatePassageType = (
+    passageId: string,
+    newType: "MAIN" | "SECONDARY" | "CITED"
+  ) => {
+    if (
+      newType === "MAIN" &&
+      passages.some(
+        (p) => p.passage_id !== passageId && p.tipo_relacao === "MAIN"
+      )
+    ) {
+      setError("O estudo pode ter somente uma referência principal.");
+      return;
+    }
+
     setPassages(
       passages.map((p) =>
         p.passage_id === passageId ? { ...p, tipo_relacao: newType } : p
       )
     );
+    setError("");
   };
 
   const handleSave = async () => {
@@ -179,24 +202,36 @@ export default function EditStudyClient({
           }),
         });
 
+        const result = (await res.json()) as {
+          changed?: string[];
+          error?: string;
+        };
+
         if (!res.ok) {
-          const errData = (await res.json()) as { error?: string };
-          setError(errData.error || "Erro ao salvar");
+          setError(result.error || "Erro ao salvar");
           return;
         }
 
-        const result = (await res.json()) as { changed: string[] };
         setSavedMessage(
-          `Alterações salvas: ${result.changed.join(", ") || "nenhuma mudança"}`
+          `Alterações salvas: ${
+            result.changed?.join(", ") || "nenhuma mudança"
+          }`
         );
         setError("");
         setEditMode(false);
 
         setTimeout(() => setSavedMessage(""), 3000);
 
-        if (showHistory) loadHistory();
+        if (showHistory) {
+          await loadHistory();
+        }
+
+        // Recarrega a página para refletir relações realmente persistidas.
+        window.location.reload();
       } catch (e) {
-        setError(`Erro: ${e instanceof Error ? e.message : "desconhecido"}`);
+        setError(
+          `Erro: ${e instanceof Error ? e.message : "desconhecido"}`
+        );
       }
     });
   };
@@ -205,7 +240,9 @@ export default function EditStudyClient({
     try {
       const res = await fetch(`/api/admin/estudos/${study.id}/history`);
       if (res.ok) {
-        const data = (await res.json()) as { edits: Record<string, unknown>[] };
+        const data = (await res.json()) as {
+          edits: Record<string, unknown>[];
+        };
         setHistory(data.edits || []);
       }
     } catch (e) {
@@ -230,22 +267,27 @@ export default function EditStudyClient({
     setPassages(initialPassages);
     setNewPassageRef("");
     setSelectedTopics(new Set(initialTopics.map((t) => t.topic_id)));
-    setSelectedCharacters(new Set(initialCharacters.map((c) => c.character_id)));
+    setSelectedCharacters(
+      new Set(initialCharacters.map((c) => c.character_id))
+    );
     setEditMode(false);
     setError("");
   };
 
+  const topicName = (topicId: string) =>
+    availableTopics.find((t) => t.topic_id === topicId)?.nome ||
+    initialTopics.find((t) => t.topic_id === topicId)?.nome ||
+    topicId;
+
   if (editMode) {
     return (
       <div className="space-y-6">
-        {/* Modo Edição */}
         <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4">
           <p className="text-blue-900 text-sm font-medium">
             ✏️ Modo edição ativo — as alterações serão salvas no histórico
           </p>
         </div>
 
-        {/* Título */}
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-2">
             Título
@@ -259,7 +301,6 @@ export default function EditStudyClient({
           />
         </div>
 
-        {/* Tipo de Estudo */}
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-2">
             Tipo de Estudo
@@ -277,7 +318,6 @@ export default function EditStudyClient({
           </select>
         </div>
 
-        {/* Resumo */}
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-2">
             Resumo
@@ -291,22 +331,30 @@ export default function EditStudyClient({
           />
         </div>
 
-        {/* Referências Bíblicas EDITÁVEIS */}
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-3">
             Referências Bíblicas ({passages.length})
           </label>
 
-          {/* Lista de Referências */}
           <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-2 mb-4">
             {passages.length === 0 ? (
-              <p className="text-sm text-gray-500">Nenhuma referência adicionada</p>
+              <p className="text-sm text-gray-500">
+                Nenhuma referência adicionada
+              </p>
             ) : (
               passages.map((p) => (
-                <div key={p.passage_id} className="flex items-center gap-2 bg-white p-2 rounded border border-gray-200">
+                <div
+                  key={p.passage_id}
+                  className="flex items-center gap-2 bg-white p-2 rounded border border-gray-200"
+                >
                   <select
                     value={p.tipo_relacao}
-                    onChange={(e) => updatePassageType(p.passage_id, e.target.value as "MAIN" | "SECONDARY" | "CITED")}
+                    onChange={(e) =>
+                      updatePassageType(
+                        p.passage_id,
+                        e.target.value as "MAIN" | "SECONDARY" | "CITED"
+                      )
+                    }
                     className="text-xs px-2 py-1 border border-gray-300 rounded"
                   >
                     {PASSAGE_TYPES.map((t) => (
@@ -315,8 +363,13 @@ export default function EditStudyClient({
                       </option>
                     ))}
                   </select>
-                  <span className="text-sm text-gray-700 flex-1">{p.referencia_normalizada}</span>
+
+                  <span className="text-sm text-gray-700 flex-1">
+                    {p.referencia_normalizada}
+                  </span>
+
                   <button
+                    type="button"
                     onClick={() => removePassage(p.passage_id)}
                     className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
                   >
@@ -327,19 +380,28 @@ export default function EditStudyClient({
             )}
           </div>
 
-          {/* Adicionar Referência */}
-          <div className="flex gap-2 mb-4">
+          <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
               type="text"
               value={newPassageRef}
               onChange={(e) => setNewPassageRef(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && addPassage()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addPassage();
+                }
+              }}
               placeholder="Ex: João 3:16 ou Romanos 6:9-11"
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
+
             <select
               value={newPassageType}
-              onChange={(e) => setNewPassageType(e.target.value as "MAIN" | "SECONDARY" | "CITED")}
+              onChange={(e) =>
+                setNewPassageType(
+                  e.target.value as "MAIN" | "SECONDARY" | "CITED"
+                )
+              }
               className="px-4 py-2 border border-gray-300 rounded-lg text-sm"
             >
               {PASSAGE_TYPES.map((t) => (
@@ -348,7 +410,9 @@ export default function EditStudyClient({
                 </option>
               ))}
             </select>
+
             <button
+              type="button"
               onClick={addPassage}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600"
             >
@@ -357,32 +421,36 @@ export default function EditStudyClient({
           </div>
         </div>
 
-        {/* Temas */}
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-3">
-            Temas
+            Temas ({selectedTopics.size} selecionados)
           </label>
-          <div className="space-y-2">
-            {CANONICAL_TOPICS.map((topicName) => {
-              const topic = initialTopics.find((t) => t.nome === topicName);
-              const isSelected = selectedTopics.has(topic?.topic_id || topicName);
 
-              return (
-                <label key={topicName} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleTopic(topic?.topic_id || topicName)}
-                    className="w-4 h-4 rounded border-gray-300"
-                  />
-                  <span className="text-sm text-gray-700">{topicName}</span>
-                </label>
-              );
-            })}
+          <p className="text-xs text-gray-500 mb-3">
+            Lista carregada diretamente da taxonomia do banco. Cada opção usa
+            o UUID real do tema.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-4">
+            {availableTopics.map((topic) => (
+              <label
+                key={topic.topic_id}
+                className="flex items-center gap-2 rounded bg-white px-3 py-2"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedTopics.has(topic.topic_id)}
+                  onChange={() => toggleTopic(topic.topic_id)}
+                  className="w-4 h-4 rounded border-gray-300"
+                />
+                <span className="text-sm text-gray-700">
+                  {topic.nome}
+                </span>
+              </label>
+            ))}
           </div>
         </div>
 
-        {/* Personagens */}
         {initialCharacters.length > 0 && (
           <div>
             <label className="block text-sm font-medium text-gray-900 mb-3">
@@ -390,21 +458,27 @@ export default function EditStudyClient({
             </label>
             <div className="space-y-2">
               {initialCharacters.map((character) => (
-                <label key={character.character_id} className="flex items-center gap-2">
+                <label
+                  key={character.character_id}
+                  className="flex items-center gap-2"
+                >
                   <input
                     type="checkbox"
                     checked={selectedCharacters.has(character.character_id)}
-                    onChange={() => toggleCharacter(character.character_id)}
+                    onChange={() =>
+                      toggleCharacter(character.character_id)
+                    }
                     className="w-4 h-4 rounded border-gray-300"
                   />
-                  <span className="text-sm text-gray-700">{character.nome}</span>
+                  <span className="text-sm text-gray-700">
+                    {character.nome}
+                  </span>
                 </label>
               ))}
             </div>
           </div>
         )}
 
-        {/* Conteúdo */}
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-2">
             Conteúdo Integral
@@ -418,28 +492,30 @@ export default function EditStudyClient({
           />
         </div>
 
-        {/* Mensagens */}
         {savedMessage && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <p className="text-green-900 text-sm">✓ {savedMessage}</p>
           </div>
         )}
+
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <p className="text-red-900 text-sm">✕ {error}</p>
           </div>
         )}
 
-        {/* Botões */}
         <div className="flex gap-3 pt-4 border-t border-gray-200">
           <button
+            type="button"
             onClick={handleSave}
             disabled={isSaving}
             className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400"
           >
             {isSaving ? "Salvando..." : "Salvar Alterações"}
           </button>
+
           <button
+            type="button"
             onClick={handleCancel}
             disabled={isSaving}
             className="flex-1 bg-gray-200 text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 disabled:bg-gray-100"
@@ -453,15 +529,17 @@ export default function EditStudyClient({
 
   return (
     <div className="space-y-6">
-      {/* Botões */}
       <div className="flex gap-2">
         <button
+          type="button"
           onClick={() => setEditMode(true)}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
         >
           ✏️ Editar
         </button>
+
         <button
+          type="button"
           onClick={toggleHistory}
           className="px-4 py-2 bg-gray-200 text-gray-900 rounded-lg font-medium hover:bg-gray-300"
         >
@@ -469,30 +547,38 @@ export default function EditStudyClient({
         </button>
       </div>
 
-      {/* Histórico */}
       {showHistory && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <h4 className="font-semibold text-gray-900 mb-4">
             Histórico de Edições
           </h4>
+
           {history.length === 0 ? (
-            <p className="text-sm text-gray-600">Nenhuma edição registrada</p>
+            <p className="text-sm text-gray-600">
+              Nenhuma edição registrada
+            </p>
           ) : (
             <div className="space-y-4">
               {history.map((edit, i) => {
                 const createdAt = edit.created_at as string | undefined;
-                const campos = (edit.campos_alterados as string[]) || [];
+                const campos =
+                  (edit.campos_alterados as string[]) || [];
+
                 return (
                   <div
                     key={i}
                     className="border-l-4 border-blue-300 pl-4 py-2 text-sm"
                   >
                     <div className="text-gray-600 mb-2">
-                      {createdAt ? new Date(createdAt).toLocaleString("pt-BR") : ""}
+                      {createdAt
+                        ? new Date(createdAt).toLocaleString("pt-BR")
+                        : ""}
                     </div>
                     <div className="text-gray-900">
                       Campos alterados:{" "}
-                      <span className="font-medium">{campos.join(", ")}</span>
+                      <span className="font-medium">
+                        {campos.join(", ")}
+                      </span>
                     </div>
                   </div>
                 );
@@ -502,17 +588,21 @@ export default function EditStudyClient({
         </div>
       )}
 
-      {/* Visualização */}
       <div className="space-y-4 text-sm">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <h3 className="font-semibold text-gray-900 mb-1">Título</h3>
             <p className="text-gray-700">{formData.titulo}</p>
           </div>
+
           <div>
             <h3 className="font-semibold text-gray-900 mb-1">Tipo</h3>
             <p className="text-gray-700">
-              {STUDY_TYPES.find((t) => t.value === formData.tipo_estudo)?.label}
+              {
+                STUDY_TYPES.find(
+                  (t) => t.value === formData.tipo_estudo
+                )?.label
+              }
             </p>
           </div>
         </div>
@@ -520,18 +610,30 @@ export default function EditStudyClient({
         {formData.resumo && (
           <div>
             <h3 className="font-semibold text-gray-900 mb-1">Resumo</h3>
-            <p className="text-gray-700 line-clamp-2">{formData.resumo}</p>
+            <p className="text-gray-700 line-clamp-2">
+              {formData.resumo}
+            </p>
           </div>
         )}
 
         {passages.length > 0 && (
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">Referências ({passages.length})</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">
+              Referências ({passages.length})
+            </h3>
             <div className="space-y-1">
               {passages.map((p) => (
-                <div key={p.passage_id} className="text-sm text-gray-700">
+                <div
+                  key={p.passage_id}
+                  className="text-sm text-gray-700"
+                >
                   <span className="font-medium">
-                    {PASSAGE_TYPES.find((t) => t.value === p.tipo_relacao)?.label}:
+                    {
+                      PASSAGE_TYPES.find(
+                        (t) => t.value === p.tipo_relacao
+                      )?.label
+                    }
+                    :
                   </span>{" "}
                   {p.referencia_normalizada}
                 </div>
@@ -542,39 +644,39 @@ export default function EditStudyClient({
 
         {selectedTopics.size > 0 && (
           <div>
-            <h3 className="font-semibold text-gray-900 mb-1">Temas</h3>
+            <h3 className="font-semibold text-gray-900 mb-1">
+              Temas
+            </h3>
             <div className="flex flex-wrap gap-2">
-              {Array.from(selectedTopics).map((topicId) => {
-                const topic = initialTopics.find((t) => t.topic_id === topicId);
-                const canonicalName = CANONICAL_TOPICS.find(
-                  (name) =>
-                    initialTopics.find((t) => t.nome === name)?.topic_id === topicId
-                );
-                return (
-                  <span
-                    key={topicId}
-                    className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs"
-                  >
-                    {canonicalName || topic?.nome || topicId}
-                  </span>
-                );
-              })}
+              {Array.from(selectedTopics).map((topicId) => (
+                <span
+                  key={topicId}
+                  className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs"
+                >
+                  {topicName(topicId)}
+                </span>
+              ))}
             </div>
           </div>
         )}
 
         {selectedCharacters.size > 0 && (
           <div>
-            <h3 className="font-semibold text-gray-900 mb-1">Personagens</h3>
+            <h3 className="font-semibold text-gray-900 mb-1">
+              Personagens
+            </h3>
             <div className="flex flex-wrap gap-2">
               {Array.from(selectedCharacters).map((charId) => {
-                const char = initialCharacters.find((c) => c.character_id === charId);
+                const char = initialCharacters.find(
+                  (c) => c.character_id === charId
+                );
+
                 return (
                   <span
                     key={charId}
                     className="inline-block bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs"
                   >
-                    {char?.nome}
+                    {char?.nome || charId}
                   </span>
                 );
               })}
@@ -583,10 +685,15 @@ export default function EditStudyClient({
         )}
       </div>
 
-      {/* Provenance Notice */}
       <div className="bg-gray-50 border-l-4 border-gray-300 p-4 text-xs text-gray-600">
-        <p className="font-medium mb-1">📎 Fonte Original (Somente Leitura)</p>
-        <p>A proveniência do estudo (arquivo original, Drive ID, MIME) é preservada automaticamente e não pode ser alterada por esta interface.</p>
+        <p className="font-medium mb-1">
+          📎 Fonte Original (Somente Leitura)
+        </p>
+        <p>
+          A proveniência do estudo (arquivo original, Drive ID, MIME) é
+          preservada automaticamente e não pode ser alterada por esta
+          interface.
+        </p>
       </div>
     </div>
   );
