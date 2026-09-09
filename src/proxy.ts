@@ -5,13 +5,30 @@ import {
   constantTimeEqual,
   createAdminSessionToken,
 } from "@/lib/admin-auth";
+import {
+  PUBLIC_SESSION_COOKIE,
+  constantTimeEqualPublic,
+  createPublicSessionToken,
+} from "@/lib/public-auth";
 
 function secureHeaders(response: NextResponse) {
-  response.headers.set("Cache-Control", "private, no-store, max-age=0");
-  response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+  response.headers.set(
+    "Cache-Control",
+    "private, no-store, max-age=0"
+  );
+  response.headers.set(
+    "X-Robots-Tag",
+    "noindex, nofollow, noarchive"
+  );
   response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("Referrer-Policy", "no-referrer");
+  response.headers.set(
+    "X-Content-Type-Options",
+    "nosniff"
+  );
+  response.headers.set(
+    "Referrer-Policy",
+    "no-referrer"
+  );
 
   return response;
 }
@@ -20,72 +37,150 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   const isAdminPage =
-    pathname === "/admin" || pathname.startsWith("/admin/");
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/");
 
-  const isAdminApi = pathname.startsWith("/api/admin/");
+  const isAdminApi =
+    pathname.startsWith("/api/admin/");
 
-  if (!isAdminPage && !isAdminApi) {
-    return NextResponse.next();
+  // A área administrativa continua usando seu login próprio.
+  if (isAdminPage || isAdminApi) {
+    if (
+      pathname === "/admin/login" ||
+      pathname === "/api/admin/login"
+    ) {
+      return NextResponse.next();
+    }
+
+    const username = process.env.ADMIN_USERNAME;
+    const password = process.env.ADMIN_PASSWORD;
+
+    if (!username || !password) {
+      if (isAdminApi) {
+        return NextResponse.json(
+          {
+            error:
+              "Admin authentication is not configured",
+          },
+          { status: 503 }
+        );
+      }
+
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/admin/login";
+      loginUrl.search = "";
+      loginUrl.searchParams.set(
+        "error",
+        "config"
+      );
+
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const expectedToken =
+      await createAdminSessionToken(
+        username,
+        password
+      );
+
+    const currentToken =
+      request.cookies.get(
+        ADMIN_SESSION_COOKIE
+      )?.value ?? "";
+
+    if (
+      !constantTimeEqual(
+        currentToken,
+        expectedToken
+      )
+    ) {
+      if (isAdminApi) {
+        return NextResponse.json(
+          { error: "Unauthorized" },
+          { status: 401 }
+        );
+      }
+
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/admin/login";
+      loginUrl.search = "";
+      loginUrl.searchParams.set(
+        "next",
+        pathname
+      );
+
+      return NextResponse.redirect(loginUrl);
+    }
+
+    return secureHeaders(
+      NextResponse.next()
+    );
   }
 
-  // Página e endpoint de login precisam permanecer acessíveis.
+  // A tela pública de senha e seu endpoint precisam ficar livres.
   if (
-    pathname === "/admin/login" ||
-    pathname === "/api/admin/login"
+    pathname === "/acesso" ||
+    pathname === "/api/public/login"
   ) {
+    return secureHeaders(
+      NextResponse.next()
+    );
+  }
+
+  // Outros endpoints de API não fazem parte da tela pública.
+  if (pathname.startsWith("/api/")) {
     return NextResponse.next();
   }
 
-  const username = process.env.ADMIN_USERNAME;
-  const password = process.env.ADMIN_PASSWORD;
+  const publicPassword =
+    process.env.PUBLIC_SITE_PASSWORD;
 
-  if (!username || !password) {
-    if (isAdminApi) {
-      return NextResponse.json(
-        { error: "Admin authentication is not configured" },
-        { status: 503 }
-      );
-    }
+  if (!publicPassword) {
+    const accessUrl = request.nextUrl.clone();
+    accessUrl.pathname = "/acesso";
+    accessUrl.search = "";
+    accessUrl.searchParams.set(
+      "error",
+      "config"
+    );
 
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/admin/login";
-    loginUrl.search = "";
-    loginUrl.searchParams.set("error", "config");
-
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(accessUrl);
   }
 
-  const expectedToken = await createAdminSessionToken(
-    username,
-    password
+  const expectedPublicToken =
+    await createPublicSessionToken(
+      publicPassword
+    );
+
+  const currentPublicToken =
+    request.cookies.get(
+      PUBLIC_SESSION_COOKIE
+    )?.value ?? "";
+
+  if (
+    !constantTimeEqualPublic(
+      currentPublicToken,
+      expectedPublicToken
+    )
+  ) {
+    const accessUrl = request.nextUrl.clone();
+    accessUrl.pathname = "/acesso";
+    accessUrl.search = "";
+    accessUrl.searchParams.set(
+      "next",
+      pathname + request.nextUrl.search
+    );
+
+    return NextResponse.redirect(accessUrl);
+  }
+
+  return secureHeaders(
+    NextResponse.next()
   );
-
-  const currentToken =
-    request.cookies.get(ADMIN_SESSION_COOKIE)?.value ?? "";
-
-  if (!constantTimeEqual(currentToken, expectedToken)) {
-    if (isAdminApi) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/admin/login";
-    loginUrl.search = "";
-    loginUrl.searchParams.set("next", pathname);
-
-    return NextResponse.redirect(loginUrl);
-  }
-
-  return secureHeaders(NextResponse.next());
 }
 
 export const config = {
   matcher: [
-    "/admin",
-    "/admin/:path*",
-    "/api/admin/:path*",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2)$).*)",
   ],
 };
