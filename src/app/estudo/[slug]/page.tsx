@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Badge } from "@/components/Badge";
+import { StudyPdfButton } from "@/components/StudyPdfButton";
 import { studyRepository } from "@/lib/repositories";
 
 interface StudyPageProps {
@@ -53,6 +54,10 @@ export default async function StudyPage({ params }: StudyPageProps) {
         <p className="mt-2 text-sm text-stone-500">
           {study.autor} · {DATE_FORMATTER.format(new Date(study.dataOrigem))}
         </p>
+
+        <div className="no-print mt-4">
+          <StudyPdfButton />
+        </div>
 
         <div className="mt-4 flex flex-wrap gap-1.5">
           {study.passagens.map(({ passage, book }) => (
