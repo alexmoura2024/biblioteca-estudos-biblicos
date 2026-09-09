@@ -1,7 +1,7 @@
 /**
  * Pré-visualização Editorial — Listagem de Estudos
  * Acesso: http://localhost:3000/admin/estudos
- * Mostra REVIEW + DRAFT para revisão editorial (não público)
+ * Permite filtrar estudos por status editorial.
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -16,6 +16,14 @@ interface Study {
   status: "DRAFT" | "REVIEW" | "PUBLISHED" | "ARCHIVED";
   data_origem: string;
   updated_at: string;
+}
+
+type StatusFilter = "ALL" | "PUBLISHED" | "REVIEW" | "DRAFT";
+
+interface PageProps {
+  searchParams?:
+    | Promise<{ status?: string }>
+    | { status?: string };
 }
 
 async function getStudies() {
@@ -51,45 +59,139 @@ async function getStudies() {
   return data as Study[];
 }
 
-export default async function AdminEstudosPage() {
-  const studies = await getStudies();
+function normalizeStatus(status?: string): StatusFilter {
+  if (
+    status === "PUBLISHED" ||
+    status === "REVIEW" ||
+    status === "DRAFT"
+  ) {
+    return status;
+  }
 
-  const reviewCount = studies.filter((s) => s.status === "REVIEW").length;
-  const draftCount = studies.filter((s) => s.status === "DRAFT").length;
+  return "ALL";
+}
+
+function statusBadgeClass(status: Study["status"]) {
+  switch (status) {
+    case "PUBLISHED":
+      return "bg-green-100 text-green-800";
+    case "REVIEW":
+      return "bg-blue-100 text-blue-800";
+    case "DRAFT":
+      return "bg-amber-100 text-amber-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+}
+
+export default async function AdminEstudosPage({ searchParams }: PageProps) {
+  const studies = await getStudies();
+  const params = searchParams ? await searchParams : {};
+  const activeStatus = normalizeStatus(params.status);
+
+  const counts: Record<StatusFilter, number> = {
+    ALL: studies.length,
+    PUBLISHED: studies.filter((s) => s.status === "PUBLISHED").length,
+    REVIEW: studies.filter((s) => s.status === "REVIEW").length,
+    DRAFT: studies.filter((s) => s.status === "DRAFT").length,
+  };
+
+  const filteredStudies =
+    activeStatus === "ALL"
+      ? studies
+      : studies.filter((s) => s.status === activeStatus);
+
+  const filters: Array<{
+    value: StatusFilter;
+    label: string;
+  }> = [
+    { value: "ALL", label: "Todos" },
+    { value: "PUBLISHED", label: "Publicados" },
+    { value: "REVIEW", label: "Review" },
+    { value: "DRAFT", label: "Draft" },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Cabeçalho */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Pré-visualização Editorial
           </h1>
           <p className="text-gray-600">
-            Revisão de estudos em REVIEW e DRAFT
+            Gerencie e filtre os estudos por status editorial.
           </p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="text-sm text-green-700 font-medium">Publicados</div>
+            <div className="text-2xl font-bold text-green-900">
+              {counts.PUBLISHED}
+            </div>
+          </div>
+
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="text-sm text-blue-600 font-medium">Em Revisão</div>
-            <div className="text-2xl font-bold text-blue-900">{reviewCount}</div>
+            <div className="text-2xl font-bold text-blue-900">
+              {counts.REVIEW}
+            </div>
           </div>
+
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <div className="text-sm text-amber-600 font-medium">Rascunho</div>
-            <div className="text-2xl font-bold text-amber-900">{draftCount}</div>
+            <div className="text-sm text-amber-600 font-medium">Rascunhos</div>
+            <div className="text-2xl font-bold text-amber-900">
+              {counts.DRAFT}
+            </div>
           </div>
         </div>
 
+        {/* Filtros */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {filters.map((filter) => {
+            const active = activeStatus === filter.value;
+            const href =
+              filter.value === "ALL"
+                ? "/admin/estudos"
+                : `/admin/estudos?status=${filter.value}`;
+
+            return (
+              <Link
+                key={filter.value}
+                href={href}
+                className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                  active
+                    ? "border-gray-900 bg-gray-900 text-white"
+                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <span>{filter.label}</span>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs ${
+                    active
+                      ? "bg-white/20 text-white"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {counts[filter.value]}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+
         {/* Listagem */}
-        {studies.length === 0 ? (
+        {filteredStudies.length === 0 ? (
           <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-            <p className="text-gray-600">Nenhum estudo em revisão no momento.</p>
+            <p className="text-gray-600">
+              Nenhum estudo encontrado para este filtro.
+            </p>
           </div>
         ) : (
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <table className="w-full">
+          <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+            <table className="w-full min-w-[760px]">
               <thead className="bg-gray-100 border-b border-gray-200">
                 <tr>
                   <th className="text-left px-6 py-3 text-sm font-semibold text-gray-900">
@@ -106,8 +208,9 @@ export default async function AdminEstudosPage() {
                   </th>
                 </tr>
               </thead>
+
               <tbody>
-                {studies.map((study) => (
+                {filteredStudies.map((study) => (
                   <tr
                     key={study.id}
                     className="border-b border-gray-200 hover:bg-gray-50"
@@ -115,32 +218,35 @@ export default async function AdminEstudosPage() {
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
                       {study.titulo}
                     </td>
+
                     <td className="px-6 py-4 text-sm">
                       <span
-                        className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                          study.status === "REVIEW"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-amber-100 text-amber-800"
-                        }`}
+                        className={`inline-block px-2 py-1 rounded text-xs font-medium ${statusBadgeClass(
+                          study.status
+                        )}`}
                       >
                         {study.status}
                       </span>
                     </td>
+
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {study.updated_at
-  ? new Intl.DateTimeFormat("pt-BR", {
-      dateStyle: "short",
-      timeStyle: "short",
-      timeZone: "America/Sao_Paulo",
-    }).format(new Date(study.updated_at))
-  : "Sem atualização"}
+                        ? new Intl.DateTimeFormat("pt-BR", {
+                            dateStyle: "short",
+                            timeStyle: "short",
+                            timeZone: "America/Sao_Paulo",
+                          }).format(new Date(study.updated_at))
+                        : "Sem atualização"}
                     </td>
+
                     <td className="px-6 py-4 text-center">
                       <Link
                         href={`/admin/estudos/${study.id}`}
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                       >
-                        {study.status === "PUBLISHED" ? "Revisar / Editar" : "Visualizar / Editar"}
+                        {study.status === "PUBLISHED"
+                          ? "Revisar / Editar"
+                          : "Visualizar / Editar"}
                       </Link>
                     </td>
                   </tr>
