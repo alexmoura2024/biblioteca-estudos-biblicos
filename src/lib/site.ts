@@ -2,6 +2,7 @@
 export const siteConfig = {
   nome: "Biblioteca Virtual de Estudos Bíblicos",
   nomeCurto: "Biblioteca de Estudos",
+  proprietario: "Alex Sander de Moura",
   descricao:
     "Localize, leia e relacione estudos bíblicos por livro, capítulo, tema, personagem e série.",
 };
