@@ -27,74 +27,227 @@ body {
   color: var(--foreground);
 }
 
+.print-only {
+  display: none;
+}
+
 /* Foco visível e consistente para navegação por teclado (acessibilidade). */
 :focus-visible {
   outline: 2px solid #b45309;
   outline-offset: 2px;
 }
 
-/* Estilos para impressão (PDF/A4) */
+/* Estilos editoriais para impressão / salvar como PDF em A4 */
 @media print {
-  /* Ocultar elementos não-essenciais na impressão */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #292524 !important;
+  }
+
+  body {
+    display: block !important;
+    font-size: 10.6pt;
+    line-height: 1.58;
+  }
+
+  /* A página pública vira um documento: navegação e rodapé do site somem. */
+  body > header,
+  body > footer,
+  body > a[href="#conteudo-principal"],
   nav,
-  header > button,
   .breadcrumbs,
   [role="navigation"],
-  .no-print {
+  .no-print,
+  .study-tags {
     display: none !important;
   }
 
-  /* Corpo legível em papel */
-  body {
-    background: white;
-    color: black;
-    font-size: 12pt;
-    line-height: 1.6;
+  main {
+    display: block !important;
   }
 
-  article {
-    max-width: 100%;
-    margin: 0;
-    padding: 0.5in;
+  .study-article {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  /* Títulos com espaço apropriado */
-  h1,
-  h2,
-  h3 {
+  .print-only {
+    display: block !important;
+  }
+
+  .study-print-brand {
+    display: flex !important;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12mm;
+    margin-bottom: 8mm;
+    padding-bottom: 4mm;
+    border-bottom: 1.4pt solid #b45309;
+  }
+
+  .study-print-brand-name {
+    margin: 0 !important;
+    font-family: var(--font-serif);
+    font-size: 11.5pt;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: #1c1917;
+  }
+
+  .study-print-brand-subtitle {
+    margin: 0.8mm 0 0 !important;
+    font-size: 8.5pt;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #78716c;
+  }
+
+  .study-print-reference {
+    margin: 0 !important;
+    font-size: 9.5pt;
+    font-weight: 700;
+    color: #92400e;
+    text-align: right;
+  }
+
+  .study-header {
+    margin-top: 0 !important;
+  }
+
+  .study-title {
+    margin: 0 !important;
+    font-family: var(--font-serif);
+    font-size: 24pt !important;
+    line-height: 1.13 !important;
+    letter-spacing: -0.02em;
+    color: #1c1917 !important;
+  }
+
+  .study-meta {
+    margin-top: 3mm !important;
+    font-size: 9.4pt !important;
+    color: #57534e !important;
+  }
+
+  .study-summary {
+    margin: 7mm 0 8mm !important;
+    padding: 4mm 5mm !important;
+    border-left: 3pt solid #b45309 !important;
+    background: #fffbeb !important;
+    color: #44403c !important;
+    font-size: 10.8pt !important;
+    line-height: 1.52 !important;
+    font-style: italic;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .study-content {
+    margin-top: 0 !important;
+    color: #292524;
+  }
+
+  .study-content h1,
+  .study-content h2 {
+    margin: 8mm 0 3mm !important;
+    padding-bottom: 1.5mm;
+    border-bottom: 0.6pt solid #d6d3d1;
+    font-family: var(--font-serif);
+    font-size: 16pt !important;
+    line-height: 1.22 !important;
+    color: #1c1917 !important;
+    break-after: avoid;
     page-break-after: avoid;
-    margin-top: 1em;
-    margin-bottom: 0.5em;
-    color: black;
   }
 
-  /* Manter parágrafos juntos */
-  p {
+  .study-content h3 {
+    margin: 6mm 0 2mm !important;
+    font-family: var(--font-serif);
+    font-size: 12.5pt !important;
+    line-height: 1.28 !important;
+    color: #78350f !important;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .study-content h4 {
+    margin: 5mm 0 2mm !important;
+    font-size: 11.2pt !important;
+    line-height: 1.3 !important;
+    color: #1c1917 !important;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .study-content p {
+    margin: 0 0 3.5mm !important;
+    line-height: 1.58 !important;
+    text-align: justify;
+    orphans: 3;
+    widows: 3;
+  }
+
+  .study-content blockquote {
+    margin: 4.5mm 0 !important;
+    padding: 3mm 4mm !important;
+    border-left: 2.5pt solid #d97706 !important;
+    background: #fff7ed !important;
+    color: #44403c !important;
+    break-inside: avoid;
     page-break-inside: avoid;
-    margin-bottom: 0.5em;
   }
 
-  /* Referências bíblicas em destaque */
-  .reference,
-  .biblical-reference {
-    font-weight: bold;
-    color: #333;
+  .study-content ul,
+  .study-content ol {
+    margin: 3.5mm 0 4mm 5mm !important;
   }
 
-  /* Links sem underline na impressão */
-  a {
-    color: black;
-    text-decoration: none;
+  .study-content li {
+    margin-bottom: 1.5mm;
+    line-height: 1.5;
   }
 
-  /* Evitar quebra de conteúdo importante */
-  section {
+  .study-content hr {
+    margin: 6mm 0 !important;
+    border: 0 !important;
+    border-top: 0.7pt solid #d6d3d1 !important;
+  }
+
+  .study-content a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+
+  .study-keywords {
+    margin-top: 8mm !important;
+    padding-top: 3mm !important;
+    border-top: 0.7pt solid #d6d3d1 !important;
+    color: #78716c !important;
+    font-size: 8.8pt !important;
+    break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  /* Tamanho A4 padrão */
+  .study-print-footer {
+    display: flex !important;
+    justify-content: space-between;
+    gap: 8mm;
+    margin-top: 8mm;
+    padding-top: 3mm;
+    border-top: 0.7pt solid #d6d3d1;
+    color: #78716c;
+    font-size: 8pt;
+  }
+
   @page {
     size: A4;
-    margin: 0.75in;
+    margin: 17mm 16mm 18mm;
   }
 }

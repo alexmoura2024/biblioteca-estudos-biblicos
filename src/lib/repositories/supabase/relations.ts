@@ -25,30 +25,88 @@ const TOPIC_JOIN_SELECT = "study_id, peso, topics(id, nome, slug, descricao)";
 const CHARACTER_JOIN_SELECT = "study_id, papel, characters(id, nome, slug, descricao)";
 const SERIES_JOIN_SELECT = "study_id, ordem, series(id, nome, slug, descricao)";
 
+const IN_BATCH_SIZE = 75;
+
+function studyIdBatches(studyIds: string[]): string[][] {
+  const batches: string[][] = [];
+  for (let index = 0; index < studyIds.length; index += IN_BATCH_SIZE) {
+    batches.push(studyIds.slice(index, index + IN_BATCH_SIZE));
+  }
+  return batches;
+}
+
 export async function fetchPassageJoins(studyIds: string[]): Promise<StudyPassageJoinRow[]> {
   if (studyIds.length === 0) return [];
-  const { data, error } = await getSupabaseClient().from("study_passages").select(PASSAGE_JOIN_SELECT).in("study_id", studyIds);
-  if (error) throw new Error(`fetchPassageJoins: ${error.message}`);
-  return (data ?? []) as unknown as StudyPassageJoinRow[];
+
+  const client = getSupabaseClient();
+  const rows: StudyPassageJoinRow[] = [];
+
+  for (const batch of studyIdBatches(studyIds)) {
+    const { data, error } = await client
+      .from("study_passages")
+      .select(PASSAGE_JOIN_SELECT)
+      .in("study_id", batch);
+
+    if (error) throw new Error(`fetchPassageJoins: ${error.message}`);
+    rows.push(...((data ?? []) as unknown as StudyPassageJoinRow[]));
+  }
+
+  return rows;
 }
 
 export async function fetchTopicJoins(studyIds: string[]): Promise<StudyTopicJoinRow[]> {
   if (studyIds.length === 0) return [];
-  const { data, error } = await getSupabaseClient().from("study_topics").select(TOPIC_JOIN_SELECT).in("study_id", studyIds);
-  if (error) throw new Error(`fetchTopicJoins: ${error.message}`);
-  return (data ?? []) as unknown as StudyTopicJoinRow[];
+
+  const client = getSupabaseClient();
+  const rows: StudyTopicJoinRow[] = [];
+
+  for (const batch of studyIdBatches(studyIds)) {
+    const { data, error } = await client
+      .from("study_topics")
+      .select(TOPIC_JOIN_SELECT)
+      .in("study_id", batch);
+
+    if (error) throw new Error(`fetchTopicJoins: ${error.message}`);
+    rows.push(...((data ?? []) as unknown as StudyTopicJoinRow[]));
+  }
+
+  return rows;
 }
 
 export async function fetchCharacterJoins(studyIds: string[]): Promise<StudyCharacterJoinRow[]> {
   if (studyIds.length === 0) return [];
-  const { data, error } = await getSupabaseClient().from("study_characters").select(CHARACTER_JOIN_SELECT).in("study_id", studyIds);
-  if (error) throw new Error(`fetchCharacterJoins: ${error.message}`);
-  return (data ?? []) as unknown as StudyCharacterJoinRow[];
+
+  const client = getSupabaseClient();
+  const rows: StudyCharacterJoinRow[] = [];
+
+  for (const batch of studyIdBatches(studyIds)) {
+    const { data, error } = await client
+      .from("study_characters")
+      .select(CHARACTER_JOIN_SELECT)
+      .in("study_id", batch);
+
+    if (error) throw new Error(`fetchCharacterJoins: ${error.message}`);
+    rows.push(...((data ?? []) as unknown as StudyCharacterJoinRow[]));
+  }
+
+  return rows;
 }
 
 export async function fetchSeriesJoins(studyIds: string[]): Promise<StudySeriesJoinRow[]> {
   if (studyIds.length === 0) return [];
-  const { data, error } = await getSupabaseClient().from("study_series").select(SERIES_JOIN_SELECT).in("study_id", studyIds);
-  if (error) throw new Error(`fetchSeriesJoins: ${error.message}`);
-  return (data ?? []) as unknown as StudySeriesJoinRow[];
+
+  const client = getSupabaseClient();
+  const rows: StudySeriesJoinRow[] = [];
+
+  for (const batch of studyIdBatches(studyIds)) {
+    const { data, error } = await client
+      .from("study_series")
+      .select(SERIES_JOIN_SELECT)
+      .in("study_id", batch);
+
+    if (error) throw new Error(`fetchSeriesJoins: ${error.message}`);
+    rows.push(...((data ?? []) as unknown as StudySeriesJoinRow[]));
+  }
+
+  return rows;
 }

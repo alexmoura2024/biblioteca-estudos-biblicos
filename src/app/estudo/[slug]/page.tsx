@@ -38,7 +38,19 @@ export default async function StudyPage({ params }: StudyPageProps) {
     study.passagens.find((p) => p.tipoRelacao === "principal") ?? study.passagens[0];
 
   return (
-    <article className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+    <article className="study-article mx-auto max-w-3xl px-4 py-10 sm:px-6">
+      <div className="print-only study-print-brand" aria-hidden="true">
+        <div>
+          <p className="study-print-brand-name">Biblioteca de Estudos Bíblicos</p>
+          <p className="study-print-brand-subtitle">Estudo bíblico</p>
+        </div>
+        {referenciaPrincipal && (
+          <p className="study-print-reference">
+            {referenciaPrincipal.passage.referenciaNormalizada}
+          </p>
+        )}
+      </div>
+
       <Breadcrumbs
         items={[
           { label: "Início", href: "/" },
@@ -49,9 +61,9 @@ export default async function StudyPage({ params }: StudyPageProps) {
         ]}
       />
 
-      <header className="mt-4">
-        <h1 className="font-serif text-3xl font-bold text-stone-900">{study.titulo}</h1>
-        <p className="mt-2 text-sm text-stone-500">
+      <header className="study-header mt-4">
+        <h1 className="study-title font-serif text-3xl font-bold text-stone-900">{study.titulo}</h1>
+        <p className="study-meta mt-2 text-sm text-stone-500">
           {study.autor} · {DATE_FORMATTER.format(new Date(study.dataOrigem))}
         </p>
 
@@ -59,7 +71,7 @@ export default async function StudyPage({ params }: StudyPageProps) {
           <StudyPdfButton />
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-1.5">
+        <div className="study-tags mt-4 flex flex-wrap gap-1.5">
           {study.passagens.map(({ passage, book }) => (
             <Badge key={passage.id} href={`/biblia/${book.slug}/${passage.capitulo}`} variant="testamento">
               {passage.referenciaNormalizada}
@@ -83,11 +95,11 @@ export default async function StudyPage({ params }: StudyPageProps) {
         </div>
       </header>
 
-      <p className="mt-6 border-l-4 border-amber-600 pl-4 text-lg italic text-stone-700">
+      <p className="study-summary mt-6 border-l-4 border-amber-600 pl-4 text-lg italic text-stone-700">
         {study.resumo}
       </p>
 
-      <div className="mt-8">
+      <div className="study-content mt-8">
         <ReactMarkdown
           components={{
             h1: ({ children }) => (
@@ -163,11 +175,16 @@ export default async function StudyPage({ params }: StudyPageProps) {
       </div>
 
       {study.palavrasChave.length > 0 && (
-        <footer className="mt-10 border-t border-stone-200 pt-4 text-sm text-stone-500">
+        <footer className="study-keywords mt-10 border-t border-stone-200 pt-4 text-sm text-stone-500">
           <span className="font-medium">Palavras-chave: </span>
           {study.palavrasChave.join(", ")}
         </footer>
       )}
+
+      <div className="print-only study-print-footer" aria-hidden="true">
+        <span>Biblioteca de Estudos Bíblicos</span>
+        <span>biblioteca-estudos-biblicos.vercel.app</span>
+      </div>
     </article>
   );
 }

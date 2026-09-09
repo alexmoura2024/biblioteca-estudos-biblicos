@@ -139,20 +139,30 @@ export class SupabaseStudyRepository implements StudyRepository {
     if (studyIds.length === 0) return [];
     const client = getSupabaseClient();
 
-    const [studiesResult, passages, topics, series] = await Promise.all([
-      client
-        .from("studies")
-        .select(STUDY_SUMMARY_COLUMNS)
-        .in("id", studyIds)
-        .eq("status", "PUBLISHED")
-        .eq("visibilidade", "publico"),
+    const [passages, topics, series] = await Promise.all([
       fetchPassageJoins(studyIds),
       fetchTopicJoins(studyIds),
       fetchSeriesJoins(studyIds),
     ]);
-    if (studiesResult.error) throw new Error(`SupabaseStudyRepository (studies): ${studiesResult.error.message}`);
 
-    const studyRows = (studiesResult.data ?? []) as StudyRow[];
+    const studyRows: StudyRow[] = [];
+    const STUDY_BATCH_SIZE = 75;
+
+    for (let index = 0; index < studyIds.length; index += STUDY_BATCH_SIZE) {
+      const batch = studyIds.slice(index, index + STUDY_BATCH_SIZE);
+      const { data, error } = await client
+        .from("studies")
+        .select(STUDY_SUMMARY_COLUMNS)
+        .in("id", batch)
+        .eq("status", "PUBLISHED")
+        .eq("visibilidade", "publico");
+
+      if (error) {
+        throw new Error(`SupabaseStudyRepository (studies): ${error.message}`);
+      }
+
+      studyRows.push(...((data ?? []) as StudyRow[]));
+    }
     return studyRows.map((studyRow) =>
       assembleStudySummary(
         studyRow,
