@@ -38,6 +38,20 @@ export class SupabaseStudyRepository implements StudyRepository {
     return this.buildSummariesInOrder(ids);
   }
 
+  async countPublished(): Promise<number> {
+    const { count, error } = await getSupabaseClient()
+      .from("studies")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "PUBLISHED")
+      .eq("visibilidade", "publico");
+
+    if (error) {
+      throw new Error(`SupabaseStudyRepository.countPublished: ${error.message}`);
+    }
+
+    return count ?? 0;
+  }
+
   async getPublishedBySlug(slug: string) {
     const client = getSupabaseClient();
     const { data: studyRow, error: studyError } = await client

@@ -66,6 +66,10 @@ export class MockStudyRepository implements StudyRepository {
       .map(toStudySummary);
   }
 
+  async countPublished() {
+    return publishedStudies.length;
+  }
+
   async getPublishedBySlug(slug: string) {
     return publishedStudies.find((study) => study.slug === slug);
   }

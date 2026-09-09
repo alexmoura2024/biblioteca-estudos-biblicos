@@ -37,6 +37,8 @@ export interface StudyRepository {
    * array, mas a assinatura já é a definitiva.
    */
   listRecent(limit: number): Promise<StudySummary[]>;
+  /** Quantidade total de estudos PUBLISHED e públicos. Usado para indicadores do acervo. */
+  countPublished(): Promise<number>;
   /** Um estudo publicado pelo slug, com todas as relações — para a página de detalhe. `undefined` se não existir/não publicado. */
   getPublishedBySlug(slug: string): Promise<Study | undefined>;
   /**

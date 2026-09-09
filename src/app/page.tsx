@@ -34,7 +34,10 @@ export default async function HomePage() {
   // listRecent(6), não listPublished()+sort+slice: a ordenação e o corte
   // devem acontecer na fonte de dados (uma futura consulta SQL faria
   // ORDER BY + LIMIT), não em memória na página — ver DEC-013.
-  const destaques = await studyRepository.listRecent(6);
+  const [destaques, totalPublicacoes] = await Promise.all([
+    studyRepository.listRecent(6),
+    studyRepository.countPublished(),
+  ]);
 
   return (
     <div>
@@ -47,7 +50,18 @@ export default async function HomePage() {
             Encontre estudos por referência bíblica, tema, personagem, série ou palavra-chave —
             mesmo sem saber o nome exato do material.
           </p>
-          <div className="mx-auto mt-8 max-w-xl">
+          <div className="mt-6 flex justify-center">
+            <div className="inline-flex items-baseline gap-2 rounded-full border border-amber-200 bg-white px-5 py-2 shadow-sm">
+              <span className="font-serif text-2xl font-bold text-amber-800">
+                {new Intl.NumberFormat("pt-BR").format(totalPublicacoes)}
+              </span>
+              <span className="text-sm font-medium text-stone-600">
+                estudos publicados no acervo
+              </span>
+            </div>
+          </div>
+
+          <div className="mx-auto mt-6 max-w-xl">
             <SearchForm size="large" />
           </div>
           <p className="mt-3 text-xs text-stone-400">
