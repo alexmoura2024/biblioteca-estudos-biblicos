@@ -1,9 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  isStudyFavorite,
+  recordStudyHistory,
+  toggleStudyFavorite,
+} from "@/lib/client/studyLibrary";
 
 interface StudyActionsProps {
   title: string;
+  slug?: string;
+  summary?: string;
+  reference?: string;
 }
 
 const FONT_SIZES = [0.92, 1, 1.1, 1.2] as const;
@@ -20,13 +28,51 @@ function fallbackCopy(text: string) {
   document.body.removeChild(textarea);
 }
 
-export function StudyActions({ title }: StudyActionsProps) {
+export function StudyActions({
+  title,
+  slug,
+  summary = "",
+  reference,
+}: StudyActionsProps) {
   const [fontIndex, setFontIndex] = useState(1);
   const [feedback, setFeedback] = useState("");
+  const [favorited, setFavorited] = useState(false);
+
+  useEffect(() => {
+    if (!slug) return;
+
+    const item = {
+      slug,
+      title,
+      summary,
+      reference,
+    };
+
+    recordStudyHistory(item);
+    setFavorited(isStudyFavorite(slug));
+  }, [slug, title, summary, reference]);
 
   function showFeedback(message: string) {
     setFeedback(message);
     window.setTimeout(() => setFeedback(""), 2200);
+  }
+
+  function handleFavorite() {
+    if (!slug) return;
+
+    const nextState = toggleStudyFavorite({
+      slug,
+      title,
+      summary,
+      reference,
+    });
+
+    setFavorited(nextState);
+    showFeedback(
+      nextState
+        ? "Estudo adicionado aos favoritos."
+        : "Estudo removido dos favoritos.",
+    );
   }
 
   async function copyLink() {
@@ -52,7 +98,7 @@ export function StudyActions({ title }: StudyActionsProps) {
       try {
         await navigator.share({
           title,
-          text: `Estudo bíblico: ${title}`,
+          text: `Estudo b\u00edblico: ${title}`,
           url,
         });
         return;
@@ -83,7 +129,7 @@ export function StudyActions({ title }: StudyActionsProps) {
 
     showFeedback(
       nextIndex === 1
-        ? "Tamanho padrão."
+        ? "Tamanho padr\u00e3o."
         : nextIndex > fontIndex
           ? "Texto aumentado."
           : "Texto reduzido.",
@@ -96,6 +142,24 @@ export function StudyActions({ title }: StudyActionsProps) {
   return (
     <div className="rounded-lg border border-stone-200 bg-stone-50/80 p-3">
       <div className="flex flex-wrap items-center gap-2">
+        {slug && (
+          <button
+            type="button"
+            onClick={handleFavorite}
+            className={
+              favorited
+                ? "inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-amber-700 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900 shadow-sm transition hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-offset-2"
+                : buttonClass
+            }
+            aria-pressed={favorited}
+          >
+            <span aria-hidden="true" className="text-base leading-none">
+              {favorited ? "\u2605" : "\u2606"}
+            </span>
+            {favorited ? "Favoritado" : "Favoritar"}
+          </button>
+        )}
+
         <button type="button" onClick={shareStudy} className={buttonClass}>
           <svg
             aria-hidden="true"
@@ -135,7 +199,7 @@ export function StudyActions({ title }: StudyActionsProps) {
           type="button"
           onClick={handlePrint}
           className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-amber-700 bg-amber-700 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-offset-2"
-          title="Abre a impressão do navegador; nela você pode imprimir ou salvar em PDF."
+          title={"Abre a impress\u00e3o do navegador; nela voc\u00ea pode imprimir ou salvar em PDF."}
         >
           <svg
             aria-hidden="true"
@@ -167,7 +231,7 @@ export function StudyActions({ title }: StudyActionsProps) {
             aria-label="Diminuir tamanho do texto"
             title="Diminuir texto"
           >
-            A−
+            {"A\u2212"}
           </button>
           <span className="border-x border-stone-200 px-3 text-xs font-medium text-stone-500">
             Leitura

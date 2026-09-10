@@ -12,4 +12,5 @@ export const mainNav = [
   { href: "/temas", label: "Temas" },
   { href: "/personagens", label: "Personagens" },
   { href: "/series", label: "Séries" },
+  { href: "/minha-biblioteca", label: "Minha biblioteca" },
 ] as const;

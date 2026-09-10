@@ -70,7 +70,12 @@ export default async function StudyPage({ params }: StudyPageProps) {
         </p>
 
         <div className="no-print mt-4">
-          <StudyActions title={study.titulo} />
+          <StudyActions
+            title={study.titulo}
+            slug={study.slug}
+            summary={study.resumo}
+            reference={referenciaPrincipal?.passage.referenciaNormalizada}
+          />
         </div>
 
         <div className="study-tags mt-4 flex flex-wrap gap-1.5">
