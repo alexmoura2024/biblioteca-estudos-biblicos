@@ -50,8 +50,7 @@ export function RelatedStudies({ slug }: RelatedStudiesProps) {
           Estudos relacionados
         </h2>
         <p className="mt-3 text-sm text-stone-500">
-          Buscando conexÃµes no acervo...
-        </p>
+          {"Buscando conex\u00f5es no acervo..."}</p>
       </section>
     );
   }
@@ -76,9 +75,7 @@ export function RelatedStudies({ slug }: RelatedStudiesProps) {
         </h2>
 
         <p className="mt-2 text-sm leading-6 text-stone-600">
-          Selecionados pelas passagens, sÃ©ries, temas e personagens
-          relacionados a este estudo.
-        </p>
+          {"Selecionados pelas passagens, s\u00e9ries, temas e personagens relacionados a este estudo."}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

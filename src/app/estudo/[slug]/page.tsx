@@ -5,6 +5,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Badge } from "@/components/Badge";
 import { StudyActions } from "@/components/StudyActions";
 import { RelatedStudies } from "@/components/RelatedStudies";
+import { StudyNavigation } from "@/components/StudyNavigation";
 import { studyRepository } from "@/lib/repositories";
 
 interface StudyPageProps {
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: StudyPageProps): Promise<Meta
   const { slug } = await params;
   const study = await studyRepository.getPublishedBySlug(slug);
   return {
-    title: study ? study.titulo : "Estudo n├úo encontrado",
+    title: study ? study.titulo : "Estudo n\u00e3o encontrado",
     description: study?.resumo,
   };
 }
@@ -42,8 +43,8 @@ export default async function StudyPage({ params }: StudyPageProps) {
     <article className="study-article mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <div className="print-only study-print-brand" aria-hidden="true">
         <div>
-          <p className="study-print-brand-name">Biblioteca de Estudos B├¡blicos</p>
-          <p className="study-print-brand-subtitle">Estudo b├¡blico</p>
+          <p className="study-print-brand-name">{"Biblioteca de Estudos B\u00edblicos"}</p>
+          <p className="study-print-brand-subtitle">{"Estudo b\u00edblico"}</p>
         </div>
         {referenciaPrincipal && (
           <p className="study-print-reference">
@@ -54,7 +55,7 @@ export default async function StudyPage({ params }: StudyPageProps) {
 
       <Breadcrumbs
         items={[
-          { label: "In├¡cio", href: "/" },
+          { label: "In\u00edcio", href: "/" },
           referenciaPrincipal
             ? { label: referenciaPrincipal.book.nome, href: `/biblia/${referenciaPrincipal.book.slug}` }
             : { label: "Estudo" },
@@ -65,7 +66,7 @@ export default async function StudyPage({ params }: StudyPageProps) {
       <header className="study-header mt-4">
         <h1 className="study-title font-serif text-3xl font-bold text-stone-900">{study.titulo}</h1>
         <p className="study-meta mt-2 text-sm text-stone-500">
-          {study.autor} ┬À {DATE_FORMATTER.format(new Date(study.dataOrigem))}
+          {study.autor} {"\u00b7"} {DATE_FORMATTER.format(new Date(study.dataOrigem))}
         </p>
 
         <div className="no-print mt-4">
@@ -182,10 +183,12 @@ export default async function StudyPage({ params }: StudyPageProps) {
         </footer>
       )}
 
+      <StudyNavigation slug={study.slug} />
+
       <RelatedStudies slug={study.slug} />
 
       <div className="print-only study-print-footer" aria-hidden="true">
-        <span>Biblioteca de Estudos B├¡blicos</span>
+        <span>{"Biblioteca de Estudos B\u00edblicos"}</span>
         <span>biblioteca-estudos-biblicos.vercel.app</span>
       </div>
     </article>
