@@ -50,13 +50,16 @@ body {
     color: #292524 !important;
   }
 
-  body {
-    display: block !important;
-    font-size: 10.6pt;
-    line-height: 1.58;
+  html {
+    font-size: 100% !important;
   }
 
-  /* A página pública vira um documento: navegação e rodapé do site somem. */
+  body {
+    display: block !important;
+    font-size: 10.2pt !important;
+    line-height: 1.48 !important;
+  }
+
   body > header,
   body > footer,
   body > a[href="#conteudo-principal"],
@@ -64,7 +67,8 @@ body {
   .breadcrumbs,
   [role="navigation"],
   .no-print,
-  .study-tags {
+  .study-tags,
+  .study-header {
     display: none !important;
   }
 
@@ -76,91 +80,159 @@ body {
     max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
+    background: #ffffff !important;
   }
 
   .print-only {
     display: block !important;
   }
 
+  .study-print-document-header {
+    margin: 0 0 5mm !important;
+    padding: 0 0 4mm !important;
+    border-bottom: 1.2pt solid #b45309;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
   .study-print-brand {
     display: flex !important;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 12mm;
-    margin-bottom: 8mm;
-    padding-bottom: 4mm;
-    border-bottom: 1.4pt solid #b45309;
+    gap: 10mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
   }
 
   .study-print-brand-name {
     margin: 0 !important;
     font-family: var(--font-serif);
-    font-size: 11.5pt;
+    font-size: 10.8pt !important;
     font-weight: 700;
-    letter-spacing: 0.03em;
-    color: #1c1917;
+    letter-spacing: 0.025em;
+    color: #1c1917 !important;
   }
 
   .study-print-brand-subtitle {
-    margin: 0.8mm 0 0 !important;
-    font-size: 8.5pt;
-    letter-spacing: 0.08em;
+    margin: 0.7mm 0 0 !important;
+    font-size: 7.5pt !important;
+    font-weight: 600;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #78716c;
+    color: #78716c !important;
   }
 
   .study-print-reference {
     margin: 0 !important;
-    font-size: 9.5pt;
+    font-size: 9pt !important;
     font-weight: 700;
-    color: #92400e;
+    color: #92400e !important;
     text-align: right;
   }
 
-  .study-header {
-    margin-top: 0 !important;
+  .study-print-title-block {
+    margin-top: 4.5mm !important;
   }
 
-  .study-title {
+  .study-print-kicker {
+    margin: 0 0 1.2mm !important;
+    font-size: 7.5pt !important;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #92400e !important;
+  }
+
+  .study-print-title {
     margin: 0 !important;
     font-family: var(--font-serif);
-    font-size: 24pt !important;
-    line-height: 1.13 !important;
-    letter-spacing: -0.02em;
+    font-size: 21.5pt !important;
+    font-weight: 700;
+    line-height: 1.12 !important;
+    letter-spacing: -0.015em;
     color: #1c1917 !important;
   }
 
-  .study-meta {
-    margin-top: 3mm !important;
-    font-size: 9.4pt !important;
+  .study-print-meta {
+    margin: 2.2mm 0 0 !important;
+    font-size: 8.7pt !important;
+    line-height: 1.35 !important;
     color: #57534e !important;
   }
 
+  .study-body-shell {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .study-layout-grid {
+    display: block !important;
+  }
+
+  .study-main-column {
+    display: block !important;
+    min-width: 0 !important;
+  }
+
+  .study-main-column > div {
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
   .study-summary {
-    margin: 7mm 0 8mm !important;
-    padding: 4mm 5mm !important;
-    border-left: 3pt solid #b45309 !important;
+    margin: 0 0 5mm !important;
+    padding: 3mm 4mm !important;
+    border: 0 !important;
+    border-left: 2.4pt solid #b45309 !important;
+    border-radius: 0 !important;
     background: #fffbeb !important;
     color: #44403c !important;
-    font-size: 10.8pt !important;
-    line-height: 1.52 !important;
-    font-style: italic;
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
+  .study-summary > p:first-child {
+    margin: 0 !important;
+    font-family: var(--font-sans);
+    font-size: 7.4pt !important;
+    font-style: normal !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #92400e !important;
+  }
+
+  .study-summary > p:last-child {
+    margin: 1.3mm 0 0 !important;
+    font-family: var(--font-serif);
+    font-size: 10.1pt !important;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.45 !important;
+    color: #44403c !important;
+  }
+
   .study-content {
     margin-top: 0 !important;
-    color: #292524;
+    font-size: 10.2pt !important;
+    line-height: 1.48 !important;
+    color: #292524 !important;
+  }
+
+  .study-content-repeated-title {
+    display: none !important;
   }
 
   .study-content h1,
   .study-content h2 {
-    margin: 8mm 0 3mm !important;
-    padding-bottom: 1.5mm;
-    border-bottom: 0.6pt solid #d6d3d1;
+    margin: 5.2mm 0 2mm !important;
+    padding-bottom: 1mm;
+    border-bottom: 0.45pt solid #d6d3d1;
     font-family: var(--font-serif);
-    font-size: 16pt !important;
+    font-size: 14.2pt !important;
+    font-weight: 700 !important;
     line-height: 1.22 !important;
     color: #1c1917 !important;
     break-after: avoid;
@@ -168,56 +240,66 @@ body {
   }
 
   .study-content h3 {
-    margin: 6mm 0 2mm !important;
+    margin: 4.2mm 0 1.5mm !important;
     font-family: var(--font-serif);
-    font-size: 12.5pt !important;
-    line-height: 1.28 !important;
+    font-size: 11.7pt !important;
+    font-weight: 700 !important;
+    line-height: 1.26 !important;
     color: #78350f !important;
     break-after: avoid;
     page-break-after: avoid;
   }
 
   .study-content h4 {
-    margin: 5mm 0 2mm !important;
-    font-size: 11.2pt !important;
-    line-height: 1.3 !important;
+    margin: 3.8mm 0 1.4mm !important;
+    font-size: 10.7pt !important;
+    font-weight: 700 !important;
+    line-height: 1.28 !important;
     color: #1c1917 !important;
     break-after: avoid;
     page-break-after: avoid;
   }
 
   .study-content p {
-    margin: 0 0 3.5mm !important;
-    line-height: 1.58 !important;
+    margin: 0 0 2.7mm !important;
+    line-height: 1.48 !important;
     text-align: justify;
     orphans: 3;
     widows: 3;
   }
 
+  .study-content strong {
+    font-weight: 700 !important;
+    color: #1c1917 !important;
+  }
+
   .study-content blockquote {
-    margin: 4.5mm 0 !important;
-    padding: 3mm 4mm !important;
-    border-left: 2.5pt solid #d97706 !important;
+    margin: 3.5mm 0 !important;
+    padding: 2.5mm 3.5mm !important;
+    border-left: 2.2pt solid #d97706 !important;
     background: #fff7ed !important;
     color: #44403c !important;
+    font-size: 9.8pt !important;
+    line-height: 1.45 !important;
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
   .study-content ul,
   .study-content ol {
-    margin: 3.5mm 0 4mm 5mm !important;
+    margin: 2.8mm 0 3.2mm 5mm !important;
+    padding-left: 4mm !important;
   }
 
   .study-content li {
-    margin-bottom: 1.5mm;
-    line-height: 1.5;
+    margin-bottom: 1mm;
+    line-height: 1.45 !important;
   }
 
   .study-content hr {
-    margin: 6mm 0 !important;
+    margin: 4.5mm 0 !important;
     border: 0 !important;
-    border-top: 0.7pt solid #d6d3d1 !important;
+    border-top: 0.5pt solid #d6d3d1 !important;
   }
 
   .study-content a {
@@ -226,28 +308,34 @@ body {
   }
 
   .study-keywords {
-    margin-top: 8mm !important;
-    padding-top: 3mm !important;
-    border-top: 0.7pt solid #d6d3d1 !important;
+    margin: 5mm 0 0 !important;
+    padding: 2.5mm 0 0 !important;
+    border-top: 0.5pt solid #d6d3d1 !important;
     color: #78716c !important;
-    font-size: 8.8pt !important;
+    font-size: 8.2pt !important;
+    line-height: 1.4 !important;
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
   .study-print-footer {
     display: flex !important;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: -10.5mm;
     justify-content: space-between;
     gap: 8mm;
-    margin-top: 8mm;
-    padding-top: 3mm;
-    border-top: 0.7pt solid #d6d3d1;
-    color: #78716c;
-    font-size: 8pt;
+    margin: 0 !important;
+    padding-top: 1.8mm;
+    border-top: 0.45pt solid #d6d3d1;
+    color: #78716c !important;
+    font-size: 7.2pt !important;
+    line-height: 1.2 !important;
   }
 
   @page {
     size: A4;
-    margin: 17mm 16mm 18mm;
+    margin: 13mm 15mm 16mm;
   }
 }

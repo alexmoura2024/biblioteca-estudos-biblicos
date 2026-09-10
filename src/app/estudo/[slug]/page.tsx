@@ -35,6 +35,28 @@ const DATE_FORMATTER = new Intl.DateTimeFormat("pt-BR", {
   dateStyle: "long",
 });
 
+function textFromHeading(children: ReactNode): string {
+  if (typeof children === "string" || typeof children === "number") {
+    return String(children);
+  }
+
+  if (Array.isArray(children)) {
+    return children.map(textFromHeading).join("");
+  }
+
+  return "";
+}
+
+function isRepeatedStudyTitle(children: ReactNode, title: string): boolean {
+  const heading = textFromHeading(children)
+    .trim()
+    .toLocaleLowerCase("pt-BR");
+
+  const studyTitle = title.trim().toLocaleLowerCase("pt-BR");
+
+  return heading.length > 0 && heading === studyTitle;
+}
+
 export default async function StudyPage({ params }: StudyPageProps) {
   const { slug } = await params;
   const study = await studyRepository.getPublishedBySlug(slug);
@@ -45,21 +67,55 @@ export default async function StudyPage({ params }: StudyPageProps) {
     study.passagens.find((p) => p.tipoRelacao === "principal") ??
     study.passagens[0];
 
+  const dataOrigem = new Date(study.dataOrigem);
+  const hasKnownDate =
+    !Number.isNaN(dataOrigem.getTime()) &&
+    !study.dataOrigem.startsWith("1970-01-01");
+
+  const normalizedAuthor = study.autor.trim().toLocaleLowerCase("pt-BR");
+  const hasKnownAuthor =
+    normalizedAuthor !== "autor não identificado" &&
+    normalizedAuthor !== "não identificado";
+
   return (
     <article id="inicio-do-estudo" className="study-article bg-[#fcfbf8]">
-      <div className="print-only study-print-brand" aria-hidden="true">
-        <div>
-          <p className="study-print-brand-name">
-            Biblioteca de Estudos Bíblicos
-          </p>
-          <p className="study-print-brand-subtitle">Estudo bíblico</p>
+      <div
+        className="print-only study-print-document-header"
+        aria-hidden="true"
+      >
+        <div className="study-print-brand">
+          <div>
+            <p className="study-print-brand-name">
+              Biblioteca de Estudos Bíblicos
+            </p>
+            <p className="study-print-brand-subtitle">
+              Mensagem e estudo bíblico
+            </p>
+          </div>
+
+          {referenciaPrincipal && (
+            <p className="study-print-reference">
+              {referenciaPrincipal.passage.referenciaNormalizada}
+            </p>
+          )}
         </div>
 
-        {referenciaPrincipal && (
-          <p className="study-print-reference">
-            {referenciaPrincipal.passage.referenciaNormalizada}
-          </p>
-        )}
+        <div className="study-print-title-block">
+          <p className="study-print-kicker">Estudo bíblico</p>
+          <p className="study-print-title">{study.titulo}</p>
+
+          {(hasKnownAuthor || hasKnownDate) && (
+            <p className="study-print-meta">
+              {hasKnownAuthor && <span>{study.autor}</span>}
+              {hasKnownAuthor && hasKnownDate && (
+                <span aria-hidden="true"> · </span>
+              )}
+              {hasKnownDate && (
+                <span>{DATE_FORMATTER.format(dataOrigem)}</span>
+              )}
+            </p>
+          )}
+        </div>
       </div>
 
       <header className="study-header border-b border-stone-200 bg-[#f7f2e9]">
@@ -107,7 +163,7 @@ export default async function StudyPage({ params }: StudyPageProps) {
               <span className="mx-2 text-stone-300" aria-hidden="true">
                 ·
               </span>
-              {DATE_FORMATTER.format(new Date(study.dataOrigem))}
+              {DATE_FORMATTER.format(dataOrigem)}
             </p>
 
             <div className="no-print mt-6 max-w-4xl">
@@ -122,9 +178,9 @@ export default async function StudyPage({ params }: StudyPageProps) {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-9 sm:px-6 lg:px-8 lg:py-12">
-        <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_17rem] xl:gap-14">
-          <div className="min-w-0">
+      <div className="study-body-shell mx-auto max-w-7xl px-4 py-9 sm:px-6 lg:px-8 lg:py-12">
+        <div className="study-layout-grid grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_17rem] xl:gap-14">
+          <div className="study-main-column min-w-0">
             <div className="mx-auto max-w-3xl lg:mx-0">
               <section
                 className="study-summary rounded-xl border border-amber-200/80 bg-amber-50/55 px-5 py-5 sm:px-6"
@@ -142,12 +198,24 @@ export default async function StudyPage({ params }: StudyPageProps) {
                 <ReactMarkdown
                   components={{
                     h1: ({ children }) => (
-                      <h2 className="mt-12 border-b border-stone-200 pb-2 font-serif text-2xl font-semibold text-stone-950 first:mt-0">
+                      <h2
+                        className={`mt-12 border-b border-stone-200 pb-2 font-serif text-2xl font-semibold text-stone-950 first:mt-0 ${
+                          isRepeatedStudyTitle(children, study.titulo)
+                            ? "study-content-repeated-title"
+                            : ""
+                        }`}
+                      >
                         {children}
                       </h2>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="mt-12 border-b border-stone-200 pb-2 font-serif text-2xl font-semibold text-stone-950 first:mt-0">
+                      <h2
+                        className={`mt-12 border-b border-stone-200 pb-2 font-serif text-2xl font-semibold text-stone-950 first:mt-0 ${
+                          isRepeatedStudyTitle(children, study.titulo)
+                            ? "study-content-repeated-title"
+                            : ""
+                        }`}
+                      >
                         {children}
                       </h2>
                     ),
