@@ -1,14 +1,15 @@
 import Link from "next/link";
+import { HomePersonalShelf } from "@/components/HomePersonalShelf";
 import { SearchForm } from "@/components/SearchForm";
 import { studyRepository } from "@/lib/repositories";
 
 const QUICK_LINKS = [
   {
     href: "/biblia",
-    title: "Bíblia",
-    description: "Explore estudos por livro e capítulo.",
+    title: "B\u00edblia",
+    description: "Livros e cap\u00edtulos",
     icon: (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5v-16ZM20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5v-16Z" />
       </svg>
     ),
@@ -16,20 +17,19 @@ const QUICK_LINKS = [
   {
     href: "/temas",
     title: "Temas",
-    description: "Encontre assuntos da fé e da vida cristã.",
+    description: "Assuntos e doutrinas",
     icon: (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 3.75h12A1.25 1.25 0 0 1 19.25 5v14A1.25 1.25 0 0 1 18 20.25H6A1.25 1.25 0 0 1 4.75 19V5A1.25 1.25 0 0 1 6 3.75Z" />
-        <path strokeLinecap="round" d="M8 8h8M8 12h8M8 16h5" />
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 4.5h14v15H5zM8 8h8M8 12h8M8 16h5" />
       </svg>
     ),
   },
   {
     href: "/personagens",
     title: "Personagens",
-    description: "Conheça pessoas e contextos bíblicos.",
+    description: "Pessoas e contextos",
     icon: (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.6">
         <circle cx="9" cy="8" r="3" />
         <circle cx="17" cy="9" r="2.2" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.5 19c.7-3.2 2.7-5 5.5-5s4.8 1.8 5.5 5M14.5 14.7c2.8-.6 5.1.8 6 3.8" />
@@ -38,178 +38,190 @@ const QUICK_LINKS = [
   },
   {
     href: "/series",
-    title: "Séries",
-    description: "Aprofunde-se em sequências de estudos.",
+    title: "S\u00e9ries",
+    description: "Sequ\u00eancias de estudos",
     icon: (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.6">
         <path strokeLinecap="round" strokeLinejoin="round" d="m12 3 8 4-8 4-8-4 8-4Zm-8 9 8 4 8-4M4 17l8 4 8-4" />
+      </svg>
+    ),
+  },
+  {
+    href: "/minha-biblioteca",
+    title: "Minha biblioteca",
+    description: "Favoritos e hist\u00f3rico",
+    icon: (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 4.5h12v16l-6-3.6-6 3.6v-16Z" />
+        <path strokeLinecap="round" d="M9 8.5h6" />
       </svg>
     ),
   },
 ] as const;
 
-const EXPLORE_LINKS = [
-  { href: "/biblia", title: "Por Testamento", description: "Antigo e Novo Testamento" },
-  { href: "/biblia", title: "Por Livros", description: "Todos os livros da Bíblia" },
-  { href: "/temas", title: "Por Temas", description: "Assuntos da vida cristã" },
-  { href: "/personagens", title: "Por Personagens", description: "Homens e mulheres da Bíblia" },
+const SEARCH_EXAMPLES = [
+  ["Jo\u00e3o 3:16", "Jo\u00e3o 3:16"],
+  ["ora\u00e7\u00e3o", "ora\u00e7\u00e3o"],
+  ["Davi", "Davi"],
+  ["salva\u00e7\u00e3o", "salva\u00e7\u00e3o"],
 ] as const;
 
 export default async function HomePage() {
   const [destaques, totalPublicacoes] = await Promise.all([
-    studyRepository.listRecent(6),
+    studyRepository.listRecent(7),
     studyRepository.countPublished(),
   ]);
 
   const estudoDestaque = destaques[0];
-  const estudosRecentes = destaques.slice(1);
+  const estudosRecentes = destaques.slice(1, 7);
 
   return (
     <div className="bg-white">
-      <section className="relative overflow-hidden border-b border-stone-200 bg-[#f3eadc]">
+      <section className="relative overflow-hidden border-b border-stone-200 bg-[#f7f2e9]">
         <div
           aria-hidden="true"
-          className="absolute inset-0 opacity-70"
+          className="absolute inset-y-0 right-0 hidden w-[38%] border-l border-amber-900/10 lg:block"
           style={{
             background:
-              "radial-gradient(circle at 78% 28%, rgba(180,120,55,.22), transparent 28%), radial-gradient(circle at 92% 90%, rgba(97,63,30,.15), transparent 33%), linear-gradient(115deg, rgba(255,255,255,.96) 0%, rgba(255,252,246,.92) 39%, rgba(238,221,198,.72) 68%, rgba(202,170,132,.55) 100%)",
+              "linear-gradient(145deg, rgba(255,255,255,.2), rgba(120,82,45,.08)), repeating-linear-gradient(0deg, transparent 0 31px, rgba(120,82,45,.055) 31px 32px)",
           }}
         />
-        <div
-          aria-hidden="true"
-          className="absolute -right-10 bottom-[-140px] h-[430px] w-[620px] rotate-[-7deg] rounded-[45%] border border-amber-900/10 bg-gradient-to-br from-amber-100/70 via-stone-50/60 to-amber-900/10 shadow-2xl"
-        />
 
-        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.15fr_.85fr] lg:px-8 lg:py-20">
+        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.25fr_.75fr] lg:px-8 lg:py-16">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-800">
-              Conhecimento que aproxima
+              {"Biblioteca digital de estudos b\u00edblicos"}
             </p>
 
-            <h1 className="mt-4 max-w-3xl font-serif text-4xl font-semibold leading-[1.02] tracking-tight text-stone-950 sm:text-5xl lg:text-6xl">
-              Estudos bíblicos para pesquisar, compreender e compartilhar
+            <h1 className="mt-4 max-w-4xl font-serif text-4xl font-semibold leading-[1.04] tracking-tight text-stone-950 sm:text-5xl lg:text-[3.4rem]">
+              {"Mensagens e estudos b\u00edblicos"}
             </h1>
 
-            <p className="mt-5 max-w-2xl text-base leading-7 text-stone-700 sm:text-lg">
-              Encontre estudos por referência bíblica, tema, personagem, série ou palavra-chave.
+            <p className="mt-5 max-w-2xl text-base leading-7 text-stone-600 sm:text-lg">
+              {"Um acervo organizado para encontrar estudos por passagem, tema, personagem, s\u00e9rie ou palavra-chave."}
             </p>
 
-            <div className="mt-7 flex flex-wrap items-center gap-4">
-              <div className="inline-flex items-center gap-3">
-                <span className="text-amber-800">
-                  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5v-16ZM20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5v-16Z" />
-                  </svg>
-                </span>
-                <span className="font-serif text-4xl font-bold leading-none text-amber-800">
-                  {new Intl.NumberFormat("pt-BR").format(totalPublicacoes)}
-                </span>
-                <span className="max-w-28 text-sm leading-5 text-stone-700">
-                  estudos publicados no acervo
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-8 max-w-3xl">
+            <div className="mt-7 max-w-3xl rounded-xl border border-stone-200/80 bg-white p-3 shadow-[0_12px_35px_rgba(72,53,36,0.08)] sm:p-4">
               <SearchForm size="large" />
-              <p className="mt-3 text-xs text-stone-500">
-                Experimente: João 3:16, Davi, perdão, Lucas 15 ou uma palavra-chave.
-              </p>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2 px-1 text-xs text-stone-500">
+                <span>Experimente:</span>
+                {SEARCH_EXAMPLES.map(([label, query]) => (
+                  <Link
+                    key={query}
+                    href={`/busca?q=${encodeURIComponent(query)}`}
+                    className="rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 transition hover:border-amber-300 hover:bg-amber-50 hover:text-amber-800"
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
 
-          <aside className="hidden self-center border-l border-amber-800/30 pl-8 lg:block">
-            <p className="font-serif text-xl italic leading-8 text-stone-700">
-              “Lâmpada para os meus pés é tua palavra e luz, para o meu caminho.”
-            </p>
-            <p className="mt-4 text-xs font-semibold uppercase tracking-[0.15em] text-stone-500">
-              Salmo 119:105
-            </p>
+          <aside className="flex items-center lg:pl-10">
+            <div className="w-full border-l-2 border-amber-700/60 pl-6 sm:pl-8">
+              <div className="flex items-end gap-3">
+                <span className="font-serif text-5xl font-semibold leading-none text-amber-800">
+                  {new Intl.NumberFormat("pt-BR").format(totalPublicacoes)}
+                </span>
+                <span className="pb-1 text-sm leading-5 text-stone-600">
+                  estudos publicados
+                </span>
+              </div>
 
-            <div className="mt-10 grid grid-cols-2 gap-x-8 gap-y-2 border-t border-stone-400/30 pt-6 text-xs uppercase tracking-[0.16em] text-stone-600">
-              <span>Estudar</span>
-              <span>Compreender</span>
-              <span>Aplicar</span>
-              <span>Compartilhar</span>
+              <div className="mt-7 border-t border-stone-300/70 pt-6">
+                <p className="font-serif text-lg italic leading-7 text-stone-700">
+                  {"\u201cL\u00e2mpada para os meus p\u00e9s \u00e9 tua palavra e luz, para o meu caminho.\u201d"}
+                </p>
+                <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">
+                  Salmo 119:105
+                </p>
+              </div>
             </div>
           </aside>
         </div>
       </section>
 
-      <section className="border-b border-stone-200 bg-[#fffdfa]">
-        <div className="mx-auto grid max-w-7xl divide-y divide-stone-200 px-4 sm:grid-cols-2 sm:divide-x sm:divide-y-0 sm:px-6 lg:grid-cols-4 lg:px-8">
-          {QUICK_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="group flex items-center gap-4 px-1 py-6 sm:px-6 lg:px-7"
-            >
-              <span className="shrink-0 text-amber-800 transition-transform group-hover:-translate-y-0.5">
-                {link.icon}
-              </span>
-              <span className="min-w-0">
-                <span className="block font-serif text-base font-semibold text-stone-950">
-                  {link.title}
+      <section className="border-b border-stone-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="flex items-baseline justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-800">
+                Navegue pelo acervo
+              </p>
+              <h2 className="mt-1 font-serif text-2xl font-semibold text-stone-950">
+                Escolha um caminho
+              </h2>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {QUICK_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="group flex min-h-32 flex-col justify-between rounded-xl border border-stone-200 bg-[#fffdfa] p-5 transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-sm"
+              >
+                <span className="text-amber-800">{link.icon}</span>
+                <span className="mt-5">
+                  <span className="flex items-center justify-between gap-2 font-serif text-base font-semibold text-stone-950">
+                    {link.title}
+                    <span
+                      aria-hidden="true"
+                      className="text-amber-700 transition-transform group-hover:translate-x-1"
+                    >
+                      {"\u2192"}
+                    </span>
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 text-stone-500">
+                    {link.description}
+                  </span>
                 </span>
-                <span className="mt-1 block text-sm leading-5 text-stone-500">
-                  {link.description}
-                </span>
-              </span>
-              <span className="ml-auto text-lg text-amber-700 transition-transform group-hover:translate-x-1">
-                →
-              </span>
-            </Link>
-          ))}
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
+      <HomePersonalShelf />
+
       {estudoDestaque && (
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="grid overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm lg:grid-cols-[.95fr_1.35fr]">
-            <div className="relative min-h-64 overflow-hidden bg-gradient-to-br from-[#6f4c2f] via-[#9b6c42] to-[#2f241d] p-8 text-amber-50">
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 opacity-25"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(circle at 20% 30%, #fff 0 1px, transparent 1px), radial-gradient(circle at 75% 65%, #fff 0 1px, transparent 1px)",
-                  backgroundSize: "24px 24px, 31px 31px",
-                }}
-              />
-              <div className="relative flex h-full flex-col justify-between">
-                <div className="space-y-2 text-xs uppercase tracking-[0.24em] text-amber-100/80">
-                  <p>História</p>
-                  <p>Contexto</p>
-                  <p>Significado</p>
-                  <p>Aplicação</p>
-                </div>
-                <div className="mt-12 h-px w-12 bg-amber-100/70" />
-              </div>
-            </div>
-
-            <div className="flex flex-col justify-center p-7 sm:p-9 lg:p-12">
+          <div className="mb-5 flex items-baseline justify-between border-b border-stone-200 pb-3">
+            <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-800">
-                Estudo em destaque
+                {"Sele\u00e7\u00e3o editorial"}
               </p>
-              <h2 className="mt-3 font-serif text-3xl font-semibold leading-tight text-stone-950">
-                {estudoDestaque.titulo}
+              <h2 className="mt-1 font-serif text-2xl font-semibold text-stone-950">
+                Estudo em destaque
               </h2>
+            </div>
+          </div>
+
+          <article className="grid overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm lg:grid-cols-[1.45fr_.55fr]">
+            <div className="p-7 sm:p-9 lg:p-11">
               {estudoDestaque.referenciaPrincipal && (
-                <p className="mt-2 font-serif text-lg font-semibold text-amber-800">
+                <p className="text-sm font-semibold text-amber-800">
                   {estudoDestaque.referenciaPrincipal.referenciaNormalizada}
                 </p>
               )}
-              <p className="mt-4 max-w-3xl text-sm leading-6 text-stone-600">
+
+              <h3 className="mt-2 max-w-3xl font-serif text-3xl font-semibold leading-tight text-stone-950 sm:text-4xl">
+                {estudoDestaque.titulo}
+              </h3>
+
+              <p className="mt-5 max-w-3xl text-sm leading-7 text-stone-600 sm:text-base">
                 {estudoDestaque.resumo}
               </p>
 
               {estudoDestaque.temas.length > 0 && (
-                <div className="mt-5 flex flex-wrap gap-2">
+                <div className="mt-6 flex flex-wrap gap-2">
                   {estudoDestaque.temas.slice(0, 4).map(({ topic }) => (
                     <Link
                       key={topic.id}
                       href={`/temas/${topic.slug}`}
-                      className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-600 hover:bg-amber-50 hover:text-amber-800"
+                      className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-medium text-stone-600 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-800"
                     >
                       {topic.nome}
                     </Link>
@@ -217,104 +229,128 @@ export default async function HomePage() {
                 </div>
               )}
 
-              <div className="mt-7">
-                <Link
-                  href={`/estudo/${estudoDestaque.slug}`}
-                  className="inline-flex items-center gap-2 rounded-md bg-amber-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-amber-800"
-                >
-                  Ler estudo
-                  <span aria-hidden>→</span>
-                </Link>
-              </div>
+              <Link
+                href={`/estudo/${estudoDestaque.slug}`}
+                className="mt-7 inline-flex items-center gap-2 rounded-md bg-amber-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-900"
+              >
+                Ler estudo completo
+                <span aria-hidden="true">{"\u2192"}</span>
+              </Link>
             </div>
-          </div>
-        </section>
-      )}
 
-      <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
-        <div className="flex items-baseline justify-between border-b border-stone-200 pb-3">
-          <h2 className="font-serif text-2xl font-semibold text-stone-950">
-            Estudos recentes
-          </h2>
-          <Link href="/busca" className="text-sm font-medium text-amber-800 hover:underline">
-            Ver todos os estudos →
-          </Link>
-        </div>
-
-        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {estudosRecentes.map((study) => (
-            <article
-              key={study.id}
-              className="group flex min-h-56 flex-col rounded-lg border border-stone-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-md"
-            >
-              <h3 className="font-serif text-xl font-semibold leading-6 text-stone-950">
-                <Link href={`/estudo/${study.slug}`} className="hover:text-amber-800">
-                  {study.titulo}
-                </Link>
-              </h3>
-
-              {study.referenciaPrincipal && (
-                <p className="mt-2 text-sm font-semibold text-amber-800">
-                  {study.referenciaPrincipal.referenciaNormalizada}
-                </p>
-              )}
-
-              <p className="mt-3 line-clamp-3 text-sm leading-6 text-stone-600">
-                {study.resumo}
+            <aside className="border-t border-stone-200 bg-stone-950 p-7 text-stone-100 lg:border-l lg:border-t-0 lg:p-9">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">
+                Ficha do estudo
               </p>
 
-              <div className="mt-auto pt-5">
-                {study.temas.length > 0 && (
-                  <div className="mb-4 flex flex-wrap gap-1.5">
-                    {study.temas.slice(0, 3).map(({ topic }) => (
-                      <span
-                        key={topic.id}
-                        className="rounded-full bg-stone-100 px-2.5 py-1 text-[11px] text-stone-600"
-                      >
-                        {topic.nome}
-                      </span>
-                    ))}
+              <dl className="mt-7 space-y-6">
+                {estudoDestaque.referenciaPrincipal && (
+                  <div>
+                    <dt className="text-[11px] uppercase tracking-[0.14em] text-stone-400">
+                      {"Refer\u00eancia"}
+                    </dt>
+                    <dd className="mt-1 font-serif text-lg text-stone-100">
+                      {estudoDestaque.referenciaPrincipal.referenciaNormalizada}
+                    </dd>
                   </div>
                 )}
 
-                <Link
-                  href={`/estudo/${study.slug}`}
-                  className="text-sm font-semibold text-amber-800 group-hover:underline"
-                >
-                  Ler estudo completo →
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+                <div>
+                  <dt className="text-[11px] uppercase tracking-[0.14em] text-stone-400">
+                    Autor
+                  </dt>
+                  <dd className="mt-1 text-sm leading-6 text-stone-200">
+                    {estudoDestaque.autor}
+                  </dd>
+                </div>
 
-      <section className="border-y border-stone-200 bg-[#faf7f2]">
-        <div className="mx-auto grid max-w-7xl gap-7 px-4 py-10 sm:px-6 lg:grid-cols-[1.2fr_2.8fr] lg:px-8">
-          <div>
-            <h2 className="font-serif text-2xl font-semibold text-stone-950">
-              Explore todo o acervo
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-stone-500">
-              Navegue por diferentes caminhos e descubra novos estudos.
-            </p>
+                {estudoDestaque.series.length > 0 && (
+                  <div>
+                    <dt className="text-[11px] uppercase tracking-[0.14em] text-stone-400">
+                      {"S\u00e9rie"}
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-stone-200">
+                      {estudoDestaque.series[0].series.nome}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </aside>
+          </article>
+        </section>
+      )}
+
+      <section className="border-t border-stone-100 bg-[#fcfbf8]">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-3 border-b border-stone-200 pb-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-800">
+                Novidades do acervo
+              </p>
+              <h2 className="mt-1 font-serif text-2xl font-semibold text-stone-950">
+                Estudos recentes
+              </h2>
+            </div>
+
+            <Link
+              href="/busca"
+              className="text-sm font-semibold text-amber-800 hover:underline"
+            >
+              Ver todos os estudos {"\u2192"}
+            </Link>
           </div>
 
-          <div className="grid gap-px overflow-hidden rounded-lg border border-stone-200 bg-stone-200 sm:grid-cols-2 xl:grid-cols-4">
-            {EXPLORE_LINKS.map((item) => (
-              <Link
-                key={item.title}
-                href={item.href}
-                className="group bg-white p-5 transition hover:bg-amber-50"
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {estudosRecentes.map((study, index) => (
+              <article
+                key={study.id}
+                className="group flex min-h-60 flex-col rounded-xl border border-stone-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-md"
               >
-                <p className="font-serif font-semibold text-stone-950 group-hover:text-amber-900">
-                  {item.title}
+                <div className="flex items-start justify-between gap-4">
+                  {study.referenciaPrincipal ? (
+                    <p className="text-xs font-semibold uppercase tracking-[0.1em] text-amber-800">
+                      {study.referenciaPrincipal.referenciaNormalizada}
+                    </p>
+                  ) : (
+                    <span />
+                  )}
+                  <span className="font-serif text-sm text-stone-300">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                </div>
+
+                <h3 className="mt-3 font-serif text-xl font-semibold leading-6 text-stone-950">
+                  <Link href={`/estudo/${study.slug}`} className="hover:text-amber-800">
+                    {study.titulo}
+                  </Link>
+                </h3>
+
+                <p className="mt-3 line-clamp-3 text-sm leading-6 text-stone-600">
+                  {study.resumo}
                 </p>
-                <p className="mt-1 text-xs leading-5 text-stone-500">
-                  {item.description}
-                </p>
-                <span className="mt-4 block text-amber-800">→</span>
-              </Link>
+
+                <div className="mt-auto pt-5">
+                  {study.temas.length > 0 && (
+                    <div className="mb-4 flex flex-wrap gap-1.5">
+                      {study.temas.slice(0, 2).map(({ topic }) => (
+                        <span
+                          key={topic.id}
+                          className="rounded-full bg-stone-100 px-2.5 py-1 text-[11px] text-stone-600"
+                        >
+                          {topic.nome}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <Link
+                    href={`/estudo/${study.slug}`}
+                    className="text-sm font-semibold text-amber-800 group-hover:underline"
+                  >
+                    Ler estudo completo {"\u2192"}
+                  </Link>
+                </div>
+              </article>
             ))}
           </div>
         </div>

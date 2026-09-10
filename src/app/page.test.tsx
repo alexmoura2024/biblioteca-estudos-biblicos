@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import HomePage from "@/app/page";
 
@@ -6,7 +6,7 @@ describe("HomePage", () => {
   it("renderiza o campo de busca principal e os links de navegação", async () => {
     render(await HomePage());
 
-    expect(screen.getByRole("heading", { name: /estudos bíblicos para pesquisar, compreender e compartilhar/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /mensagens e estudos bíblicos/i })).toBeInTheDocument();
     expect(screen.getByRole("searchbox")).toBeInTheDocument();
     // Cards de "Navegar por": o nome acessível do link concatena título e
     // descrição sem espaço ("BíbliaNavegue..."), por isso o casamento é
@@ -15,6 +15,7 @@ describe("HomePage", () => {
     expect(screen.getByRole("link", { name: /^Temas/ })).toHaveAttribute("href", "/temas");
     expect(screen.getByRole("link", { name: /^Personagens/ })).toHaveAttribute("href", "/personagens");
     expect(screen.getByRole("link", { name: /^Séries/ })).toHaveAttribute("href", "/series");
+    expect(screen.getByRole("link", { name: /^Minha biblioteca/ })).toHaveAttribute("href", "/minha-biblioteca");
   });
 
   it("lista estudos recentes publicados", async () => {
