@@ -42,6 +42,7 @@ export const WEIGHTS = {
   title: 100,
   topic: 80,
   character: 70,
+  series: 60,
   keyword: 50,
   summary: 30,
   content: 10,
@@ -117,6 +118,7 @@ function lexicalScore(study: Study, queryTokens: string[]): StudyScore {
   const titleTokens = tokenize(study.titulo);
   const topicNames = study.temas.map((t) => normalizeText(t.topic.nome));
   const characterNames = study.personagens.map((p) => normalizeText(p.character.nome));
+  const seriesNames = study.series.map((s) => normalizeText(s.series.nome));
   const keywordTokens = study.palavrasChave.map((k) => normalizeText(k));
   const summaryTokens = tokenize(study.resumo);
   const contentTokens = tokenize(study.conteudo);
@@ -133,6 +135,10 @@ function lexicalScore(study: Study, queryTokens: string[]): StudyScore {
     if (characterNames.some((name) => name.includes(token))) {
       score += WEIGHTS.character;
       matchedOn.push("personagem");
+    }
+    if (seriesNames.some((name) => name.includes(token))) {
+      score += WEIGHTS.series;
+      matchedOn.push("série");
     }
     if (keywordTokens.some((keyword) => keyword.includes(token))) {
       score += WEIGHTS.keyword;

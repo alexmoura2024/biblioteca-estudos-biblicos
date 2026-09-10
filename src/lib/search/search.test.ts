@@ -17,7 +17,8 @@ describe("WEIGHTS (pesos do ranking, docs/SEARCH_SPEC.md §5 e DEC-014)", () => 
     expect(WEIGHTS.referenceBook).toBeGreaterThan(WEIGHTS.title);
     expect(WEIGHTS.title).toBeGreaterThan(WEIGHTS.topic);
     expect(WEIGHTS.topic).toBeGreaterThan(WEIGHTS.character);
-    expect(WEIGHTS.character).toBeGreaterThan(WEIGHTS.keyword);
+    expect(WEIGHTS.character).toBeGreaterThan(WEIGHTS.series);
+    expect(WEIGHTS.series).toBeGreaterThan(WEIGHTS.keyword);
     expect(WEIGHTS.keyword).toBeGreaterThan(WEIGHTS.summary);
     expect(WEIGHTS.summary).toBeGreaterThan(WEIGHTS.content);
   });
@@ -89,7 +90,11 @@ describe("scoreStudy — busca lexical (Fase A)", () => {
     expect(matchedOn).toContain("personagem");
   });
 
-  it("pontua e sinaliza match de palavra-chave", () => {
+    it("pontua e sinaliza match de série", () => {
+    const { matchedOn } = scoreStudy(golias, { texto: "vida" });
+    expect(matchedOn).toContain("série");
+  });
+it("pontua e sinaliza match de palavra-chave", () => {
     const { matchedOn } = scoreStudy(golias, { texto: "gigante" });
     expect(matchedOn).toContain("palavra-chave");
   });

@@ -102,6 +102,24 @@ export default async function BuscaPage({ searchParams }: BuscaPageProps) {
             placeholder="Ex.: João 3:16, oração, Davi..."
             className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-amber-600"
           />
+
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-stone-500">
+            <span>Experimente:</span>
+            {[
+              ["João 3:16", "João 3:16"],
+              ["oração", "oração"],
+              ["Davi", "Davi"],
+              ["salvação", "salvação"],
+            ].map(([label, value]) => (
+              <Link
+                key={value}
+                href={`/busca?q=${encodeURIComponent(value)}`}
+                className="rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 transition hover:border-amber-300 hover:bg-amber-50 hover:text-amber-800"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
         </div>
 
         <FilterSelect name="livro" label="Livro" defaultValue={params.livro} options={books.map((b) => ({ value: b.slug, label: b.nome }))} />
@@ -190,8 +208,24 @@ export default async function BuscaPage({ searchParams }: BuscaPageProps) {
               {outcome.items.length > 0 ? (
                 <>
                   <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {outcome.items.map(({ study }) => (
-                      <StudyCard key={study.id} study={study} />
+                    {outcome.items.map(({ study, matchedOn }) => (
+                      <div key={study.id}>
+                        <StudyCard study={study} />
+
+                        {matchedOn.length > 0 && (
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5 px-1 text-[11px] text-stone-500">
+                            <span className="font-medium">Encontrado em:</span>
+                            {matchedOn.slice(0, 5).map((reason) => (
+                              <span
+                                key={reason}
+                                className="rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5"
+                              >
+                                {reason}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                   {(hasPreviousPage || hasMorePages) && (

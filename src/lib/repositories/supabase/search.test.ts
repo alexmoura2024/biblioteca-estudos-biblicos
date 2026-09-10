@@ -27,6 +27,7 @@ const RPC_ROW = {
   autor: "Pr. José Ricardo Alves",
   data_origem: "2024-07-22",
   score: 1000,
+  matched_on: ["título", "resumo"],
   total_count: 1,
 };
 
@@ -62,7 +63,7 @@ describe("SupabaseSearchRepository.search", () => {
       limit: 10,
     });
 
-    expect(client.rpc).toHaveBeenCalledWith("search_studies", {
+    expect(client.rpc).toHaveBeenCalledWith("search_studies_v2", {
       p_texto: "novo nascimento",
       p_ref_book_slug: "joao",
       p_ref_capitulo: 3,
@@ -90,6 +91,7 @@ describe("SupabaseSearchRepository.search", () => {
     expect(outcome.items).toHaveLength(1);
     expect(outcome.items[0].score).toBe(1000);
     expect(outcome.items[0].study.slug).toBe("nicodemos-e-o-novo-nascimento");
+    expect(outcome.items[0].matchedOn).toEqual(["título", "resumo"]);
   });
 
   it("resolve referenciaPrincipal/temas/series dos resultados numa segunda etapa (Etapa 11 — fechando a paridade com o Mock)", async () => {
@@ -146,11 +148,11 @@ describe("SupabaseSearchRepository.search", () => {
     getSupabaseClientMock.mockReturnValue(client);
 
     await new SupabaseSearchRepository().search({ tema: "fe" });
-    expect(client.rpc).toHaveBeenCalledWith("search_studies", expect.objectContaining({ p_include_zero_score: true }));
+    expect(client.rpc).toHaveBeenCalledWith("search_studies_v2", expect.objectContaining({ p_include_zero_score: true }));
 
     vi.mocked(client.rpc).mockClear();
     await new SupabaseSearchRepository().search({});
-    expect(client.rpc).toHaveBeenCalledWith("search_studies", expect.objectContaining({ p_include_zero_score: false }));
+    expect(client.rpc).toHaveBeenCalledWith("search_studies_v2", expect.objectContaining({ p_include_zero_score: false }));
   });
 
   it("propaga o erro da RPC", async () => {

@@ -35,7 +35,12 @@ describe("BuscaPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("mostra estado vazio quando nada é encontrado", async () => {
+    it("explica por que os resultados foram encontrados", async () => {
+    render(await BuscaPage({ searchParams: searchParamsOf({ q: "Davi" }) }));
+
+    expect(screen.getAllByText(/encontrado em:/i).length).toBeGreaterThan(0);
+  });
+it("mostra estado vazio quando nada é encontrado", async () => {
     render(await BuscaPage({ searchParams: searchParamsOf({ q: "xablauzinho inexistente 123" }) }));
     expect(screen.getByText(/nenhum estudo encontrado/i)).toBeInTheDocument();
   });

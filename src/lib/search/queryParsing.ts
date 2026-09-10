@@ -1,4 +1,4 @@
-import { parseReference, type InvalidReferenceReason } from "@/lib/search/referenceParser";
+import { parseReference, type InvalidReferenceReason, type ParsedReference } from "@/lib/search/referenceParser";
 import { getMaxVerse } from "@/lib/data/bibleVerseLimits";
 import type { NormalizedReference } from "@/lib/repositories/types";
 import type { Book } from "@/lib/types";
@@ -32,9 +32,55 @@ export interface ParsedSearchQuery {
   };
 }
 
+function locateReference(query: string): {
+  parsed: ParsedReference;
+  start: number;
+} {
+  const leading = parseReference(query);
+  if (leading.type !== "none") {
+    return { parsed: leading, start: 0 };
+  }
+
+  for (let start = 1; start < query.length; start += 1) {
+    const previous = query[start - 1];
+    const current = query[start];
+
+    if (!/\s/.test(previous) || /\s/.test(current)) continue;
+
+    const candidate = parseReference(query.slice(start));
+
+    if (
+      candidate.type === "chapter" ||
+      candidate.type === "verse" ||
+      candidate.type === "invalid"
+    ) {
+      return { parsed: candidate, start };
+    }
+
+    if (candidate.type === "ambiguous") {
+      const rest = query.slice(start + candidate.matchedText.length);
+      if (/^[\s.:,]*\d/.test(rest)) {
+        return { parsed: candidate, start };
+      }
+    }
+  }
+
+  return { parsed: { type: "none" }, start: 0 };
+}
+
+function removeLocatedReference(
+  query: string,
+  start: number,
+  matchedText: string,
+): string {
+  return `${query.slice(0, start)} ${query.slice(start + matchedText.length)}`
+    .replace(/\s+/g, " ")
+    .trim();
+}
 export function parseSearchQuery(rawQuery: string): ParsedSearchQuery {
   const query = rawQuery.trim();
-  const parsed = parseReference(query);
+  const located = locateReference(query);
+  const parsed = located.parsed;
 
   switch (parsed.type) {
     case "ambiguous":
@@ -66,7 +112,7 @@ export function parseSearchQuery(rawQuery: string): ParsedSearchQuery {
     case "book": {
       const referencia: NormalizedReference = { book: parsed.book };
       return {
-        texto: query.slice(parsed.matchedText.length).trim(),
+        texto: removeLocatedReference(query, located.start, parsed.matchedText),
         referencia,
         recognizedReference: referencia,
       };
@@ -75,7 +121,7 @@ export function parseSearchQuery(rawQuery: string): ParsedSearchQuery {
     case "chapter": {
       const referencia: NormalizedReference = { book: parsed.book, capitulo: parsed.capitulo };
       return {
-        texto: query.slice(parsed.matchedText.length).trim(),
+        texto: removeLocatedReference(query, located.start, parsed.matchedText),
         referencia,
         recognizedReference: referencia,
       };
@@ -89,7 +135,7 @@ export function parseSearchQuery(rawQuery: string): ParsedSearchQuery {
         versiculoFim: parsed.versiculoFim,
       };
       return {
-        texto: query.slice(parsed.matchedText.length).trim(),
+        texto: removeLocatedReference(query, located.start, parsed.matchedText),
         referencia,
         recognizedReference: referencia,
       };

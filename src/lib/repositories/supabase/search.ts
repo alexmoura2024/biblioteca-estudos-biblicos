@@ -15,6 +15,7 @@ interface SearchStudiesRpcRow {
   autor: string;
   data_origem: string;
   score: number;
+  matched_on: string[];
   total_count: number;
 }
 
@@ -59,7 +60,7 @@ export class SupabaseSearchRepository implements SearchRepository {
     // como parâmetro, para não duplicar a regra dentro do SQL.
     const includeZeroScore = !hasQuery && hasActiveFilter;
 
-    const { data, error } = await getSupabaseClient().rpc("search_studies", {
+    const { data, error } = await getSupabaseClient().rpc("search_studies_v2", {
       p_texto: query.texto?.trim() || null,
       p_ref_book_slug: query.referencia?.book.slug ?? null,
       p_ref_capitulo: query.referencia?.capitulo ?? null,
@@ -117,7 +118,7 @@ export class SupabaseSearchRepository implements SearchRepository {
             series.filter((s) => s.study_id === row.id),
           ),
           score: row.score,
-          matchedOn: [],
+          matchedOn: row.matched_on ?? [],
         };
       }),
       total,
