@@ -100,6 +100,47 @@ export class SupabaseStudyRepository implements StudyRepository {
     return this.buildSummaries(ids);
   }
 
+  async countPublishedByBookChapter(
+    bookSlug: string,
+  ): Promise<Record<number, number>> {
+    const { data, error } = await getSupabaseClient()
+      .from("study_passages")
+      .select(
+        "study_id, passages!inner(capitulo, books!inner(slug)), studies!inner(status, visibilidade)",
+      )
+      .eq("passages.books.slug", bookSlug)
+      .eq("studies.status", "PUBLISHED")
+      .eq("studies.visibilidade", "publico");
+
+    if (error) {
+      throw new Error(
+        `SupabaseStudyRepository.countPublishedByBookChapter: ${error.message}`,
+      );
+    }
+
+    const rows = (data ?? []) as unknown as Array<{
+      study_id: string;
+      passages: { capitulo: number };
+    }>;
+
+    const studyIdsByChapter = new Map<number, Set<string>>();
+
+    for (const row of rows) {
+      const chapter = row.passages.capitulo;
+      const studyIds = studyIdsByChapter.get(chapter) ?? new Set<string>();
+
+      studyIds.add(row.study_id);
+      studyIdsByChapter.set(chapter, studyIds);
+    }
+
+    const counts: Record<number, number> = {};
+
+    for (const [chapter, studyIds] of studyIdsByChapter) {
+      counts[chapter] = studyIds.size;
+    }
+
+    return counts;
+  }
   async listByTopicSlug(topicSlug: string): Promise<StudySummary[]> {
     const { data, error } = await getSupabaseClient()
       .from("study_topics")

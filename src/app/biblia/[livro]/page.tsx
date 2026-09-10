@@ -26,7 +26,10 @@ export default async function BookPage({ params }: BookPageProps) {
   const book = await bookRepository.getBySlug(livro);
   if (!book) notFound();
 
-  const studies = await studyRepository.listByBookSlug(book.slug);
+  const [studies, chapterStudyCounts] = await Promise.all([
+    studyRepository.listByBookSlug(book.slug),
+    studyRepository.countPublishedByBookChapter(book.slug),
+  ]);
   const capitulos = Array.from({ length: book.totalCapitulos }, (_, i) => i + 1);
 
   return (
@@ -40,21 +43,69 @@ export default async function BookPage({ params }: BookPageProps) {
         {book.abreviacao} · {book.totalCapitulos} capítulos
       </p>
 
-      <section className="mt-6">
-        <h2 className="text-sm font-medium text-stone-700">Capítulos</h2>
-        <div className="mt-2 grid grid-cols-6 gap-1.5 sm:grid-cols-10 md:grid-cols-12">
-          {capitulos.map((capitulo) => (
-            <Link
-              key={capitulo}
-              href={`/biblia/${book.slug}/${capitulo}`}
-              className="flex h-9 items-center justify-center rounded-md border border-stone-200 bg-white text-sm text-stone-700 hover:border-amber-600 hover:text-amber-700"
-            >
-              {capitulo}
-            </Link>
-          ))}
+      <section className="mt-6 rounded-xl border border-stone-200 bg-stone-50/60 p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="font-serif text-lg font-semibold text-stone-900">
+              {"Cap\u00edtulos"}
+            </h2>
+            <p className="mt-1 text-sm text-stone-500">
+              {Object.values(chapterStudyCounts).filter((count) => count > 0).length}
+              {" de "}
+              {book.totalCapitulos}
+              {" cap\u00edtulos com estudos no acervo"}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-stone-500">
+            <span
+              aria-hidden="true"
+              className="h-3 w-3 rounded-sm border border-amber-300 bg-amber-100"
+            />
+            <span>Com estudos</span>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
+          {capitulos.map((capitulo) => {
+            const count = chapterStudyCounts[capitulo] ?? 0;
+            const hasStudies = count > 0;
+
+            const accessibleLabel = hasStudies
+              ? `Cap\u00edtulo ${capitulo}, ${count} ${count === 1 ? "estudo" : "estudos"}`
+              : `Cap\u00edtulo ${capitulo}, nenhum estudo`;
+
+            return (
+              <Link
+                key={capitulo}
+                href={`/biblia/${book.slug}/${capitulo}`}
+                aria-label={accessibleLabel}
+                data-has-studies={hasStudies ? "true" : "false"}
+                data-study-count={count}
+                className={`group flex min-h-14 flex-col items-center justify-center rounded-lg border px-2 py-2 text-center transition ${
+                  hasStudies
+                    ? "border-amber-300 bg-amber-50 text-amber-950 shadow-sm hover:border-amber-500 hover:bg-amber-100"
+                    : "border-stone-200 bg-white text-stone-500 hover:border-stone-400 hover:text-stone-700"
+                }`}
+              >
+                <span
+                  className={`text-base font-semibold ${
+                    hasStudies ? "text-amber-900" : "text-stone-600"
+                  }`}
+                >
+                  {capitulo}
+                </span>
+
+                {hasStudies && (
+                  <span className="mt-0.5 text-[10px] font-medium leading-3 text-amber-800">
+                    {count} {count === 1 ? "estudo" : "estudos"}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
         </div>
       </section>
-
       <section className="mt-10">
         <h2 className="font-serif text-lg font-semibold text-stone-900">
           Estudos sobre {book.nome}

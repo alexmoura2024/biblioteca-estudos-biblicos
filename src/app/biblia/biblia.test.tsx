@@ -17,7 +17,16 @@ describe("BookPage", () => {
   it("mostra todos os capítulos e os estudos vinculados ao livro", async () => {
     render(await BookPage({ params: Promise.resolve({ livro: "joao" }) }));
     expect(screen.getByRole("heading", { name: "João", level: 1 })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "3" })).toHaveAttribute("href", "/biblia/joao/3");
+    const chapterWithStudies = screen.getByRole("link", {
+      name: /cap\u00edtulo 3, \d+ estudos?/i,
+    });
+    expect(chapterWithStudies).toHaveAttribute("href", "/biblia/joao/3");
+    expect(chapterWithStudies).toHaveAttribute("data-has-studies", "true");
+
+    const emptyChapter = screen.getByRole("link", {
+      name: /cap\u00edtulo 5, nenhum estudo/i,
+    });
+    expect(emptyChapter).toHaveAttribute("data-has-studies", "false");
     expect(screen.getByRole("heading", { name: /nicodemos/i })).toBeInTheDocument();
   });
 

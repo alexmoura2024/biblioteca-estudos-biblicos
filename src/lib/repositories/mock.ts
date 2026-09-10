@@ -88,6 +88,29 @@ export class MockStudyRepository implements StudyRepository {
       .map(toStudySummary);
   }
 
+  async countPublishedByBookChapter(bookSlug: string) {
+    const studyIdsByChapter = new Map<number, Set<string>>();
+
+    for (const study of publishedStudies) {
+      for (const { book, passage } of study.passagens) {
+        if (book.slug !== bookSlug) continue;
+
+        const studyIds =
+          studyIdsByChapter.get(passage.capitulo) ?? new Set<string>();
+
+        studyIds.add(study.id);
+        studyIdsByChapter.set(passage.capitulo, studyIds);
+      }
+    }
+
+    const counts: Record<number, number> = {};
+
+    for (const [chapter, studyIds] of studyIdsByChapter) {
+      counts[chapter] = studyIds.size;
+    }
+
+    return counts;
+  }
   async listByTopicSlug(topicSlug: string) {
     return publishedStudies
       .filter((study) => study.temas.some((t) => t.topic.slug === topicSlug))
