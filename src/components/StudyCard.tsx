@@ -1,54 +1,68 @@
 import Link from "next/link";
-import type { StudySummary } from "@/lib/types";
 import { Badge } from "@/components/Badge";
+import type { StudySummary } from "@/lib/types";
 
 /**
- * Card de resultado/listagem de um estudo. Mostra exatamente os campos
- * definidos em docs/SEARCH_SPEC.md, seção 6: título, referência
- * principal, resumo curto, temas, série (quando houver) e acesso ao
- * estudo completo.
- *
- * Recebe `StudySummary`, não `Study` completo (Marco 1.2 — DEC-017): um
- * card nunca precisa do conteúdo integral do estudo nem de todas as
- * suas relações.
+ * Card de resultado/listagem de um estudo.
+ * Recebe StudySummary para evitar carregar o conteúdo integral do estudo.
  */
 export function StudyCard({ study }: { study: StudySummary }) {
   return (
-    <article className="flex flex-col gap-3 rounded-lg border border-stone-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="group flex min-h-64 flex-col rounded-xl border border-stone-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-md">
       <div>
-        <h3 className="font-serif text-lg font-semibold text-stone-900">
-          <Link href={`/estudo/${study.slug}`} className="hover:text-amber-700">
-            {study.titulo}
-          </Link>
-        </h3>
         {study.referenciaPrincipal && (
-          <p className="mt-1 text-sm font-medium text-amber-700">
+          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-amber-800">
             {study.referenciaPrincipal.referenciaNormalizada}
           </p>
         )}
+
+        <h3 className="mt-2 font-serif text-xl font-semibold leading-6 text-stone-950">
+          <Link
+            href={`/estudo/${study.slug}`}
+            className="transition group-hover:text-amber-800"
+          >
+            {study.titulo}
+          </Link>
+        </h3>
       </div>
 
-      <p className="line-clamp-3 text-sm text-stone-600">{study.resumo}</p>
+      <p className="mt-3 line-clamp-3 text-sm leading-6 text-stone-600">
+        {study.resumo}
+      </p>
 
-      <div className="mt-auto flex flex-wrap gap-1.5 pt-1">
-        {study.temas.map(({ topic }) => (
-          <Badge key={topic.id} href={`/temas/${topic.slug}`} variant="tema">
-            {topic.nome}
-          </Badge>
-        ))}
-        {study.series.map(({ series }) => (
-          <Badge key={series.id} href={`/series/${series.slug}`} variant="serie">
-            {series.nome}
-          </Badge>
-        ))}
+      <div className="mt-auto pt-5">
+        {(study.temas.length > 0 || study.series.length > 0) && (
+          <div className="mb-4 flex flex-wrap gap-1.5">
+            {study.temas.map(({ topic }) => (
+              <Badge
+                key={topic.id}
+                href={`/temas/${topic.slug}`}
+                variant="tema"
+              >
+                {topic.nome}
+              </Badge>
+            ))}
+
+            {study.series.map(({ series }) => (
+              <Badge
+                key={series.id}
+                href={`/series/${series.slug}`}
+                variant="serie"
+              >
+                {series.nome}
+              </Badge>
+            ))}
+          </div>
+        )}
+
+        <Link
+          href={`/estudo/${study.slug}`}
+          className="inline-flex items-center gap-2 text-sm font-semibold text-amber-800 hover:underline"
+        >
+          Ler estudo completo
+          <span aria-hidden="true">→</span>
+        </Link>
       </div>
-
-      <Link
-        href={`/estudo/${study.slug}`}
-        className="text-sm font-medium text-amber-700 hover:underline"
-      >
-        Ler estudo completo →
-      </Link>
     </article>
   );
 }

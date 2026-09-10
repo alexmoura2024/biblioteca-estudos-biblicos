@@ -52,6 +52,7 @@ export interface StudyRepository {
   /** Estudos publicados que citam um livro (e opcionalmente um capítulo específico), como `StudySummary`. */
   listByBookSlug(bookSlug: string, capitulo?: number): Promise<StudySummary[]>;
   /** Count distinct published/public studies by chapter for one Bible book. */
+  countPublishedByBook(): Promise<Record<string, number>>;
   countPublishedByBookChapter(bookSlug: string): Promise<Record<number, number>>;
   /** Estudos publicados vinculados a um tema, como `StudySummary`. */
   listByTopicSlug(topicSlug: string): Promise<StudySummary[]>;

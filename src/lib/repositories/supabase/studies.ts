@@ -99,6 +99,43 @@ export class SupabaseStudyRepository implements StudyRepository {
     const ids = [...new Set((data ?? []).map((row) => row.study_id as string))];
     return this.buildSummaries(ids);
   }
+  async countPublishedByBook(): Promise<Record<string, number>> {
+    const { data, error } = await getSupabaseClient()
+      .from("study_passages")
+      .select(
+        "study_id, passages!inner(books!inner(slug)), studies!inner(status, visibilidade)",
+      )
+      .eq("studies.status", "PUBLISHED")
+      .eq("studies.visibilidade", "publico");
+
+    if (error) {
+      throw new Error(
+        `SupabaseStudyRepository.countPublishedByBook: ${error.message}`,
+      );
+    }
+
+    const rows = (data ?? []) as unknown as Array<{
+      study_id: string;
+      passages: { books: { slug: string } };
+    }>;
+
+    const studyIdsByBook = new Map<string, Set<string>>();
+
+    for (const row of rows) {
+      const bookSlug = row.passages.books.slug;
+      const studyIds = studyIdsByBook.get(bookSlug) ?? new Set<string>();
+      studyIds.add(row.study_id);
+      studyIdsByBook.set(bookSlug, studyIds);
+    }
+
+    const counts: Record<string, number> = {};
+
+    for (const [bookSlug, studyIds] of studyIdsByBook) {
+      counts[bookSlug] = studyIds.size;
+    }
+
+    return counts;
+  }
 
   async countPublishedByBookChapter(
     bookSlug: string,

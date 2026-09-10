@@ -87,6 +87,25 @@ export class MockStudyRepository implements StudyRepository {
       )
       .map(toStudySummary);
   }
+  async countPublishedByBook() {
+    const studyIdsByBook = new Map<string, Set<string>>();
+
+    for (const study of publishedStudies) {
+      for (const { book } of study.passagens) {
+        const studyIds = studyIdsByBook.get(book.slug) ?? new Set<string>();
+        studyIds.add(study.id);
+        studyIdsByBook.set(book.slug, studyIds);
+      }
+    }
+
+    const counts: Record<string, number> = {};
+
+    for (const [bookSlug, studyIds] of studyIdsByBook) {
+      counts[bookSlug] = studyIds.size;
+    }
+
+    return counts;
+  }
 
   async countPublishedByBookChapter(bookSlug: string) {
     const studyIdsByChapter = new Map<number, Set<string>>();
