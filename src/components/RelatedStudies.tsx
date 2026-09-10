@@ -50,7 +50,8 @@ export function RelatedStudies({ slug }: RelatedStudiesProps) {
           Estudos relacionados
         </h2>
         <p className="mt-3 text-sm text-stone-500">
-          {"Buscando conex\u00f5es no acervo..."}</p>
+          Buscando conexões no acervo...
+        </p>
       </section>
     );
   }
@@ -75,19 +76,21 @@ export function RelatedStudies({ slug }: RelatedStudiesProps) {
         </h2>
 
         <p className="mt-2 text-sm leading-6 text-stone-600">
-          {"Selecionados pelas passagens, s\u00e9ries, temas e personagens relacionados a este estudo."}</p>
+          Selecionados pelas passagens, séries, temas e personagens relacionados
+          a este estudo.
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         {studies.map((relatedStudy) => (
           <article
             key={relatedStudy.id}
-            className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+            className="group rounded-xl border border-stone-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-sm"
           >
             <h3 className="font-serif text-lg font-semibold text-stone-900">
               <Link
                 href={`/estudo/${relatedStudy.slug}`}
-                className="hover:text-amber-700"
+                className="group-hover:text-amber-800"
               >
                 {relatedStudy.titulo}
               </Link>
@@ -105,9 +108,9 @@ export function RelatedStudies({ slug }: RelatedStudiesProps) {
 
             <Link
               href={`/estudo/${relatedStudy.slug}`}
-              className="mt-4 inline-block text-sm font-medium text-amber-700 hover:underline"
+              className="mt-4 inline-block text-sm font-semibold text-amber-800 hover:underline"
             >
-              Ler estudo relacionado â†’
+              Ler estudo relacionado →
             </Link>
           </article>
         ))}

@@ -44,11 +44,11 @@ export function StudyNavigation({ slug }: StudyNavigationProps) {
 
   return (
     <nav
-      className="no-print mt-10 border-y border-stone-200 py-6"
-      aria-label={"Navega\u00e7\u00e3o entre estudos"}
+      className="no-print mt-12 border-t border-stone-200 pt-8"
+      aria-label="Navegação entre estudos"
     >
       {contextLabel && (
-        <div className="mb-4 text-center text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">
+        <div className="mb-5 text-center text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">
           {contextHref ? (
             <Link
               href={contextHref}
@@ -68,10 +68,10 @@ export function StudyNavigation({ slug }: StudyNavigationProps) {
             <Link
               href={`/estudo/${previous.slug}`}
               aria-label={`Estudo anterior: ${previous.titulo}`}
-              className="group block h-full rounded-lg border border-stone-200 bg-white p-4 transition hover:border-amber-300 hover:bg-amber-50/40"
+              className="group block h-full rounded-xl border border-stone-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-sm"
             >
               <span className="text-xs font-semibold uppercase tracking-[0.12em] text-amber-800">
-                {"\u2190 Estudo anterior"}
+                ← Estudo anterior
               </span>
 
               <span className="mt-2 block font-serif text-base font-semibold leading-6 text-stone-900 group-hover:text-amber-800">
@@ -91,11 +91,11 @@ export function StudyNavigation({ slug }: StudyNavigationProps) {
           {next && (
             <Link
               href={`/estudo/${next.slug}`}
-              aria-label={`Pr\u00f3ximo estudo: ${next.titulo}`}
-              className="group block h-full rounded-lg border border-stone-200 bg-white p-4 text-right transition hover:border-amber-300 hover:bg-amber-50/40"
+              aria-label={`Próximo estudo: ${next.titulo}`}
+              className="group block h-full rounded-xl border border-stone-200 bg-white p-5 text-right transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-sm"
             >
               <span className="text-xs font-semibold uppercase tracking-[0.12em] text-amber-800">
-                {"Pr\u00f3ximo estudo \u2192"}
+                Próximo estudo →
               </span>
 
               <span className="mt-2 block font-serif text-base font-semibold leading-6 text-stone-900 group-hover:text-amber-800">
