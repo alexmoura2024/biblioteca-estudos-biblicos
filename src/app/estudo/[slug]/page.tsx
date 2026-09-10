@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Badge } from "@/components/Badge";
 import { StudyActions } from "@/components/StudyActions";
+import { RelatedStudies } from "@/components/RelatedStudies";
 import { studyRepository } from "@/lib/repositories";
 
 interface StudyPageProps {
@@ -11,9 +12,9 @@ interface StudyPageProps {
 }
 
 export async function generateStaticParams() {
-  // Marco 1.2 (DEC-018): listPublishedSlugs() traz só os slugs — gerar
-  // as rotas estáticas do build não precisa carregar título, resumo,
-  // relações nem conteúdo de cada estudo.
+  // Marco 1.2 (DEC-018): listPublishedSlugs() traz s├│ os slugs ÔÇö gerar
+  // as rotas est├íticas do build n├úo precisa carregar t├¡tulo, resumo,
+  // rela├º├Áes nem conte├║do de cada estudo.
   const slugs = await studyRepository.listPublishedSlugs();
   return slugs.map((slug) => ({ slug }));
 }
@@ -22,7 +23,7 @@ export async function generateMetadata({ params }: StudyPageProps): Promise<Meta
   const { slug } = await params;
   const study = await studyRepository.getPublishedBySlug(slug);
   return {
-    title: study ? study.titulo : "Estudo não encontrado",
+    title: study ? study.titulo : "Estudo n├úo encontrado",
     description: study?.resumo,
   };
 }
@@ -41,8 +42,8 @@ export default async function StudyPage({ params }: StudyPageProps) {
     <article className="study-article mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <div className="print-only study-print-brand" aria-hidden="true">
         <div>
-          <p className="study-print-brand-name">Biblioteca de Estudos Bíblicos</p>
-          <p className="study-print-brand-subtitle">Estudo bíblico</p>
+          <p className="study-print-brand-name">Biblioteca de Estudos B├¡blicos</p>
+          <p className="study-print-brand-subtitle">Estudo b├¡blico</p>
         </div>
         {referenciaPrincipal && (
           <p className="study-print-reference">
@@ -53,7 +54,7 @@ export default async function StudyPage({ params }: StudyPageProps) {
 
       <Breadcrumbs
         items={[
-          { label: "Início", href: "/" },
+          { label: "In├¡cio", href: "/" },
           referenciaPrincipal
             ? { label: referenciaPrincipal.book.nome, href: `/biblia/${referenciaPrincipal.book.slug}` }
             : { label: "Estudo" },
@@ -64,7 +65,7 @@ export default async function StudyPage({ params }: StudyPageProps) {
       <header className="study-header mt-4">
         <h1 className="study-title font-serif text-3xl font-bold text-stone-900">{study.titulo}</h1>
         <p className="study-meta mt-2 text-sm text-stone-500">
-          {study.autor} · {DATE_FORMATTER.format(new Date(study.dataOrigem))}
+          {study.autor} ┬À {DATE_FORMATTER.format(new Date(study.dataOrigem))}
         </p>
 
         <div className="no-print mt-4">
@@ -181,8 +182,10 @@ export default async function StudyPage({ params }: StudyPageProps) {
         </footer>
       )}
 
+      <RelatedStudies slug={study.slug} />
+
       <div className="print-only study-print-footer" aria-hidden="true">
-        <span>Biblioteca de Estudos Bíblicos</span>
+        <span>Biblioteca de Estudos B├¡blicos</span>
         <span>biblioteca-estudos-biblicos.vercel.app</span>
       </div>
     </article>
