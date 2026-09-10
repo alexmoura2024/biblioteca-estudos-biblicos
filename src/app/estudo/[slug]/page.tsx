@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Badge } from "@/components/Badge";
-import { StudyPdfButton } from "@/components/StudyPdfButton";
+import { StudyActions } from "@/components/StudyActions";
 import { studyRepository } from "@/lib/repositories";
 
 interface StudyPageProps {
@@ -68,7 +68,7 @@ export default async function StudyPage({ params }: StudyPageProps) {
         </p>
 
         <div className="no-print mt-4">
-          <StudyPdfButton />
+          <StudyActions title={study.titulo} />
         </div>
 
         <div className="study-tags mt-4 flex flex-wrap gap-1.5">
