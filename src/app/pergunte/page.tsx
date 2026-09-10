@@ -4,9 +4,23 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CollectionHero } from "@/components/CollectionHero";
 import { EmptyState } from "@/components/EmptyState";
 import { StudyCard } from "@/components/StudyCard";
-import { searchRepository } from "@/lib/repositories";
-import type { NormalizedReference } from "@/lib/repositories/types";
-import { prepareLibraryQuestion } from "@/lib/search/libraryQuestion";
+import {
+  characterRepository,
+  searchRepository,
+  studyRepository,
+} from "@/lib/repositories";
+import type {
+  NormalizedReference,
+  SearchOutcome,
+} from "@/lib/repositories/types";
+import {
+  findMentionedCharacter,
+  isFactualLibraryQuestion,
+  prepareLibraryQuestion,
+  shouldUseAiFallback,
+} from "@/lib/search/libraryQuestion";
+import { answerLibraryQuestionWithOpenAI } from "@/lib/search/openaiLibraryAnswer";
+import { rewriteLibraryQuestionWithOpenAI } from "@/lib/search/openaiLibraryQuestion";
 import {
   INVALID_REFERENCE_MESSAGES,
   parseSearchQuery,
@@ -15,7 +29,7 @@ import {
 export const metadata: Metadata = {
   title: "Pergunte à Biblioteca",
   description:
-    "Faça uma pergunta em linguagem natural e encontre respostas documentais somente no acervo publicado.",
+    "Faça uma pergunta em linguagem natural e encontre respostas fundamentadas somente no acervo publicado.",
 };
 
 interface PerguntePageProps {
@@ -24,10 +38,17 @@ interface PerguntePageProps {
 
 const EXAMPLES = [
   "O que os estudos dizem sobre o chamado de Moisés?",
-  "O que o acervo apresenta sobre oração?",
+  "Quantos anos Davi reinou?",
   "O que diz João 3:16 sobre salvação?",
   "Quais estudos falam sobre Davi?",
 ] as const;
+
+const EMPTY_OUTCOME: SearchOutcome = {
+  items: [],
+  total: 0,
+  page: 1,
+  limit: 8,
+};
 
 function formatReferenceLabel(ref: NormalizedReference): string {
   let label = ref.book.nome;
@@ -45,7 +66,14 @@ export default async function PerguntePage({
   const parsed = parseSearchQuery(question);
   const preparedText = prepareLibraryQuestion(parsed.texto);
 
-  const hasCriteria = Boolean(parsed.referencia || preparedText);
+  const characters = question ? await characterRepository.listAll() : [];
+  const mentionedCharacter = question
+    ? findMentionedCharacter(question, characters)
+    : undefined;
+
+  const hasCriteria = Boolean(
+    parsed.referencia || preparedText || mentionedCharacter,
+  );
   const canSearch = Boolean(
     question &&
       hasCriteria &&
@@ -53,25 +81,88 @@ export default async function PerguntePage({
       !parsed.invalidReference,
   );
 
-  const outcome = canSearch
-    ? await searchRepository.search({
-        texto: preparedText || undefined,
-        referencia: parsed.referencia,
-        page: 1,
-        limit: 8,
-      })
-    : { items: [], total: 0, page: 1, limit: 8 };
+  const factualQuestion = canSearch && isFactualLibraryQuestion(question);
 
-  const primaryItems = outcome.items.slice(0, 3);
-  const additionalItems = outcome.items.slice(3);
-  const hasAnswer = canSearch && outcome.items.length > 0;
+  const runSearch = async (
+    text: string,
+    limit = factualQuestion ? 12 : 8,
+  ): Promise<SearchOutcome> =>
+    searchRepository.search({
+      texto: text || undefined,
+      referencia: parsed.referencia,
+      personagem: mentionedCharacter?.slug,
+      mode: "strict",
+      page: 1,
+      limit,
+    });
+
+  let outcome = canSearch ? await runSearch(preparedText) : EMPTY_OUTCOME;
+  let effectiveText = preparedText;
+  let queryAiUsed = false;
+
+  // Perguntas factuais preservam os termos naturais reduzidos e usam a IA
+  // somente depois da recuperação, para não acrescentar termos desconhecidos
+  // como "duração" e tornar a busca estrita artificialmente restritiva.
+  if (
+    canSearch &&
+    !factualQuestion &&
+    shouldUseAiFallback(outcome.items)
+  ) {
+    const rewritten = await rewriteLibraryQuestionWithOpenAI(question);
+
+    if (rewritten && rewritten !== preparedText) {
+      const expandedOutcome = await runSearch(rewritten, 8);
+
+      if (expandedOutcome.items.length > 0) {
+        outcome = expandedOutcome;
+        effectiveText = rewritten;
+        queryAiUsed = true;
+      }
+    }
+  }
+
+  let groundedAnswer:
+    | Awaited<ReturnType<typeof answerLibraryQuestionWithOpenAI>>
+    | undefined;
+
+  if (canSearch && factualQuestion && outcome.items.length > 0) {
+    const fullStudies = (
+      await Promise.all(
+        outcome.items
+          .slice(0, 8)
+          .map(({ study }) => studyRepository.getPublishedBySlug(study.slug)),
+      )
+    ).filter((study): study is NonNullable<typeof study> => Boolean(study));
+
+    groundedAnswer = await answerLibraryQuestionWithOpenAI(
+      question,
+      fullStudies,
+    );
+  }
+
+  const citedSlugs = new Set(
+    groundedAnswer?.sources.map((source) => source.slug) ?? [],
+  );
+
+  const displayItems =
+    citedSlugs.size > 0
+      ? [...outcome.items].sort((a, b) => {
+          const aCited = citedSlugs.has(a.study.slug) ? 1 : 0;
+          const bCited = citedSlugs.has(b.study.slug) ? 1 : 0;
+          return bCited - aCited;
+        })
+      : outcome.items;
+
+  const primaryItems = displayItems.slice(0, 3);
+  const additionalItems = displayItems.slice(3, 8);
+  const hasAnswer = canSearch && displayItems.length > 0;
 
   return (
     <div className="min-h-screen bg-[#fcfbf8]">
       <CollectionHero
-        eyebrow="Consulta documental"
+        eyebrow="Consulta fundamentada"
         title="Pergunte à Biblioteca"
-        description="Escreva uma pergunta comum. A Biblioteca procura somente nos estudos publicados e apresenta as fontes mais relacionadas."
+        description="Escreva uma pergunta comum. A Biblioteca pesquisa primeiro nos estudos publicados. Quando necessário, a IA pode ajudar a localizar ou sintetizar uma resposta, sempre limitada às fontes do próprio acervo."
         meta={
           <>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
@@ -79,9 +170,9 @@ export default async function PerguntePage({
                 aria-hidden="true"
                 className="h-1.5 w-1.5 rounded-full bg-emerald-600"
               />
-              Sem IA
+              Fundamentada no acervo
             </span>
-            <span>Sem geração de conteúdo e sem fontes externas.</span>
+            <span>Sem resposta externa às fontes recuperadas.</span>
           </>
         }
         breadcrumbs={
@@ -105,10 +196,10 @@ export default async function PerguntePage({
               htmlFor="pergunta"
               className="block font-serif text-xl font-semibold text-stone-950"
             >
-              O que você gostaria de encontrar no acervo?
+              O que você gostaria de saber?
             </label>
             <p className="mt-1 text-sm leading-6 text-stone-500">
-              Pergunte por uma passagem, tema, personagem ou assunto.
+              Pergunte por uma passagem, tema, personagem, fato ou assunto.
             </p>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
@@ -117,7 +208,7 @@ export default async function PerguntePage({
                 name="pergunta"
                 type="search"
                 defaultValue={question}
-                placeholder="Ex.: O que os estudos dizem sobre o chamado de Moisés?"
+                placeholder="Ex.: Quantos anos Davi reinou?"
                 className="min-w-0 flex-1 rounded-lg border border-stone-300 bg-white px-4 py-3 text-base text-stone-900 shadow-sm placeholder:text-stone-400 focus:border-amber-600"
               />
               <button
@@ -157,14 +248,18 @@ export default async function PerguntePage({
                 “{question}”
               </p>
 
-              {(preparedText || parsed.recognizedReference) && (
+              {(effectiveText ||
+                parsed.recognizedReference ||
+                mentionedCharacter) && (
                 <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-stone-500">
-                  {preparedText && (
+                  {effectiveText && (
                     <>
                       <span className="font-semibold text-stone-600">
-                        Termos consultados:
+                        {queryAiUsed
+                          ? "Consulta ampliada:"
+                          : "Termos consultados:"}
                       </span>
-                      {preparedText.split(" ").map((term, index) => (
+                      {effectiveText.split(" ").map((term, index) => (
                         <span
                           key={`${term}-${index}`}
                           className="rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1"
@@ -174,6 +269,13 @@ export default async function PerguntePage({
                       ))}
                     </>
                   )}
+
+                  {mentionedCharacter && (
+                    <span className="rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 font-semibold text-violet-800">
+                      Personagem: {mentionedCharacter.nome}
+                    </span>
+                  )}
+
                   {parsed.recognizedReference && (
                     <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 font-semibold text-amber-800">
                       {formatReferenceLabel(parsed.recognizedReference)}
@@ -238,16 +340,85 @@ export default async function PerguntePage({
                 </div>
               )}
 
+            {groundedAnswer && (
+              <article className="mt-7 rounded-2xl border border-sky-200 bg-sky-50/60 p-5 shadow-sm sm:p-7">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-800">
+                  Resposta assistida por IA
+                </p>
+                <p className="mt-3 font-serif text-2xl leading-9 text-stone-950">
+                  {groundedAnswer.answer}
+                </p>
+
+                {groundedAnswer.biblicalReferences.length > 0 && (
+                  <div className="mt-5 rounded-xl border border-sky-200 bg-white/70 px-4 py-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-800">
+                      Referências bíblicas nas fontes
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {groundedAnswer.biblicalReferences.map(
+                        (reference, index) => (
+                          <Link
+                            key={`${reference.sourceSlug}-${reference.reference}-${index}`}
+                            href={`/estudo/${reference.sourceSlug}`}
+                            title={`Fonte: ${reference.sourceTitle}`}
+                            className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-sm font-semibold text-sky-950 hover:bg-sky-100"
+                          >
+                            {reference.reference}
+                          </Link>
+                        ),
+                      )}
+                    </div>
+                    <p className="mt-2 text-xs leading-5 text-sky-800">
+                      Só são exibidas referências que constam literalmente
+                      nos estudos utilizados pela resposta.
+                    </p>
+                  </div>
+                )}
+
+                <div className="mt-5 border-t border-sky-200 pt-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-800">
+                    Fontes do acervo utilizadas
+                  </p>
+                  <div className="mt-2 flex flex-col gap-2">
+                    {groundedAnswer.sources.map((source) => (
+                      <Link
+                        key={source.slug}
+                        href={`/estudo/${source.slug}`}
+                        className="text-sm font-semibold text-sky-950 hover:underline"
+                      >
+                        {source.titulo} →
+                      </Link>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-xs leading-5 text-sky-800">
+                    A IA recebeu somente os estudos recuperados acima e foi
+                    instruída a não completar lacunas com conhecimento externo.
+                  </p>
+                </div>
+              </article>
+            )}
+
+            {factualQuestion &&
+              canSearch &&
+              outcome.items.length > 0 &&
+              !groundedAnswer && (
+                <div className="mt-7 rounded-xl border border-stone-200 bg-stone-50 p-5 text-sm leading-6 text-stone-600">
+                  Os estudos relacionados foram encontrados, mas não houve
+                  evidência textual suficiente para uma resposta direta. A
+                  Biblioteca preferiu não completar a informação.
+                </div>
+              )}
+
             {hasAnswer && (
               <>
                 <div className="mt-8 border-b border-stone-200 pb-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-800">
-                        Resposta documental
+                        Evidência documental
                       </p>
                       <h2 className="mt-1 font-serif text-2xl font-semibold text-stone-950">
-                        O que o acervo apresenta
+                        Estudos relacionados
                       </h2>
                     </div>
                     <p className="text-sm text-stone-500">
@@ -258,10 +429,33 @@ export default async function PerguntePage({
                     </p>
                   </div>
 
-                  <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50/70 px-4 py-3 text-sm leading-6 text-emerald-950">
-                    <strong>Sem IA:</strong> os textos abaixo são os resumos
-                    cadastrados dos estudos mais relevantes encontrados. A
-                    Biblioteca não criou uma interpretação nova.
+                  <div
+                    className={`mt-4 rounded-lg border px-4 py-3 text-sm leading-6 ${
+                      groundedAnswer || queryAiUsed
+                        ? "border-sky-200 bg-sky-50/70 text-sky-950"
+                        : "border-emerald-200 bg-emerald-50/70 text-emerald-950"
+                    }`}
+                  >
+                    {groundedAnswer ? (
+                      <>
+                        <strong>IA com fontes:</strong> a resposta curta acima
+                        foi sintetizada somente a partir dos estudos
+                        recuperados. Abaixo você pode conferir os documentos.
+                      </>
+                    ) : queryAiUsed ? (
+                      <>
+                        <strong>IA usada somente na localização:</strong> a
+                        consulta original teve baixa confiança e foi
+                        reformulada. Os textos abaixo continuam sendo
+                        exclusivamente resumos cadastrados no acervo.
+                      </>
+                    ) : (
+                      <>
+                        <strong>Busca documental:</strong> a consulta foi
+                        resolvida diretamente pelo acervo; a IA não foi
+                        necessária. Os textos abaixo são resumos cadastrados.
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -355,7 +549,7 @@ export default async function PerguntePage({
                 <div className="mt-8 text-center">
                   <Link
                     href={`/busca?q=${encodeURIComponent(
-                      preparedText || question,
+                      effectiveText || question,
                     )}`}
                     className="text-sm font-semibold text-amber-800 hover:underline"
                   >
@@ -369,7 +563,7 @@ export default async function PerguntePage({
               <div className="mt-6">
                 <EmptyState
                   title="O acervo não encontrou material suficiente"
-                  description="Tente reformular a pergunta com uma passagem, personagem, tema ou palavra-chave mais específica."
+                  description="A Biblioteca preferiu não mostrar uma resposta de baixa confiança. Tente uma passagem, personagem, tema ou palavra-chave mais específica."
                 />
               </div>
             )}
@@ -381,17 +575,17 @@ export default async function PerguntePage({
             <InfoCard
               number="01"
               title="Você pergunta"
-              text="Escreva em linguagem comum, sem precisar conhecer filtros ou comandos."
+              text="Escreva em linguagem comum, inclusive perguntas factuais."
             />
             <InfoCard
               number="02"
-              title="A Biblioteca procura"
-              text="A pergunta é reduzida a termos de busca e consultada somente no acervo publicado."
+              title="O acervo é pesquisado"
+              text="A busca estrita respeita termos relevantes, personagens e referências bíblicas."
             />
             <InfoCard
               number="03"
-              title="Você confere as fontes"
-              text="Os estudos mais relevantes aparecem com resumo e acesso direto ao texto completo."
+              title="A IA fica presa às fontes"
+              text="Quando uma síntese é necessária, a resposta só é exibida se os estudos recuperados sustentarem a informação."
             />
           </section>
         )}

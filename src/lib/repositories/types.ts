@@ -134,6 +134,11 @@ export interface SearchQuery {
   personagem?: string;
   /** Slug da série (filtro Fase C). */
   serie?: string;
+  /**
+   * `broad` mantém a busca tradicional; `strict` exige todos os termos
+   * e trata referência bíblica como restrição. Padrão: `broad`.
+   */
+  mode?: "broad" | "strict";
   /** Página, 1-based. Padrão: 1. */
   page?: number;
   /** Itens por página. Padrão definido pela implementação (ver `DEFAULT_SEARCH_LIMIT`). */

@@ -60,7 +60,12 @@ export class SupabaseSearchRepository implements SearchRepository {
     // como parâmetro, para não duplicar a regra dentro do SQL.
     const includeZeroScore = !hasQuery && hasActiveFilter;
 
-    const { data, error } = await getSupabaseClient().rpc("search_studies_v2", {
+    const rpcName =
+      query.mode === "strict"
+        ? "search_studies_question_v1"
+        : "search_studies_v2";
+
+    const { data, error } = await getSupabaseClient().rpc(rpcName, {
       p_texto: query.texto?.trim() || null,
       p_ref_book_slug: query.referencia?.book.slug ?? null,
       p_ref_capitulo: query.referencia?.capitulo ?? null,
