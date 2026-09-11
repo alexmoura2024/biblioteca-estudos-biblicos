@@ -260,3 +260,24 @@ describe("parseReference", () => {
     });
   });
 });
+
+describe("aliases de Cânticos dos Cânticos", () => {
+  it.each([
+    "Cantares 5:2-6",
+    "Cantares de Salomão 5:2-6",
+    "Cântico dos Cânticos 5:2-6",
+    "Cânticos dos Cânticos 5:2-6",
+    "Ct 5:2-6",
+  ])("reconhece %s", (reference) => {
+    const result = parseReference(reference);
+
+    expect(result.type).toBe("verse");
+
+    if (result.type === "verse") {
+      expect(result.book.nome).toBe("Cânticos dos Cânticos");
+      expect(result.capitulo).toBe(5);
+      expect(result.versiculoInicio).toBe(2);
+      expect(result.versiculoFim).toBe(6);
+    }
+  });
+});
