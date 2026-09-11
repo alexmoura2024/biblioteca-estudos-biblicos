@@ -79,8 +79,16 @@ interface AliasEntry {
   book: Book;
 }
 
+const EXTRA_BOOK_ALIASES: Record<string, string[]> = {
+  "Cânticos dos Cânticos": [
+    "Cantares",
+    "Cantares de Salomão",
+    "Cântico dos Cânticos",
+  ],
+};
+
 function bookAliases(book: Book): string[] {
-  const raw = [book.nome, book.abreviacao];
+  const raw = [book.nome, book.abreviacao, ...(EXTRA_BOOK_ALIASES[book.nome] ?? [])];
   const variants = new Set<string>();
   for (const value of raw) {
     const lower = value.toLowerCase().trim();
