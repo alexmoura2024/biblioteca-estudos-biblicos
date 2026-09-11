@@ -19,6 +19,7 @@ import {
   type AuditCheck,
   type EditorDraft,
 } from "@/lib/admin/editorTools";
+import { MAX_LIBRARY_DRAFT_SOURCES } from "@/lib/admin/libraryDraft";
 
 type StudyType =
   | "EXPOSITIVO"
@@ -35,7 +36,8 @@ type AiAction =
   | "suggest_title"
   | "suggest_keywords"
   | "detect_references"
-  | "dictionary";
+  | "dictionary"
+  | "generate_from_library";
 type SuggestionTarget =
   | "conteudo"
   | "resumo"
@@ -48,7 +50,12 @@ interface Suggestion {
   title: string;
   result: string;
   target: SuggestionTarget;
-  sources: Array<{ title: string; slug: string }>;
+  sources: Array<{
+    title: string;
+    slug: string;
+    id?: string;
+    status?: LibrarySourceStatus;
+  }>;
 }
 
 interface RelatedItem {
@@ -58,6 +65,25 @@ interface RelatedItem {
   reference: string | null;
   matchedOn: string[];
 }
+
+type LibrarySourceStatus = "PUBLISHED" | "REVIEW" | "DRAFT";
+
+interface LibrarySourceItem {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  status: LibrarySourceStatus;
+}
+
+const LIBRARY_SOURCE_STATUS_LABELS: Record<
+  LibrarySourceStatus,
+  string
+> = {
+  PUBLISHED: "Publicado",
+  REVIEW: "Em revisão",
+  DRAFT: "Rascunho",
+};
 
 type ClassificationKind = "topics" | "characters" | "series";
 
@@ -89,7 +115,7 @@ const STUDY_TYPES: Array<{ value: StudyType; label: string }> = [
 ];
 
 const AI_TOOLS: Array<{
-  action: Exclude<AiAction, "dictionary">;
+  action: Exclude<AiAction, "dictionary" | "generate_from_library">;
   label: string;
   description: string;
 }> = [
@@ -156,10 +182,20 @@ export function SmartStudyEditor() {
   const [selectedText, setSelectedText] = useState("");
   const [lookupTerm, setLookupTerm] = useState("");
   const [assistantLoading, setAssistantLoading] =
-    useState<AiAction | "library" | null>(null);
+    useState<AiAction | "library" | "source_search" | null>(null);
   const [assistantError, setAssistantError] = useState("");
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
   const [related, setRelated] = useState<RelatedItem[]>([]);
+  const [libraryDraftRequest, setLibraryDraftRequest] = useState("");
+  const [librarySources, setLibrarySources] = useState<
+    LibrarySourceItem[]
+  >([]);
+  const [
+    selectedLibrarySourceIds,
+    setSelectedLibrarySourceIds,
+  ] = useState<string[]>([]);
+  const [librarySourceSearchCompleted, setLibrarySourceSearchCompleted] =
+    useState(false);
   const [lastContentBeforeAi, setLastContentBeforeAi] = useState<
     string | null
   >(null);
@@ -423,6 +459,7 @@ export function SmartStudyEditor() {
         suggest_keywords: "Palavras-chave sugeridas",
         detect_references: "Referências bíblicas sugeridas",
         dictionary: `Dicionário do acervo: ${lookupTerm || selectedText}`,
+        generate_from_library: "Rascunho baseado no acervo",
       };
 
       setSuggestion({
@@ -465,6 +502,148 @@ export function SmartStudyEditor() {
     setLastContentBeforeAi(null);
   }
 
+  async function findLibrarySources() {
+    const request = libraryDraftRequest.trim();
+
+    if (!request) {
+      setAssistantError(
+        "Descreva o estudo que deseja criar.",
+      );
+      return;
+    }
+
+    setAssistantError("");
+    setAssistantLoading("source_search");
+    setLibrarySources([]);
+    setSelectedLibrarySourceIds([]);
+    setLibrarySourceSearchCompleted(false);
+
+    try {
+      const response = await fetch(
+        `/api/admin/editor/sources?q=${encodeURIComponent(request)}`,
+        { cache: "no-store" },
+      );
+
+      const data = (await response.json()) as {
+        items?: LibrarySourceItem[];
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Não foi possível buscar fontes.",
+        );
+      }
+
+      setLibrarySources(data.items ?? []);
+      setLibrarySourceSearchCompleted(true);
+    } catch (requestError) {
+      setAssistantError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Erro inesperado ao buscar fontes.",
+      );
+    } finally {
+      setAssistantLoading(null);
+    }
+  }
+
+  function toggleLibrarySource(sourceId: string) {
+    if (selectedLibrarySourceIds.includes(sourceId)) {
+      setSelectedLibrarySourceIds((current) =>
+        current.filter((id) => id !== sourceId),
+      );
+      return;
+    }
+
+    if (
+      selectedLibrarySourceIds.length >=
+      MAX_LIBRARY_DRAFT_SOURCES
+    ) {
+      setAssistantError(
+        `Selecione no máximo ${MAX_LIBRARY_DRAFT_SOURCES} fontes.`,
+      );
+      return;
+    }
+
+    setAssistantError("");
+    setSelectedLibrarySourceIds((current) => [
+      ...current,
+      sourceId,
+    ]);
+  }
+  async function generateLibraryDraft() {
+    const request = libraryDraftRequest.trim();
+
+    if (!request) {
+      setAssistantError(
+        "Descreva o estudo que deseja criar.",
+      );
+      return;
+    }
+
+    if (selectedLibrarySourceIds.length === 0) {
+      setAssistantError(
+        "Selecione pelo menos uma fonte do acervo.",
+      );
+      return;
+    }
+
+    setAssistantError("");
+    setSuggestion(null);
+    setAssistantLoading("generate_from_library");
+
+    try {
+      const response = await fetch(
+        "/api/admin/editor/draft",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            request,
+            source_ids: selectedLibrarySourceIds,
+          }),
+        },
+      );
+
+      const data = (await response.json()) as {
+        result?: string;
+        target?: "conteudo";
+        sources?: Array<{
+          title: string;
+          slug: string;
+          id?: string;
+          status?: LibrarySourceStatus;
+        }>;
+        error?: string;
+      };
+
+      if (!response.ok || !data.result) {
+        throw new Error(
+          data.error ||
+            "A IA não devolveu um rascunho utilizável.",
+        );
+      }
+
+      setSuggestion({
+        action: "generate_from_library",
+        title: "Rascunho baseado no acervo",
+        result: data.result,
+        target: "conteudo",
+        sources: data.sources ?? [],
+      });
+    } catch (requestError) {
+      setAssistantError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Erro inesperado ao gerar o rascunho.",
+      );
+    } finally {
+      setAssistantLoading(null);
+    }
+  }
   async function findRelatedStudies() {
     const query =
       lookupTerm.trim() ||
@@ -1171,7 +1350,8 @@ export function SmartStudyEditor() {
 
               {suggestion &&
                 suggestion.action !== "dictionary" &&
-                suggestion.action !== "detect_references" && (
+                suggestion.action !== "detect_references" &&
+                suggestion.action !== "generate_from_library" && (
                 <SuggestionCard
                   suggestion={suggestion}
                   onApply={applySuggestion}
@@ -1180,6 +1360,151 @@ export function SmartStudyEditor() {
               )}
             </Panel>
 
+            <Panel
+              title="Criar com base no acervo"
+              eyebrow="Manuscritos + IA"
+              accent
+            >
+              <p className="text-xs leading-5 text-stone-600">
+                Descreva o estudo desejado. Localize e selecione até seis
+                fontes para orientar o novo rascunho.
+              </p>
+
+              <Field label="O que você deseja estudar?">
+                <textarea
+                  rows={4}
+                  value={libraryDraftRequest}
+                  onChange={(event) => {
+                    setLibraryDraftRequest(event.target.value);
+                    setLibrarySourceSearchCompleted(false);
+                  }}
+                  className="editor-input resize-y"
+                  maxLength={600}
+                  placeholder="Ex.: Quero um estudo sobre a força de Sansão"
+                />
+              </Field>
+
+              <button
+                type="button"
+                disabled={
+                  assistantLoading !== null ||
+                  !libraryDraftRequest.trim()
+                }
+                onClick={findLibrarySources}
+                className="w-full rounded-lg bg-sky-700 px-3 py-2.5 text-xs font-semibold text-white hover:bg-sky-800 disabled:bg-stone-300"
+              >
+                {assistantLoading === "source_search"
+                  ? "Buscando no acervo..."
+                  : "Buscar fontes"}
+              </button>
+
+              {librarySourceSearchCompleted &&
+                librarySources.length === 0 && (
+                  <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+                    Nenhuma fonte foi encontrada. Tente usar menos palavras
+                    ou informe diretamente o personagem ou tema.
+                  </p>
+                )}
+
+              {librarySources.length > 0 && (
+                <div className="space-y-2 border-t border-stone-100 pt-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-stone-500">
+                      Fontes encontradas
+                    </p>
+                    <span className="text-[10px] font-semibold text-sky-800">
+                      {selectedLibrarySourceIds.length}/
+                      {MAX_LIBRARY_DRAFT_SOURCES} selecionadas
+                    </span>
+                  </div>
+
+                  {librarySources.map((source) => {
+                    const selected =
+                      selectedLibrarySourceIds.includes(source.id);
+                    const selectionFull =
+                      selectedLibrarySourceIds.length >=
+                      MAX_LIBRARY_DRAFT_SOURCES;
+
+                    return (
+                      <label
+                        key={source.id}
+                        className={`block cursor-pointer rounded-lg border p-3 transition ${
+                          selected
+                            ? "border-sky-400 bg-sky-50"
+                            : "border-stone-200 bg-white hover:border-sky-300"
+                        }`}
+                      >
+                        <span className="flex items-start gap-2.5">
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            disabled={!selected && selectionFull}
+                            onChange={() =>
+                              toggleLibrarySource(source.id)
+                            }
+                            className="mt-1 h-4 w-4 rounded border-stone-300 text-sky-700"
+                          />
+
+                          <span className="min-w-0 flex-1">
+                            <span className="flex flex-wrap items-center gap-2">
+                              <span className="text-xs font-semibold leading-5 text-stone-900">
+                                {source.title}
+                              </span>
+                              <span className="rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-stone-600">
+                                {
+                                  LIBRARY_SOURCE_STATUS_LABELS[
+                                    source.status
+                                  ]
+                                }
+                              </span>
+                            </span>
+
+                            {source.summary && (
+                              <span className="mt-1 line-clamp-3 block text-[11px] leading-4 text-stone-500">
+                                {source.summary}
+                              </span>
+                            )}
+                          </span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+
+              {selectedLibrarySourceIds.length > 0 && (
+                <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900">
+                  {selectedLibrarySourceIds.length} fonte
+                  {selectedLibrarySourceIds.length === 1 ? "" : "s"} pronta
+                  {selectedLibrarySourceIds.length === 1 ? "" : "s"} para a
+                  geração do rascunho.
+                </p>
+              )}
+              {selectedLibrarySourceIds.length > 0 && (
+                <button
+                  type="button"
+                  disabled={assistantLoading !== null}
+                  onClick={generateLibraryDraft}
+                  className="w-full rounded-lg bg-emerald-700 px-3 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:bg-stone-300"
+                >
+                  {assistantLoading === "generate_from_library"
+                    ? "Gerando rascunho..."
+                    : "Gerar rascunho com IA"}
+                </button>
+              )}
+
+              {suggestion?.action === "generate_from_library" && (
+                <SuggestionCard
+                  suggestion={suggestion}
+                  onApply={applySuggestion}
+                  onDiscard={() => setSuggestion(null)}
+                />
+              )}
+              <p className="text-[10px] leading-4 text-stone-400">
+                O texto será apresentado como sugestão. Nada será aplicado
+                ou publicado automaticamente.
+              </p>
+            </Panel>
             <Panel title="Dicionário e cruzadas" eyebrow="Acervo">
               <Field label="Termo ou assunto">
                 <input
@@ -1636,7 +1961,11 @@ function SuggestionCard({
               {suggestion.sources.map((source) => (
                 <Link
                   key={source.slug}
-                  href={`/estudo/${source.slug}`}
+                  href={
+                    source.id && source.status !== "PUBLISHED"
+                      ? `/admin/estudos/${source.id}`
+                      : `/estudo/${source.slug}`
+                  }
                   target="_blank"
                   className="block text-xs font-semibold text-sky-800 hover:underline"
                 >
