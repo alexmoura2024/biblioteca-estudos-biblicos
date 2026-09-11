@@ -24,6 +24,44 @@ function normalizeReferenceInput(value: string) {
     .replace(/\s+/g, " ");
 }
 
+function isTransientFetchFailure(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (error.name === "TypeError" ||
+      error.name === "FetchError" ||
+      /fetch failed|network|socket|econnreset|etimedout/i.test(error.message))
+  );
+}
+
+async function withSupabaseRetry<T>(
+  label: string,
+  operation: () => PromiseLike<T>,
+): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+
+      if (!isTransientFetchFailure(error) || attempt === 3) {
+        throw error;
+      }
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, 350 * attempt),
+      );
+    }
+  }
+
+  throw new Error(
+    `${label}: ${
+      lastError instanceof Error ? lastError.message : "falha de rede"
+    }`,
+  );
+}
+
 async function resolvePassage(
   supabase: any,
   rawReference: string
@@ -184,26 +222,37 @@ export async function POST(
     if (body.tipo_estudo !== typedStudy.tipo_estudo)
       changed.push("tipo_estudo");
 
-    const newTopicIds = new Set<string>(body.topicIds || []);
-    const newCharacterIds = new Set<string>(body.characterIds || []);
+    const hasTopicIds = Array.isArray(body.topicIds);
+    const hasCharacterIds = Array.isArray(body.characterIds);
+    const hasPassages = Array.isArray(body.passages);
+
+    const newTopicIds = hasTopicIds
+      ? new Set<string>(body.topicIds)
+      : new Set<string>(currentTopicIds);
+
+    const newCharacterIds = hasCharacterIds
+      ? new Set<string>(body.characterIds)
+      : new Set<string>(currentCharacterIds);
 
     if (
-      newTopicIds.size !== currentTopicIds.size ||
-      ![...newTopicIds].every((topicId) => currentTopicIds.has(topicId))
+      hasTopicIds &&
+      (newTopicIds.size !== currentTopicIds.size ||
+        ![...newTopicIds].every((topicId) => currentTopicIds.has(topicId)))
     ) {
       changed.push("temas");
     }
 
     if (
-      newCharacterIds.size !== currentCharacterIds.size ||
-      ![...newCharacterIds].every((characterId) =>
-        currentCharacterIds.has(characterId)
-      )
+      hasCharacterIds &&
+      (newCharacterIds.size !== currentCharacterIds.size ||
+        ![...newCharacterIds].every((characterId) =>
+          currentCharacterIds.has(characterId)
+        ))
     ) {
       changed.push("personagens");
     }
 
-    const rawPassages = (body.passages || []) as Array<{
+    const rawPassages = (hasPassages ? body.passages : passages) as Array<{
       referencia_normalizada?: string;
       tipo_relacao?: string;
     }>;
@@ -286,8 +335,11 @@ export async function POST(
     );
 
     const passagesChanged =
-      oldPassagesSet.size !== newPassagesSet.size ||
-      ![...newPassagesSet].every((passage) => oldPassagesSet.has(passage));
+      hasPassages &&
+      (oldPassagesSet.size !== newPassagesSet.size ||
+        ![...newPassagesSet].every((passage) =>
+          oldPassagesSet.has(passage)
+        ));
 
     if (passagesChanged) {
       changed.push("passages");
@@ -315,92 +367,118 @@ export async function POST(
     }
 
     if (changed.includes("temas")) {
-      const { error: deleteTopicsError } = await supabase
-        .from("study_topics")
-        .delete()
-        .eq("study_id", id);
+      const { error: deleteTopicsError } = await withSupabaseRetry(
+        "Excluir temas atuais",
+        () =>
+          supabase
+            .from("study_topics")
+            .delete()
+            .eq("study_id", id),
+      );
 
       if (deleteTopicsError) {
-        throw new Error(`Erro ao atualizar temas: ${deleteTopicsError.message}`);
+        throw new Error(
+          `Erro ao atualizar temas: ${deleteTopicsError.message}`,
+        );
       }
 
       if (newTopicIds.size > 0) {
-        const { error: insertTopicsError } = await supabase
-          .from("study_topics")
-          .insert(
-            Array.from(newTopicIds).map((topicId) => ({
-              study_id: id,
-              topic_id: topicId,
-              peso: 1,
-            }))
-          );
+        const { error: insertTopicsError } = await withSupabaseRetry(
+          "Gravar temas",
+          () =>
+            supabase
+              .from("study_topics")
+              .insert(
+                Array.from(newTopicIds).map((topicId) => ({
+                  study_id: id,
+                  topic_id: topicId,
+                  peso: 1,
+                })),
+              ),
+        );
 
         if (insertTopicsError) {
           throw new Error(
-            `Erro ao atualizar temas: ${insertTopicsError.message}`
+            `Erro ao atualizar temas: ${insertTopicsError.message}`,
           );
         }
       }
     }
 
     if (changed.includes("personagens")) {
-      const { error: deleteCharactersError } = await supabase
-        .from("study_characters")
-        .delete()
-        .eq("study_id", id);
+      const { error: deleteCharactersError } = await withSupabaseRetry(
+        "Excluir personagens atuais",
+        () =>
+          supabase
+            .from("study_characters")
+            .delete()
+            .eq("study_id", id),
+      );
 
       if (deleteCharactersError) {
         throw new Error(
-          `Erro ao atualizar personagens: ${deleteCharactersError.message}`
+          `Erro ao atualizar personagens: ${deleteCharactersError.message}`,
         );
       }
 
       if (newCharacterIds.size > 0) {
-        const { error: insertCharactersError } = await supabase
-          .from("study_characters")
-          .insert(
-            Array.from(newCharacterIds).map((characterId) => ({
-              study_id: id,
-              character_id: characterId,
-              papel: "mencionado",
-            }))
-          );
+        const { error: insertCharactersError } = await withSupabaseRetry(
+          "Gravar personagens",
+          () =>
+            supabase
+              .from("study_characters")
+              .insert(
+                Array.from(newCharacterIds).map((characterId) => ({
+                  study_id: id,
+                  character_id: characterId,
+                  papel: "mencionado",
+                })),
+              ),
+        );
 
         if (insertCharactersError) {
           throw new Error(
-            `Erro ao atualizar personagens: ${insertCharactersError.message}`
+            `Erro ao atualizar personagens: ${insertCharactersError.message}`,
           );
         }
       }
     }
 
     if (passagesChanged) {
-      const { error: deletePassagesError } = await supabase
-        .from("study_passages")
-        .delete()
-        .eq("study_id", id);
+      const { error: deletePassagesError } = await withSupabaseRetry(
+        "Excluir referências atuais",
+        () =>
+          supabase
+            .from("study_passages")
+            .delete()
+            .eq("study_id", id),
+      );
 
       if (deletePassagesError) {
         throw new Error(
-          `Erro ao atualizar referências: ${deletePassagesError.message}`
+          `Erro ao atualizar referências: ${deletePassagesError.message}`,
         );
       }
 
       if (resolvedPassages.length > 0) {
-        const { error: insertPassagesError } = await supabase
-          .from("study_passages")
-          .insert(
-            resolvedPassages.map((passage, index) => ({
-              study_id: id,
-              passage_id: passage.passage_id,
-              tipo_relacao: passage.tipo_relacao,
-              prioridade: index + 1,
-            }))
-          );
+        const { error: insertPassagesError } = await withSupabaseRetry(
+          "Gravar referências",
+          () =>
+            supabase
+              .from("study_passages")
+              .insert(
+                resolvedPassages.map((passage, index) => ({
+                  study_id: id,
+                  passage_id: passage.passage_id,
+                  tipo_relacao: passage.tipo_relacao,
+                  prioridade: index + 1,
+                })),
+              ),
+        );
 
         if (insertPassagesError) {
           throw new Error(
-            `Erro ao atualizar referências: ${insertPassagesError.message}`
+            `Erro ao atualizar referências: ${insertPassagesError.message}`,
           );
         }
       }
@@ -442,13 +520,17 @@ export async function POST(
       changed,
     });
   } catch (e) {
+    const transient = isTransientFetchFailure(e);
+
     return NextResponse.json(
       {
-        error: `Erro interno: ${
-          e instanceof Error ? e.message : "desconhecido"
-        }`,
+        error: transient
+          ? "Falha temporária de comunicação com o banco. A operação foi interrompida com segurança. Tente salvar novamente."
+          : `Erro interno: ${
+              e instanceof Error ? e.message : "desconhecido"
+            }`,
       },
-      { status: 500 }
+      { status: transient ? 503 : 500 },
     );
   }
 }
