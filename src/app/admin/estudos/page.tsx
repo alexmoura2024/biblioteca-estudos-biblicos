@@ -6,6 +6,11 @@
 
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
+import {
+  buildAdminStudyFilterHref,
+  buildAdminStudySearchFilter,
+  normalizeAdminStudySearch,
+} from "@/lib/admin/adminStudySearch";
 
 export const dynamic = "force-dynamic";
 
@@ -22,11 +27,11 @@ type StatusFilter = "ALL" | "PUBLISHED" | "REVIEW" | "DRAFT";
 
 interface PageProps {
   searchParams?:
-    | Promise<{ status?: string }>
-    | { status?: string };
+    | Promise<{ status?: string; q?: string }>
+    | { status?: string; q?: string };
 }
 
-async function getStudies() {
+async function getStudies(searchQuery: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -40,12 +45,21 @@ async function getStudies() {
     { auth: { persistSession: false } }
   );
 
-  const { data, error } = await supabase
+  let request = supabase
     .from("studies")
     .select("id, titulo, slug, status, data_origem, updated_at, autor")
     .in("status", ["DRAFT", "REVIEW", "PUBLISHED"])
-    .not("autor", "ilike", "%Prototipo%")
-    .order("updated_at", { ascending: false });
+    .not("autor", "ilike", "%Prototipo%");
+
+  const searchFilter = buildAdminStudySearchFilter(searchQuery);
+
+  if (searchFilter) {
+    request = request.or(searchFilter);
+  }
+
+  const { data, error } = await request.order("updated_at", {
+    ascending: false,
+  });
 
   if (error) {
     console.error("Erro ao buscar estudos:", error);
@@ -81,9 +95,10 @@ function statusBadgeClass(status: Study["status"]) {
 }
 
 export default async function AdminEstudosPage({ searchParams }: PageProps) {
-  const studies = await getStudies();
   const params = searchParams ? await searchParams : {};
   const activeStatus = normalizeStatus(params.status);
+  const searchQuery = normalizeAdminStudySearch(params.q);
+  const studies = await getStudies(searchQuery);
 
   const counts: Record<StatusFilter, number> = {
     ALL: studies.length,
@@ -153,14 +168,72 @@ export default async function AdminEstudosPage({ searchParams }: PageProps) {
           </div>
         </div>
 
+        {/* Busca administrativa */}
+        <div className="mb-6 rounded-lg border border-gray-200 bg-white p-4">
+          <form
+            action="/admin/estudos"
+            method="get"
+            className="flex flex-col gap-3 sm:flex-row sm:items-end"
+          >
+            {activeStatus !== "ALL" ? (
+              <input type="hidden" name="status" value={activeStatus} />
+            ) : null}
+
+            <div className="flex-1">
+              <label
+                htmlFor="admin-study-search"
+                className="mb-2 block text-sm font-semibold text-gray-900"
+              >
+                Buscar nos estudos
+              </label>
+              <input
+                id="admin-study-search"
+                name="q"
+                type="search"
+                defaultValue={searchQuery}
+                maxLength={80}
+                placeholder="Digite uma palavra ou expressão..."
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="rounded-lg bg-orange-600 px-5 py-3 text-sm font-semibold text-white hover:bg-orange-700"
+            >
+              Buscar
+            </button>
+
+            {searchQuery ? (
+              <Link
+                href={buildAdminStudyFilterHref(activeStatus, "")}
+                className="rounded-lg border border-gray-300 bg-white px-5 py-3 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Limpar
+              </Link>
+            ) : null}
+          </form>
+
+          <p className="mt-2 text-xs text-gray-500">
+            Pesquisa em título, resumo e conteúdo completo.
+          </p>
+
+          {searchQuery ? (
+            <p className="mt-3 text-sm font-medium text-gray-700">
+              {filteredStudies.length} estudo
+              {filteredStudies.length === 1 ? "" : "s"} encontrado
+              {filteredStudies.length === 1 ? "" : "s"} para “{searchQuery}”.
+            </p>
+          ) : null}
+        </div>
         {/* Filtros */}
         <div className="flex flex-wrap gap-2 mb-6">
           {filters.map((filter) => {
             const active = activeStatus === filter.value;
-            const href =
-              filter.value === "ALL"
-                ? "/admin/estudos"
-                : `/admin/estudos?status=${filter.value}`;
+            const href = buildAdminStudyFilterHref(
+              filter.value,
+              searchQuery,
+            );
 
             return (
               <Link
@@ -191,7 +264,9 @@ export default async function AdminEstudosPage({ searchParams }: PageProps) {
         {filteredStudies.length === 0 ? (
           <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
             <p className="text-gray-600">
-              Nenhum estudo encontrado para este filtro.
+              {searchQuery
+                ? `Nenhum estudo contém “${searchQuery}” neste filtro.`
+                : "Nenhum estudo encontrado para este filtro."}
             </p>
           </div>
         ) : (
