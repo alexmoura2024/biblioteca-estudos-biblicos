@@ -10,6 +10,9 @@ export interface EditorDraft {
   resumo: string;
   conteudo: string;
   palavras_chave: string;
+  topic_ids?: string[];
+  character_ids?: string[];
+  series_ids?: string[];
 }
 
 export interface AuditCheck {

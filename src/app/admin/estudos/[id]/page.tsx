@@ -40,6 +40,12 @@ interface CharacterAssociation {
   papel: string;
 }
 
+interface SeriesAssociation {
+  series_id: string;
+  nome: string;
+  ordem: number;
+}
+
 interface PassageData {
   passage_id: string;
   referencia_normalizada: string;
@@ -161,6 +167,30 @@ async function getCharacters(
     .filter((c) => c.nome);
 }
 
+async function getSeries(
+  studyId: string
+): Promise<SeriesAssociation[]> {
+  const supabase = adminClient();
+
+  const { data, error } = await supabase
+    .from("study_series")
+    .select("series_id, ordem, series (id, nome)")
+    .eq("study_id", studyId)
+    .order("ordem", { ascending: true });
+
+  if (error) return [];
+
+  return (data || [])
+    .map((item: Record<string, unknown>) => ({
+      series_id: (item.series_id as string) || "",
+      nome:
+        ((item.series as Record<string, unknown>)?.nome as string) ||
+        "",
+      ordem: (item.ordem as number) || 1,
+    }))
+    .filter((item) => item.nome);
+}
+
 export default async function AdminEstudoDetailPage({
   params,
 }: {
@@ -173,13 +203,19 @@ export default async function AdminEstudoDetailPage({
     notFound();
   }
 
-  const [passages, topics, availableTopics, characters] =
-    await Promise.all([
-      getPassages(id),
-      getTopics(id),
-      getAvailableTopics(),
-      getCharacters(id),
-    ]);
+  const [
+    passages,
+    topics,
+    availableTopics,
+    characters,
+    series,
+  ] = await Promise.all([
+    getPassages(id),
+    getTopics(id),
+    getAvailableTopics(),
+    getCharacters(id),
+    getSeries(id),
+  ]);
 
   const statusColor =
     study.status === "PUBLISHED"
@@ -250,7 +286,7 @@ export default async function AdminEstudoDetailPage({
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6 pb-6 border-b border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6 pb-6 border-b border-gray-200">
               {topics.length > 0 && (
                 <div>
                   <h3 className="text-sm font-semibold text-gray-900 mb-2">
@@ -281,6 +317,27 @@ export default async function AdminEstudoDetailPage({
                         className="text-sm text-gray-700"
                       >
                         • {c.nome}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {series.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                    Séries ({series.length})
+                  </h3>
+                  <div className="space-y-1">
+                    {series.map((item) => (
+                      <div
+                        key={item.series_id}
+                        className="text-sm text-gray-700"
+                      >
+                        • {item.nome}{" "}
+                        <span className="text-xs text-gray-400">
+                          #{item.ordem}
+                        </span>
                       </div>
                     ))}
                   </div>

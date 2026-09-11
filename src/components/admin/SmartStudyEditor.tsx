@@ -59,6 +59,26 @@ interface RelatedItem {
   matchedOn: string[];
 }
 
+type ClassificationKind = "topics" | "characters" | "series";
+
+interface ClassificationItem {
+  id: string;
+  name: string;
+  reason: string;
+  confidence: "alta" | "media";
+}
+
+interface ClassificationResult {
+  topics: ClassificationItem[];
+  characters: ClassificationItem[];
+  series: ClassificationItem[];
+  catalogCounts?: {
+    topics: number;
+    characters: number;
+    series: number;
+  };
+}
+
 const STORAGE_KEY = "biblioteca-admin-novo-estudo-v1";
 
 const STUDY_TYPES: Array<{ value: StudyType; label: string }> = [
@@ -115,6 +135,9 @@ const INITIAL_FORM: EditorDraft = {
   resumo: "",
   conteudo: "",
   palavras_chave: "",
+  topic_ids: [],
+  character_ids: [],
+  series_ids: [],
 };
 
 export function SmartStudyEditor() {
@@ -139,6 +162,12 @@ export function SmartStudyEditor() {
   const [lastContentBeforeAi, setLastContentBeforeAi] = useState<
     string | null
   >(null);
+  const [classification, setClassification] =
+    useState<ClassificationResult | null>(null);
+  const [classificationLoading, setClassificationLoading] =
+    useState(false);
+  const [classificationError, setClassificationError] =
+    useState("");
 
   useEffect(() => {
     try {
@@ -240,6 +269,11 @@ export function SmartStudyEditor() {
         : 0,
     [form.conteudo],
   );
+
+  const approvedClassificationCount =
+    (form.topic_ids?.length ?? 0) +
+    (form.character_ids?.length ?? 0) +
+    (form.series_ids?.length ?? 0);
 
   function updateField<K extends keyof EditorDraft>(
     field: K,
@@ -467,6 +501,81 @@ export function SmartStudyEditor() {
       );
     } finally {
       setAssistantLoading(null);
+    }
+  }
+
+  function classificationField(
+    kind: ClassificationKind,
+  ): "topic_ids" | "character_ids" | "series_ids" {
+    if (kind === "topics") return "topic_ids";
+    if (kind === "characters") return "character_ids";
+    return "series_ids";
+  }
+
+  function toggleClassification(
+    kind: ClassificationKind,
+    id: string,
+  ) {
+    const field = classificationField(kind);
+
+    setForm((previous) => {
+      const current = previous[field] ?? [];
+      const next = current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id];
+
+      return { ...previous, [field]: next };
+    });
+  }
+
+  async function suggestClassification() {
+    if (!form.conteudo.trim()) {
+      setClassificationError(
+        "Escreva ou cole o estudo antes de classificar.",
+      );
+      return;
+    }
+
+    setClassificationError("");
+    setClassificationLoading(true);
+
+    try {
+      const response = await fetch("/api/admin/editor/classify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          titulo: form.titulo,
+          resumo: form.resumo,
+          conteudo: form.conteudo,
+          referencia: form.referencia_principal,
+          palavras_chave: form.palavras_chave,
+        }),
+      });
+
+      const data = (await response.json()) as ClassificationResult & {
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Não foi possível classificar o estudo.",
+        );
+      }
+
+      setClassification({
+        topics: data.topics ?? [],
+        characters: data.characters ?? [],
+        series: data.series ?? [],
+        catalogCounts: data.catalogCounts,
+      });
+    } catch (requestError) {
+      setClassificationError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Erro inesperado na classificação editorial.",
+      );
+    } finally {
+      setClassificationLoading(false);
     }
   }
 
@@ -910,6 +1019,9 @@ export function SmartStudyEditor() {
                   <span>{wordCount.toLocaleString("pt-BR")} palavras</span>
                   <span>{references.length} referências bíblicas</span>
                   <span>{auditPass}/{audit.length} itens editoriais prontos</span>
+                  <span>
+                    {approvedClassificationCount} classificações aprovadas
+                  </span>
                 </div>
                 <span
                   className={
@@ -1161,6 +1273,90 @@ export function SmartStudyEditor() {
             </Panel>
 
             <Panel
+              title="Classificação editorial"
+              eyebrow="IA + aprovação humana"
+            >
+              <p className="text-xs leading-5 text-stone-500">
+                A IA sugere somente temas, personagens e séries já existentes
+                no catálogo. Nada é associado sem sua aprovação.
+              </p>
+
+              <button
+                type="button"
+                disabled={classificationLoading}
+                onClick={suggestClassification}
+                className="w-full rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900 hover:bg-sky-100 disabled:opacity-50"
+              >
+                {classificationLoading
+                  ? "Analisando o estudo..."
+                  : "Sugerir classificação com IA"}
+              </button>
+
+              <div className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-[11px] leading-5 text-stone-600">
+                <strong>{approvedClassificationCount}</strong> vínculo(s)
+                aprovado(s): {form.topic_ids?.length ?? 0} tema(s),{" "}
+                {form.character_ids?.length ?? 0} personagem(ns) e{" "}
+                {form.series_ids?.length ?? 0} série(s).
+              </div>
+
+              {classification && (
+                <div className="space-y-4">
+                  <ClassificationGroup
+                    label="Temas sugeridos"
+                    items={classification.topics}
+                    selectedIds={form.topic_ids ?? []}
+                    onToggle={(id) =>
+                      toggleClassification("topics", id)
+                    }
+                    emptyText="Nenhum tema seguro foi sugerido."
+                  />
+
+                  <ClassificationGroup
+                    label="Personagens sugeridos"
+                    items={classification.characters}
+                    selectedIds={form.character_ids ?? []}
+                    onToggle={(id) =>
+                      toggleClassification("characters", id)
+                    }
+                    emptyText="Nenhum personagem seguro foi sugerido."
+                  />
+
+                  <ClassificationGroup
+                    label="Séries sugeridas"
+                    items={classification.series}
+                    selectedIds={form.series_ids ?? []}
+                    onToggle={(id) =>
+                      toggleClassification("series", id)
+                    }
+                    emptyText="Nenhuma série apresentou encaixe editorial forte."
+                  />
+
+                  {classification.catalogCounts && (
+                    <p className="text-[10px] leading-4 text-stone-400">
+                      Catálogo consultado:{" "}
+                      {classification.catalogCounts.topics} temas,{" "}
+                      {classification.catalogCounts.characters} personagens e{" "}
+                      {classification.catalogCounts.series} séries.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {!classification && !classificationLoading && (
+                <p className="text-[10px] leading-4 text-stone-400">
+                  As sugestões aparecem aqui para aprovação individual antes
+                  de salvar o DRAFT.
+                </p>
+              )}
+
+              {classificationError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs leading-5 text-red-800">
+                  {classificationError}
+                </div>
+              )}
+            </Panel>
+
+            <Panel
               title="Auditoria editorial"
               eyebrow={`${auditPass}/${audit.length} itens prontos`}
             >
@@ -1224,6 +1420,80 @@ export function SmartStudyEditor() {
           }
         }
       `}</style>
+    </div>
+  );
+}
+
+function ClassificationGroup({
+  label,
+  items,
+  selectedIds,
+  onToggle,
+  emptyText,
+}: {
+  label: string;
+  items: ClassificationItem[];
+  selectedIds: string[];
+  onToggle: (id: string) => void;
+  emptyText: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-stone-400">
+        {label}
+      </p>
+
+      {items.length === 0 ? (
+        <p className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-[11px] leading-5 text-stone-500">
+          {emptyText}
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {items.map((item) => {
+            const selected = selectedIds.includes(item.id);
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onToggle(item.id)}
+                className={`w-full rounded-lg border px-3 py-2 text-left transition ${
+                  selected
+                    ? "border-emerald-300 bg-emerald-50"
+                    : "border-stone-200 bg-white hover:border-sky-300 hover:bg-sky-50"
+                }`}
+              >
+                <span className="flex items-center justify-between gap-2">
+                  <span
+                    className={`text-xs font-semibold ${
+                      selected
+                        ? "text-emerald-900"
+                        : "text-stone-900"
+                    }`}
+                  >
+                    {item.name}
+                  </span>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] ${
+                      selected
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-stone-100 text-stone-500"
+                    }`}
+                  >
+                    {selected ? "Aprovado" : item.confidence}
+                  </span>
+                </span>
+
+                {item.reason && (
+                  <span className="mt-1 block text-[10px] leading-4 text-stone-500">
+                    {item.reason}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

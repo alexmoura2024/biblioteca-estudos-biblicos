@@ -11,6 +11,40 @@ const ALLOWED_STUDY_TYPES = new Set([
   "DOUTRINÁRIO",
 ]);
 
+function uniqueIds(value: unknown, limit: number): string[] {
+  if (!Array.isArray(value)) return [];
+
+  return [
+    ...new Set(
+      value
+        .filter((item): item is string => typeof item === "string")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ),
+  ].slice(0, limit);
+}
+
+async function catalogIdsExist(
+  supabase: any,
+  table: "topics" | "characters" | "series",
+  ids: string[],
+): Promise<boolean> {
+  if (ids.length === 0) return true;
+
+  const { data, error } = await supabase
+    .from(table)
+    .select("id")
+    .in("id", ids);
+
+  if (error) {
+    throw new Error(
+      `Erro ao validar classificação em ${table}: ${error.message}`,
+    );
+  }
+
+  return (data ?? []).length === ids.length;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -32,6 +66,9 @@ export async function POST(request: NextRequest) {
       resumo?: string;
       conteudo?: string;
       palavras_chave?: string;
+      topic_ids?: string[];
+      character_ids?: string[];
+      series_ids?: string[];
     };
 
     const titulo = body.titulo?.trim() || "";
@@ -77,6 +114,30 @@ export async function POST(request: NextRequest) {
     const supabase = createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
+
+    const topicIds = uniqueIds(body.topic_ids, 12);
+    const characterIds = uniqueIds(body.character_ids, 12);
+    const seriesIds = uniqueIds(body.series_ids, 6);
+
+    const [
+      topicsValid,
+      charactersValid,
+      seriesValid,
+    ] = await Promise.all([
+      catalogIdsExist(supabase, "topics", topicIds),
+      catalogIdsExist(supabase, "characters", characterIds),
+      catalogIdsExist(supabase, "series", seriesIds),
+    ]);
+
+    if (!topicsValid || !charactersValid || !seriesValid) {
+      return NextResponse.json(
+        {
+          error:
+            "A classificação contém um vínculo que não existe mais no catálogo. Gere novamente as sugestões.",
+        },
+        { status: 400 },
+      );
+    }
 
     let passageId: string | null = null;
 
@@ -251,6 +312,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const rollbackStudy = async (message: string) => {
+      await supabase.from("studies").delete().eq("id", study.id);
+
+      return NextResponse.json(
+        { error: message },
+        { status: 500 },
+      );
+    };
+
     if (passageId) {
       const { error: linkError } = await supabase
         .from("study_passages")
@@ -262,13 +332,89 @@ export async function POST(request: NextRequest) {
         });
 
       if (linkError) {
-        await supabase.from("studies").delete().eq("id", study.id);
+        return rollbackStudy(
+          `O estudo não foi criado porque não foi possível vincular a referência principal: ${linkError.message}`,
+        );
+      }
+    }
 
-        return NextResponse.json(
-          {
-            error: `O estudo não foi criado porque não foi possível vincular a referência principal: ${linkError.message}`,
-          },
-          { status: 500 }
+    if (topicIds.length > 0) {
+      const { error: topicLinkError } = await supabase
+        .from("study_topics")
+        .insert(
+          topicIds.map((topicId) => ({
+            study_id: study.id,
+            topic_id: topicId,
+            peso: 1,
+          })),
+        );
+
+      if (topicLinkError) {
+        return rollbackStudy(
+          `O estudo não foi criado porque não foi possível vincular os temas aprovados: ${topicLinkError.message}`,
+        );
+      }
+    }
+
+    if (characterIds.length > 0) {
+      const { error: characterLinkError } = await supabase
+        .from("study_characters")
+        .insert(
+          characterIds.map((characterId) => ({
+            study_id: study.id,
+            character_id: characterId,
+            papel: "mencionado",
+          })),
+        );
+
+      if (characterLinkError) {
+        return rollbackStudy(
+          `O estudo não foi criado porque não foi possível vincular os personagens aprovados: ${characterLinkError.message}`,
+        );
+      }
+    }
+
+    if (seriesIds.length > 0) {
+      const seriesRows: Array<{
+        study_id: string;
+        series_id: string;
+        ordem: number;
+      }> = [];
+
+      for (const seriesId of seriesIds) {
+        const { data: lastRows, error: seriesOrderError } =
+          await supabase
+            .from("study_series")
+            .select("ordem")
+            .eq("series_id", seriesId)
+            .order("ordem", { ascending: false })
+            .limit(1);
+
+        if (seriesOrderError) {
+          return rollbackStudy(
+            `O estudo não foi criado porque não foi possível determinar a ordem da série: ${seriesOrderError.message}`,
+          );
+        }
+
+        const lastOrder =
+          lastRows && lastRows.length > 0
+            ? Number(lastRows[0].ordem) || 0
+            : 0;
+
+        seriesRows.push({
+          study_id: study.id,
+          series_id: seriesId,
+          ordem: lastOrder + 1,
+        });
+      }
+
+      const { error: seriesLinkError } = await supabase
+        .from("study_series")
+        .insert(seriesRows);
+
+      if (seriesLinkError) {
+        return rollbackStudy(
+          `O estudo não foi criado porque não foi possível vincular as séries aprovadas: ${seriesLinkError.message}`,
         );
       }
     }
@@ -281,6 +427,11 @@ export async function POST(request: NextRequest) {
         id: study.id,
         slug: study.slug,
         status: "DRAFT",
+        classification: {
+          topics: topicIds.length,
+          characters: characterIds.length,
+          series: seriesIds.length,
+        },
       },
       { status: 201 }
     );
