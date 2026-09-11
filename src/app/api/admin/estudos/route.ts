@@ -45,6 +45,130 @@ async function catalogIdsExist(
   return (data ?? []).length === ids.length;
 }
 
+type ApprovedReference = {
+  reference: string;
+  relation: "SECONDARY" | "CITED";
+};
+
+function normalizeApprovedReferences(value: unknown): ApprovedReference[] {
+  if (!Array.isArray(value)) return [];
+
+  const seen = new Set<string>();
+  const normalized: ApprovedReference[] = [];
+
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+
+    const record = item as Record<string, unknown>;
+    const reference =
+      typeof record.reference === "string"
+        ? record.reference.trim()
+        : "";
+    const relation =
+      record.relation === "SECONDARY" || record.relation === "CITED"
+        ? record.relation
+        : null;
+
+    if (!reference || !relation || seen.has(reference.toLowerCase())) {
+      continue;
+    }
+
+    seen.add(reference.toLowerCase());
+    normalized.push({ reference, relation });
+
+    if (normalized.length >= 24) break;
+  }
+
+  return normalized;
+}
+
+async function resolveAdditionalPassage(
+  supabase: any,
+  rawReference: string,
+): Promise<{ id: string; referencia: string }> {
+  const normalizedInput = rawReference
+    .trim()
+    .replace(/[\u2012\u2013\u2014\u2212]/g, "-")
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ");
+
+  const parsed = parseReference(normalizedInput);
+
+  if (
+    parsed.type === "none" ||
+    parsed.type === "ambiguous" ||
+    parsed.type === "invalid" ||
+    parsed.type === "book"
+  ) {
+    throw new Error(
+      `Referência bíblica aprovada inválida: ${rawReference}`,
+    );
+  }
+
+  const { data: dbBook, error: bookError } = await supabase
+    .from("books")
+    .select("id,nome,slug")
+    .eq("slug", parsed.book.slug)
+    .single();
+
+  if (bookError || !dbBook) {
+    throw new Error(
+      `Livro bíblico não encontrado: ${parsed.book.nome}`,
+    );
+  }
+
+  const referencia =
+    parsed.type === "chapter"
+      ? `${dbBook.nome} ${parsed.capitulo}`
+      : `${dbBook.nome} ${parsed.capitulo}:${parsed.versiculoInicio}${
+          parsed.versiculoFim !== undefined
+            ? `-${parsed.versiculoFim}`
+            : ""
+        }`;
+
+  const { data: existing, error: lookupError } = await supabase
+    .from("passages")
+    .select("id")
+    .eq("referencia_normalizada", referencia)
+    .limit(1);
+
+  if (lookupError) {
+    throw new Error(
+      `Erro ao consultar ${referencia}: ${lookupError.message}`,
+    );
+  }
+
+  if (existing && existing.length > 0) {
+    return { id: existing[0].id, referencia };
+  }
+
+  const { data: created, error: createError } = await supabase
+    .from("passages")
+    .insert({
+      book_id: dbBook.id,
+      capitulo: parsed.capitulo,
+      versiculo_inicio:
+        parsed.type === "verse" ? parsed.versiculoInicio : null,
+      versiculo_fim:
+        parsed.type === "verse"
+          ? parsed.versiculoFim ?? null
+          : null,
+      referencia_normalizada: referencia,
+    })
+    .select("id")
+    .single();
+
+  if (createError || !created) {
+    throw new Error(
+      `Erro ao criar ${referencia}: ${
+        createError?.message || "erro desconhecido"
+      }`,
+    );
+  }
+
+  return { id: created.id, referencia };
+}
+
 export async function POST(request: NextRequest) {
   try {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -69,6 +193,10 @@ export async function POST(request: NextRequest) {
       topic_ids?: string[];
       character_ids?: string[];
       series_ids?: string[];
+      approved_references?: Array<{
+        reference?: string;
+        relation?: string;
+      }>;
     };
 
     const titulo = body.titulo?.trim() || "";
@@ -138,6 +266,10 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    const approvedReferences = normalizeApprovedReferences(
+      body.approved_references,
+    );
 
     let passageId: string | null = null;
 
@@ -247,6 +379,37 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const resolvedApprovedReferences: Array<{
+      passage_id: string;
+      referencia_normalizada: string;
+      tipo_relacao: "SECONDARY" | "CITED";
+    }> = [];
+
+    for (const approved of approvedReferences) {
+      const resolved = await resolveAdditionalPassage(
+        supabase,
+        approved.reference,
+      );
+
+      if (passageId && resolved.id === passageId) {
+        continue;
+      }
+
+      if (
+        resolvedApprovedReferences.some(
+          (item) => item.passage_id === resolved.id,
+        )
+      ) {
+        continue;
+      }
+
+      resolvedApprovedReferences.push({
+        passage_id: resolved.id,
+        referencia_normalizada: resolved.referencia,
+        tipo_relacao: approved.relation,
+      });
+    }
+
     const baseSlug = slugify(titulo);
 
     if (!baseSlug) {
@@ -321,19 +484,39 @@ export async function POST(request: NextRequest) {
       );
     };
 
+    const passageRows: Array<{
+      study_id: string;
+      passage_id: string;
+      tipo_relacao: "MAIN" | "SECONDARY" | "CITED";
+      prioridade: number;
+    }> = [];
+
     if (passageId) {
+      passageRows.push({
+        study_id: study.id,
+        passage_id: passageId,
+        tipo_relacao: "MAIN",
+        prioridade: 1,
+      });
+    }
+
+    resolvedApprovedReferences.forEach((passage, index) => {
+      passageRows.push({
+        study_id: study.id,
+        passage_id: passage.passage_id,
+        tipo_relacao: passage.tipo_relacao,
+        prioridade: index + 2,
+      });
+    });
+
+    if (passageRows.length > 0) {
       const { error: linkError } = await supabase
         .from("study_passages")
-        .insert({
-          study_id: study.id,
-          passage_id: passageId,
-          tipo_relacao: "MAIN",
-          prioridade: 1,
-        });
+        .insert(passageRows);
 
       if (linkError) {
         return rollbackStudy(
-          `O estudo não foi criado porque não foi possível vincular a referência principal: ${linkError.message}`,
+          `O estudo não foi criado porque não foi possível vincular as referências aprovadas: ${linkError.message}`,
         );
       }
     }
@@ -432,6 +615,7 @@ export async function POST(request: NextRequest) {
           characters: characterIds.length,
           series: seriesIds.length,
         },
+        references: passageRows.length,
       },
       { status: 201 }
     );

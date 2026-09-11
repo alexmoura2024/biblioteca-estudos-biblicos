@@ -13,6 +13,10 @@ export interface EditorDraft {
   topic_ids?: string[];
   character_ids?: string[];
   series_ids?: string[];
+  approved_references?: Array<{
+    reference: string;
+    relation: "SECONDARY" | "CITED";
+  }>;
 }
 
 export interface AuditCheck {

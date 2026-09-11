@@ -9,6 +9,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import EditStudyClient from "./EditStudyClient";
 import PublishStudyButton from "./PublishStudyButton";
+import {
+  evaluateEditorialGate,
+} from "@/lib/admin/editorialGate";
 
 interface Study {
   id: string;
@@ -191,6 +194,55 @@ async function getSeries(
     .filter((item) => item.nome);
 }
 
+async function getReviewApprovalState(studyId: string) {
+  const supabase = adminClient();
+
+  const { data, error } = await supabase
+    .from("study_edits")
+    .select("created_at,campos_alterados")
+    .eq("study_id", studyId)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    return { approved: false };
+  }
+
+  const records = (data || []) as Array<{
+    created_at: string;
+    campos_alterados: string[] | null;
+  }>;
+
+  const snapshot = records.find((record) =>
+    (record.campos_alterados || []).includes("review_snapshot"),
+  );
+
+  if (!snapshot) return { approved: false };
+
+  const snapshotTime = new Date(snapshot.created_at).getTime();
+
+  const approval = records.find((record) => {
+    const fields = record.campos_alterados || [];
+    return (
+      fields.includes("review_approved") &&
+      new Date(record.created_at).getTime() >= snapshotTime
+    );
+  });
+
+  if (!approval) return { approved: false };
+
+  const approvalTime = new Date(approval.created_at).getTime();
+  const invalidated = records.some((record) => {
+    const fields = record.campos_alterados || [];
+    return (
+      new Date(record.created_at).getTime() > approvalTime &&
+      !fields.includes("review_approved")
+    );
+  });
+
+  return { approved: !invalidated };
+}
+
 export default async function AdminEstudoDetailPage({
   params,
 }: {
@@ -209,13 +261,25 @@ export default async function AdminEstudoDetailPage({
     availableTopics,
     characters,
     series,
+    reviewState,
   ] = await Promise.all([
     getPassages(id),
     getTopics(id),
     getAvailableTopics(),
     getCharacters(id),
     getSeries(id),
+    getReviewApprovalState(id),
   ]);
+
+  const gate = evaluateEditorialGate({
+    titulo: study.titulo,
+    autor: study.autor,
+    data_origem: study.data_origem,
+    resumo: study.resumo,
+    conteudo: study.conteudo,
+    palavras_chave: study.palavras_chave || [],
+    passages,
+  });
 
   const statusColor =
     study.status === "PUBLISHED"
@@ -357,6 +421,28 @@ export default async function AdminEstudoDetailPage({
               <PublishStudyButton
                 studyId={study.id}
                 status={study.status}
+                gate={gate}
+                reviewApproved={reviewState.approved}
+                preview={{
+                  title: study.titulo,
+                  author: study.autor,
+                  date: study.data_origem,
+                  summary: study.resumo,
+                  content: study.conteudo,
+                  keywords: study.palavras_chave || [],
+                  passages: passages.map((passage) => ({
+                    reference: passage.referencia_normalizada,
+                    relation: passage.tipo_relacao,
+                  })),
+                  topics: topics.map((topic) => topic.nome),
+                  characters: characters.map(
+                    (character) => character.nome,
+                  ),
+                  series: series.map((item) => ({
+                    name: item.nome,
+                    order: item.ordem,
+                  })),
+                }}
               />
             </div>
 

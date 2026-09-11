@@ -138,6 +138,7 @@ const INITIAL_FORM: EditorDraft = {
   topic_ids: [],
   character_ids: [],
   series_ids: [],
+  approved_references: [],
 };
 
 export function SmartStudyEditor() {
@@ -274,6 +275,10 @@ export function SmartStudyEditor() {
     (form.topic_ids?.length ?? 0) +
     (form.character_ids?.length ?? 0) +
     (form.series_ids?.length ?? 0);
+
+  const approvedReferenceCount =
+    (form.approved_references?.length ?? 0) +
+    (form.referencia_principal.trim() ? 1 : 0);
 
   function updateField<K extends keyof EditorDraft>(
     field: K,
@@ -504,6 +509,48 @@ export function SmartStudyEditor() {
     }
   }
 
+  function referenceRelation(
+    reference: string,
+  ): "IGNORE" | "MAIN" | "SECONDARY" | "CITED" {
+    if (form.referencia_principal.trim() === reference) {
+      return "MAIN";
+    }
+
+    return (
+      form.approved_references?.find(
+        (item) => item.reference === reference,
+      )?.relation ?? "IGNORE"
+    );
+  }
+
+  function setReferenceRelation(
+    reference: string,
+    relation: "IGNORE" | "MAIN" | "SECONDARY" | "CITED",
+  ) {
+    setForm((previous) => {
+      const approved = (previous.approved_references ?? []).filter(
+        (item) => item.reference !== reference,
+      );
+
+      if (relation === "MAIN") {
+        return {
+          ...previous,
+          referencia_principal: reference,
+          approved_references: approved,
+        };
+      }
+
+      if (relation === "SECONDARY" || relation === "CITED") {
+        approved.push({ reference, relation });
+      }
+
+      return {
+        ...previous,
+        approved_references: approved,
+      };
+    });
+  }
+
   function classificationField(
     kind: ClassificationKind,
   ): "topic_ids" | "character_ids" | "series_ids" {
@@ -585,10 +632,18 @@ export function SmartStudyEditor() {
     setIsSaving(true);
 
     try {
+      const visibleReferences = new Set(references);
+      const payload: EditorDraft = {
+        ...form,
+        approved_references: (form.approved_references ?? []).filter(
+          (item) => visibleReferences.has(item.reference),
+        ),
+      };
+
       const response = await fetch("/api/admin/estudos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       const data = (await response.json()) as {
@@ -1022,6 +1077,9 @@ export function SmartStudyEditor() {
                   <span>
                     {approvedClassificationCount} classificações aprovadas
                   </span>
+                  <span>
+                    {approvedReferenceCount} referências aprovadas
+                  </span>
                 </div>
                 <span
                   className={
@@ -1225,30 +1283,58 @@ export function SmartStudyEditor() {
                 </p>
               ) : (
                 <div className="space-y-2">
-                  <div className="flex flex-wrap gap-1.5">
-                    {references.slice(0, 24).map((reference) => (
-                      <span
+                  {references.slice(0, 24).map((reference) => {
+                    const relation = referenceRelation(reference);
+
+                    return (
+                      <div
                         key={reference}
-                        className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800"
+                        className={`rounded-lg border p-2.5 ${
+                          relation === "IGNORE"
+                            ? "border-stone-200 bg-white"
+                            : relation === "MAIN"
+                              ? "border-amber-300 bg-amber-50"
+                              : "border-emerald-200 bg-emerald-50"
+                        }`}
                       >
-                        {reference}
-                      </span>
-                    ))}
-                  </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-semibold text-stone-900">
+                            {reference}
+                          </span>
+
+                          <select
+                            value={relation}
+                            onChange={(event) =>
+                              setReferenceRelation(
+                                reference,
+                                event.target.value as
+                                  | "IGNORE"
+                                  | "MAIN"
+                                  | "SECONDARY"
+                                  | "CITED",
+                              )
+                            }
+                            className="rounded-md border border-stone-300 bg-white px-2 py-1 text-[10px] font-semibold text-stone-700"
+                          >
+                            <option value="IGNORE">Não vincular</option>
+                            <option value="MAIN">Principal</option>
+                            <option value="SECONDARY">Secundária</option>
+                            <option value="CITED">Citada</option>
+                          </select>
+                        </div>
+                      </div>
+                    );
+                  })}
 
                   <p className="text-[10px] font-semibold text-emerald-700">
-                    {references.length} referência(s) reconhecida(s) no conteúdo.
+                    {references.length} detectada(s) · {approvedReferenceCount} aprovada(s).
                   </p>
                 </div>
               )}
 
               <button
                 type="button"
-                disabled={
-                  !hydrated ||
-                  assistantLoading !== null ||
-                  !form.conteudo.trim()
-                }
+                disabled={assistantLoading !== null}
                 onClick={() => runAi("detect_references")}
                 className="w-full rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900 hover:bg-emerald-100 disabled:opacity-50"
               >
@@ -1266,9 +1352,8 @@ export function SmartStudyEditor() {
               )}
 
               <p className="text-[10px] leading-4 text-stone-400">
-                As referências detectadas alimentam automaticamente a Auditoria
-                editorial. A referência principal continua sendo definida no
-                painel “Dados editoriais”.
+                Defina cada referência como Principal, Secundária, Citada ou
+                “Não vincular”. Somente as aprovadas serão persistidas no DRAFT.
               </p>
             </Panel>
 
