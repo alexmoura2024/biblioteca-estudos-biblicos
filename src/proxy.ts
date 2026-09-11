@@ -133,7 +133,7 @@ export async function proxy(request: NextRequest) {
   }
 
   const publicPassword =
-    process.env.PUBLIC_SITE_PASSWORD;
+    process.env.SITE_PASSWORD;
 
   if (!publicPassword) {
     const accessUrl = request.nextUrl.clone();

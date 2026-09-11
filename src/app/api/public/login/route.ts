@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   );
 
   const configuredPassword =
-    process.env.PUBLIC_SITE_PASSWORD;
+    process.env.SITE_PASSWORD;
 
   if (!configuredPassword) {
     return NextResponse.redirect(
