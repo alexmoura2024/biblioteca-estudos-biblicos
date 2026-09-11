@@ -13,6 +13,9 @@ import {
   studyRepository,
 } from "@/lib/repositories";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface ChapterPageProps {
   params: Promise<{
     livro: string;

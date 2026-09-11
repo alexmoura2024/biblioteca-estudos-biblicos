@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBibleAdminClient } from "@/lib/bible/serverAdmin";
 import { NextRequest, NextResponse } from "next/server";
 import { cleanLexicalGloss } from "@/lib/bible/lexicalPresentation";
 
@@ -75,23 +75,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const openAiKey = process.env.OPENAI_API_KEY;
+    const supabase = createBibleAdminClient();
 
-    if (!url || !key) {
+    if (!supabase) {
       return NextResponse.json(
         { error: "Banco administrativo não configurado." },
         { status: 503 },
       );
     }
-
-    const supabase = createClient(url, key, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    });
 
     const { data: word, error: wordError } = await supabase
       .from("bible_original_words")

@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBibleAdminClient } from "@/lib/bible/serverAdmin";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -14,22 +14,14 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabase = createBibleAdminClient();
 
-  if (!url || !key) {
+  if (!supabase) {
     return NextResponse.json(
       { error: "Banco administrativo não configurado." },
       { status: 503 },
     );
   }
-
-  const supabase = createClient(url, key, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  });
 
   const [{ count, error: countError }, { data, error }] =
     await Promise.all([

@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBibleAdminClient } from "./serverAdmin";
 
 export const PRIVATE_ACF_CODE = "acf-private";
 
@@ -18,27 +18,13 @@ export function bibleTextEnabled(): boolean {
   return process.env.BIBLE_TEXT_ENABLED?.trim().toLowerCase() === "true";
 }
 
-function adminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !key) return null;
-
-  return createClient(url, key, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  });
-}
-
 export async function getPrivateAcfChapter(
   bookId: string,
   chapter: number,
 ): Promise<PrivateBibleChapter | null> {
   if (!bibleTextEnabled()) return null;
 
-  const supabase = adminClient();
+  const supabase = createBibleAdminClient();
   if (!supabase) return null;
 
   const { data: version, error: versionError } = await supabase
