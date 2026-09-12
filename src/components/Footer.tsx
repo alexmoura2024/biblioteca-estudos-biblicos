@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { mainNav, siteConfig } from "@/lib/site";
+import { VisitorCounter } from "@/components/VisitorCounter";
 
 const primaryNav = mainNav.filter(
   (item) => item.href !== "/minha-biblioteca",
@@ -118,6 +119,7 @@ export function Footer() {
           <p>
             © {year} {siteConfig.proprietario}. Todos os direitos reservados.
           </p>
+          <VisitorCounter />
           <p>Estudar · Compreender · Aplicar · Compartilhar</p>
         </div>
       </div>
