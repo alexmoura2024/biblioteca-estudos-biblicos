@@ -6,6 +6,8 @@ import { CollectionHero } from "@/components/CollectionHero";
 import { EmptyState } from "@/components/EmptyState";
 import { StudyCard } from "@/components/StudyCard";
 import { bookRepository, studyRepository } from "@/lib/repositories";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface BookPageProps {
   params: Promise<{ livro: string }>;
