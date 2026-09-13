@@ -13,11 +13,6 @@ interface BookPageProps {
   params: Promise<{ livro: string }>;
 }
 
-export async function generateStaticParams() {
-  const books = await bookRepository.listAll();
-  return books.map((book) => ({ livro: book.slug }));
-}
-
 export async function generateMetadata({
   params,
 }: BookPageProps): Promise<Metadata> {
