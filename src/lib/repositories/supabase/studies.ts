@@ -5,7 +5,11 @@ import type { StudyRow } from "@/lib/repositories/supabase/rows";
 import type { StudyRepository } from "@/lib/repositories/types";
 import type { StudySummary } from "@/lib/types";
 
-const STUDY_SUMMARY_COLUMNS = "id, titulo, slug, resumo, conteudo, status, visibilidade, autor, data_origem, palavras_chave, created_at, updated_at";
+const STUDY_DETAIL_COLUMNS =
+  "id, titulo, slug, resumo, conteudo, status, visibilidade, tipo_estudo, autor, data_origem, palavras_chave, created_at, updated_at";
+
+const STUDY_SUMMARY_COLUMNS =
+  "id, titulo, slug, resumo, autor, data_origem";
 
 /**
  * Implementação Supabase de `StudyRepository` (Fase 2, Etapa 8).
@@ -56,7 +60,7 @@ export class SupabaseStudyRepository implements StudyRepository {
     const client = getSupabaseClient();
     const { data: studyRow, error: studyError } = await client
       .from("studies")
-      .select(STUDY_SUMMARY_COLUMNS)
+      .select(STUDY_DETAIL_COLUMNS)
       .eq("slug", slug)
       .eq("status", "PUBLISHED")
       .eq("visibilidade", "publico")
